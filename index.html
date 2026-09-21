@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="NAKESA - Asisten digital untuk mengelola praktik tenaga kesehatan.">
+  <title>NAKESA — Digital Practice Management</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- TASK 1: Semantic HTML Structure -->
+  <header class="site-header">
+    <div class="container nav-wrapper">
+      <a class="brand" href="#beranda" aria-label="NAKESA Beranda">
+        <span class="brand-mark" aria-hidden="true">✚</span>
+        <span>NAKESA</span>
+      </a>
+
+      <nav class="desktop-nav" aria-label="Navigasi utama">
+        <a href="#beranda">Beranda</a>
+        <a href="#fitur">Fitur</a>
+        <a href="#praktik">Praktik</a>
+        <a href="#tentang">Tentang</a>
+        <a class="nav-button" href="#login">Masuk</a>
+      </nav>
+
+      <details class="mobile-nav">
+        <summary aria-label="Buka menu navigasi">☰</summary>
+        <nav aria-label="Navigasi mobile">
+          <a href="#beranda">Beranda</a>
+          <a href="#fitur">Fitur</a>
+          <a href="#praktik">Praktik</a>
+          <a href="#tentang">Tentang</a>
+          <a class="nav-button" href="#login">Masuk</a>
+        </nav>
+      </details>
+    </div>
+  </header>
+
+  <main>
+    <!-- HERO -->
+    <section id="beranda" class="hero-section" aria-labelledby="hero-title">
+      <div class="container">
+        <div class="hero-card">
+          <div class="hero-content">
+            <p class="eyebrow">Digital Practice Management</p>
+            <h1 id="hero-title">Kelola Praktik.<br>Rawat Pasien.<br>Lebih Teratur.</h1>
+            <p class="hero-copy">
+              NAKESA membantu tenaga kesehatan mencatat pasien, pemeriksaan,
+              obat, stok, jadwal, dan administrasi praktik dalam satu sistem.
+            </p>
+            <div class="hero-actions">
+              <a class="primary-button" href="#fitur">
+                Mulai Kelola <span aria-hidden="true">→</span>
+              </a>
+              <a class="secondary-button" href="#tentang">Pelajari NAKESA</a>
+            </div>
+          </div>
+
+          <div class="hero-visual" aria-label="Dashboard ringkas NAKESA">
+            <div class="floating-icon icon-patient" aria-hidden="true">👤</div>
+            <div class="floating-icon icon-medical" aria-hidden="true">✚</div>
+            <div class="floating-icon icon-medicine" aria-hidden="true">💊</div>
+
+            <div class="dashboard-card">
+              <div class="dashboard-top">
+                <div>
+                  <span class="mini-label">Ringkasan Praktik</span>
+                  <strong>Hari Ini</strong>
+                </div>
+                <span class="status-dot">● Aktif</span>
+              </div>
+
+              <div class="dashboard-stats">
+                <div class="stat-box blue-stat">
+                  <span class="stat-icon" aria-hidden="true">👥</span>
+                  <div>
+                    <span>Pasien</span>
+                    <strong>24</strong>
+                  </div>
+                </div>
+                <div class="stat-box green-stat">
+                  <span class="stat-icon" aria-hidden="true">🩺</span>
+                  <div>
+                    <span>Kunjungan</span>
+                    <strong>18</strong>
+                  </div>
+                </div>
+              </div>
+
+              <div class="stock-summary">
+                <div class="summary-heading">
+                  <strong>Stok Obat</strong>
+                  <span>12 item</span>
+                </div>
+                <div class="stock-row">
+                  <span>Paracetamol</span>
+                  <span class="stock-good">Tersedia</span>
+                </div>
+                <div class="stock-row">
+                  <span>Amoxicillin</span>
+                  <span class="stock-warning">Menipis</span>
+                </div>
+                <div class="stock-row">
+                  <span>Vitamin</span>
+                  <span class="stock-good">Tersedia</span>
+                </div>
+              </div>
+
+              <div class="dashboard-footer">
+                <span>NAKESA</span>
+                <span>Semua aktivitas tercatat</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- FITUR -->
+    <section id="fitur" class="section" aria-labelledby="fitur-title">
+      <div class="container">
+        <div class="section-heading">
+          <p class="eyebrow">Fitur Utama</p>
+          <h2 id="fitur-title">Satu sistem untuk seluruh aktivitas praktik</h2>
+          <p>
+            NAKESA dirancang agar pencatatan operasional praktik menjadi lebih
+            terstruktur, mudah dicari, dan mudah dipantau.
+          </p>
+        </div>
+
+        <div class="feature-grid">
+          <article class="feature-card feature-blue">
+            <div class="feature-icon" aria-hidden="true">👤</div>
+            <h3>Manajemen Pasien</h3>
+            <p>Kelola identitas pasien, riwayat kunjungan, dan informasi penting secara terstruktur.</p>
+          </article>
+
+          <article class="feature-card feature-purple">
+            <div class="feature-icon" aria-hidden="true">🩺</div>
+            <h3>Pemeriksaan & Tindakan</h3>
+            <p>Catat hasil pemeriksaan, tindakan, keluhan, dan catatan pelayanan kesehatan.</p>
+          </article>
+
+          <article class="feature-card feature-green">
+            <div class="feature-icon" aria-hidden="true">💊</div>
+            <h3>Obat & Stok</h3>
+            <p>Pantau persediaan obat, penggunaan, dan kondisi stok agar lebih terkontrol.</p>
+          </article>
+
+          <article class="feature-card feature-orange">
+            <div class="feature-icon" aria-hidden="true">📦</div>
+            <h3>Inventaris</h3>
+            <p>Kelola alat kesehatan dan perlengkapan praktik dalam satu daftar inventaris.</p>
+          </article>
+
+          <article class="feature-card feature-cyan">
+            <div class="feature-icon" aria-hidden="true">📅</div>
+            <h3>Jadwal Kunjungan</h3>
+            <p>Atur jadwal praktik dan kunjungan pasien dengan tampilan yang mudah dipahami.</p>
+          </article>
+
+          <article class="feature-card feature-pink">
+            <div class="feature-icon" aria-hidden="true">📊</div>
+            <h3>Laporan Praktik</h3>
+            <p>Lihat ringkasan aktivitas praktik melalui dashboard dan laporan yang terorganisir.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- PRAKTIK -->
+    <section id="praktik" class="section section-soft" aria-labelledby="praktik-title">
+      <div class="container">
+        <div class="practice-layout">
+          <article class="practice-card">
+            <p class="eyebrow">Untuk Tenaga Kesehatan</p>
+            <h2 id="praktik-title">Dibuat untuk praktik mandiri yang lebih terorganisir</h2>
+            <p>
+              NAKESA dapat digunakan oleh berbagai tenaga kesehatan, termasuk
+              bidan, dokter, perawat, dan profesi kesehatan lainnya.
+            </p>
+
+            <div class="role-list" aria-label="Contoh pengguna NAKESA">
+              <span>👩‍⚕️ Bidan</span>
+              <span>👨‍⚕️ Dokter</span>
+              <span>🧑‍⚕️ Perawat</span>
+              <span>➕ Nakes lain</span>
+            </div>
+          </article>
+
+          <aside class="workflow-card" aria-label="Alur penggunaan NAKESA">
+            <div class="workflow-item">
+              <span class="workflow-number">01</span>
+              <div>
+                <strong>Catat Pasien</strong>
+                <p>Data pasien tersimpan rapi.</p>
+              </div>
+            </div>
+            <div class="workflow-line" aria-hidden="true"></div>
+            <div class="workflow-item">
+              <span class="workflow-number">02</span>
+              <div>
+                <strong>Layani & Periksa</strong>
+                <p>Pemeriksaan dan tindakan tercatat.</p>
+              </div>
+            </div>
+            <div class="workflow-line" aria-hidden="true"></div>
+            <div class="workflow-item">
+              <span class="workflow-number">03</span>
+              <div>
+                <strong>Kelola Praktik</strong>
+                <p>Obat, inventaris, jadwal, dan laporan terpantau.</p>
+              </div>
+            </div>
+          </aside>
+        </div>
+      </div>
+    </section>
+
+    <!-- TENTANG -->
+    <section id="tentang" class="section" aria-labelledby="tentang-title">
+      <div class="container info-grid">
+        <article class="info-card">
+          <p class="eyebrow">Tentang NAKESA</p>
+          <h2 id="tentang-title">Asisten digital untuk praktik tenaga kesehatan</h2>
+          <p>
+            NAKESA adalah konsep aplikasi manajemen praktik yang menyatukan
+            pencatatan pasien, pelayanan, persediaan, dan administrasi agar
+            tenaga kesehatan dapat fokus memberikan layanan.
+          </p>
+        </article>
+
+        <aside class="stats-card" aria-label="Ringkasan kemampuan NAKESA">
+          <div>
+            <strong>6+</strong>
+            <span>Modul utama</span>
+          </div>
+          <div>
+            <strong>1</strong>
+            <span>Sistem terpusat</span>
+          </div>
+          <div>
+            <strong>Multi</strong>
+            <span>Profesi nakes</span>
+          </div>
+        </aside>
+      </div>
+    </section>
+  </main>
+
+  <footer id="login" class="site-footer">
+    <div class="container footer-content">
+      <div>
+        <a class="brand brand-footer" href="#beranda">
+          <span class="brand-mark" aria-hidden="true">✚</span>
+          <span>NAKESA</span>
+        </a>
+        <p>Asisten digital untuk mengelola aktivitas praktik tenaga kesehatan.</p>
+      </div>
+
+      <div class="footer-links">
+        <a href="#fitur">Fitur</a>
+        <a href="#praktik">Praktik</a>
+        <a href="#tentang">Tentang</a>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

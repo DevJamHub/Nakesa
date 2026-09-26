@@ -1,7 +1,7 @@
-// Placeholder for the main application (dashboard comes later).
-// Signed-out users are redirected to login; users without a name complete their profile first.
+// Profile setup: asks for a name when the account has none (e.g. Apple sign-in),
+// then continues to the dashboard. Signed-out users are redirected to login.
 import { PAGES } from '../config.js';
-import { onAuthChange, signOut } from '../auth.js';
+import { onAuthChange } from '../auth.js';
 import { friendlyError } from '../errors.js';
 import { fetchProfile, updateFullName } from '../profile.js';
 import { clearAlert, requireSession, setLoading, showAlert, validateFields } from '../ui.js';
@@ -23,33 +23,12 @@ if (session) {
     if (event === 'SIGNED_OUT') window.location.replace(PAGES.login);
   });
 
-  document.getElementById('loader').hidden = true;
-  document.getElementById('content').hidden = false;
-
-  if (profile?.full_name) showHome(profile);
-  else showProfileSetup();
-
-  function showHome(p) {
-    document.getElementById('setup-card').hidden = true;
-    document.getElementById('home-card').hidden = false;
-    document.getElementById('home-title').textContent = `Welcome, ${p.full_name}`;
-    document.getElementById('home-email').textContent = p.email ?? user.email;
-    const provider = user.app_metadata?.provider ?? 'email';
-    document.getElementById('home-provider').textContent = provider.charAt(0).toUpperCase() + provider.slice(1);
-    document.title = 'NAKESA';
-
-    const button = document.getElementById('sign-out');
-    button.addEventListener('click', async () => {
-      if (button.disabled) return;
-      setLoading(button, true, 'Signing out…');
-      try {
-        await signOut();
-        window.location.replace(PAGES.welcome);
-      } catch (error) {
-        showAlert(document.getElementById('home-alert'), friendlyError(error, 'signOut'));
-        setLoading(button, false);
-      }
-    });
+  if (profile?.full_name) {
+    window.location.replace(PAGES.dashboard); // profile already complete
+  } else {
+    document.getElementById('loader').hidden = true;
+    document.getElementById('content').hidden = false;
+    showProfileSetup();
   }
 
   function showProfileSetup() {
@@ -70,7 +49,8 @@ if (session) {
       clearAlert(alertBox);
       setLoading(submit, true, 'Saving…');
       try {
-        showHome(await updateFullName(user.id, fullName.value));
+        await updateFullName(user.id, fullName.value);
+        window.location.replace(PAGES.dashboard);
       } catch (error) {
         showAlert(alertBox, friendlyError(error, 'update'));
         setLoading(submit, false);

@@ -25,5 +25,6 @@ export const PAGES = {
   forgotPassword: 'forgot-password.html',
   resetPassword: 'reset-password.html',
   callback: 'callback.html',
-  app: 'app.html',
+  app: 'app.html', // profile setup (asks for a name when the account has none)
+  dashboard: 'dashboard.html', // main page after sign-in
 };

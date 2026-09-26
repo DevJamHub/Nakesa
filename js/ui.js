@@ -124,7 +124,7 @@ export function initOAuthButtons(alertBox, lockWhileBusy = []) {
 
 /** For login / sign-up pages: signed-in users go straight to the app. */
 export async function redirectIfSignedIn() {
-  if (await getSession()) window.location.replace(PAGES.app);
+  if (await getSession()) window.location.replace(PAGES.dashboard);
 }
 
 /** For private pages: signed-out users go to the login page. Returns the session. */

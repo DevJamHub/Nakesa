@@ -37,7 +37,7 @@ if (!session) {
     setLoading(submit, true, 'Saving…');
     try {
       await updatePassword(password.value);
-      window.location.replace(PAGES.app);
+      window.location.replace(PAGES.dashboard);
     } catch (error) {
       showAlert(alertBox, friendlyError(error, 'update'));
       setLoading(submit, false);

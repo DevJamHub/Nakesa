@@ -23,7 +23,7 @@ if (providerError) {
   const timeout = new Promise((resolve) => setTimeout(() => resolve(null), 10_000));
   const session = await Promise.race([getSession(), timeout]);
   if (session) {
-    window.location.replace(PAGES.app);
+    window.location.replace(PAGES.dashboard);
   } else {
     // A ?code= that could not be exchanged: expired, already used, or opened in a
     // different browser than the one that started sign-in (PKCE needs the same one).

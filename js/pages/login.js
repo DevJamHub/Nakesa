@@ -33,7 +33,7 @@ form.addEventListener('submit', async (event) => {
   setLoading(submit, true, 'Signing in…');
   try {
     await signInWithEmail(email.value, password.value);
-    window.location.replace(PAGES.app);
+    window.location.replace(PAGES.dashboard);
   } catch (error) {
     showAlert(alertBox, friendlyError(error, 'signIn'));
     setLoading(submit, false);

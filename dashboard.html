@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Dashboard praktik NAKESA.">
+  <meta name="theme-color" content="#173a5e">
+  <title>Dashboard — NAKESA</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="css/dashboard.css">
+  <script type="module" src="js/pages/dashboard.js"></script>
+</head>
+<body>
+  <!-- Shown until the session is checked; signed-out users are redirected to login.html. -->
+  <div class="dash-loader" id="loader" role="status" aria-label="Memuat">
+    <span class="dash-spinner"></span>
+  </div>
+
+  <div id="content" hidden>
+    <header class="site-header">
+      <div class="container nav-wrapper">
+        <a class="brand" href="dashboard.html" aria-label="Dashboard NAKESA">
+          <span class="brand-mark" aria-hidden="true">✚</span>
+          <span>NAKESA</span>
+        </a>
+
+        <div class="user-menu">
+          <div class="user-chip">
+            <span class="user-avatar" id="user-avatar" aria-hidden="true"></span>
+            <span class="user-info">
+              <strong id="user-name"></strong>
+              <span id="user-email"></span>
+            </span>
+          </div>
+          <button type="button" class="signout-button" id="sign-out">
+            <span class="btn-label">Keluar</span>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <main class="section dash-main">
+      <div class="container">
+        <div id="dash-alert" hidden></div>
+
+        <section class="dash-hero" aria-labelledby="dash-title">
+          <div>
+            <p class="eyebrow" id="today"></p>
+            <h1 id="dash-title">Selamat datang</h1>
+            <p class="dash-subtitle">Masuk dengan <strong id="user-provider"></strong>. Berikut ringkasan praktik Anda.</p>
+          </div>
+        </section>
+
+        <section class="dash-stats" aria-label="Ringkasan praktik">
+          <article class="dash-stat blue-stat">
+            <span class="stat-icon" aria-hidden="true">👥</span>
+            <div><span>Pasien</span><strong>—</strong></div>
+          </article>
+          <article class="dash-stat green-stat">
+            <span class="stat-icon" aria-hidden="true">🩺</span>
+            <div><span>Kunjungan hari ini</span><strong>—</strong></div>
+          </article>
+          <article class="dash-stat orange-stat">
+            <span class="stat-icon" aria-hidden="true">💊</span>
+            <div><span>Stok obat menipis</span><strong>—</strong></div>
+          </article>
+          <article class="dash-stat purple-stat">
+            <span class="stat-icon" aria-hidden="true">📅</span>
+            <div><span>Jadwal hari ini</span><strong>—</strong></div>
+          </article>
+        </section>
+        <p class="dash-note">Angka akan muncul setelah modul data dibuat.</p>
+
+        <section aria-labelledby="modules-title">
+          <div class="section-heading">
+            <p class="eyebrow">Modul</p>
+            <h2 id="modules-title">Kelola praktik Anda</h2>
+          </div>
+
+          <div class="feature-grid">
+            <article class="feature-card feature-blue">
+              <div class="feature-icon" aria-hidden="true">👤</div>
+              <h3>Manajemen Pasien</h3>
+              <p>Identitas pasien dan riwayat kunjungan.</p>
+              <span class="soon-badge">Segera hadir</span>
+            </article>
+            <article class="feature-card feature-purple">
+              <div class="feature-icon" aria-hidden="true">🩺</div>
+              <h3>Pemeriksaan &amp; Tindakan</h3>
+              <p>Hasil pemeriksaan, tindakan, dan keluhan.</p>
+              <span class="soon-badge">Segera hadir</span>
+            </article>
+            <article class="feature-card feature-green">
+              <div class="feature-icon" aria-hidden="true">💊</div>
+              <h3>Obat &amp; Stok</h3>
+              <p>Persediaan dan penggunaan obat.</p>
+              <span class="soon-badge">Segera hadir</span>
+            </article>
+            <article class="feature-card feature-orange">
+              <div class="feature-icon" aria-hidden="true">📦</div>
+              <h3>Inventaris</h3>
+              <p>Alat kesehatan dan perlengkapan praktik.</p>
+              <span class="soon-badge">Segera hadir</span>
+            </article>
+            <article class="feature-card feature-cyan">
+              <div class="feature-icon" aria-hidden="true">📅</div>
+              <h3>Jadwal Kunjungan</h3>
+              <p>Jadwal praktik dan kunjungan pasien.</p>
+              <span class="soon-badge">Segera hadir</span>
+            </article>
+            <article class="feature-card feature-pink">
+              <div class="feature-icon" aria-hidden="true">📊</div>
+              <h3>Laporan Praktik</h3>
+              <p>Ringkasan aktivitas praktik.</p>
+              <span class="soon-badge">Segera hadir</span>
+            </article>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+</body>
+</html>

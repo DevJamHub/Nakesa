@@ -38,7 +38,7 @@ form.addEventListener('submit', async (event) => {
   try {
     const result = await signUpWithEmail(fullName.value, email.value, password.value);
     if (result === 'signed_in') {
-      window.location.replace(PAGES.app);
+      window.location.replace(PAGES.dashboard);
       return;
     }
     // Email confirmation required.

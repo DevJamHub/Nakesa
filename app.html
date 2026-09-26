@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="NAKESA">
+  <meta name="theme-color" content="#173a5e">
+  <title>NAKESA</title>
+  <link rel="stylesheet" href="css/auth.css">
+  <script type="module" src="js/pages/app.js"></script>
+</head>
+<body>
+  <div class="page-loader" id="loader" role="status" aria-label="Loading">
+    <span class="spinner"></span>
+  </div>
+  <div class="auth-page" id="content" hidden>
+    <main class="auth-main">
+      <a class="logo" href="index.html" aria-label="NAKESA home">
+          <svg width="32" height="32" viewBox="0 0 56 56" aria-hidden="true" focusable="false"><rect width="56" height="56" rx="16" fill="currentColor"/><path d="M23 13h10v10h10v10H33v10H23V33H13V23h10z" fill="#fff"/></svg>
+          <span class="logo-text">NAKESA</span>
+        </a>
+      <section class="auth-card" id="setup-card" aria-labelledby="setup-title" hidden>
+        <header class="auth-header">
+          <h1 id="setup-title">Complete your profile</h1>
+          <p class="auth-subtitle">Tell us your name so colleagues and patients can recognize you.</p>
+        </header>
+        <form id="setup-form" class="stack" novalidate>
+          <div id="setup-alert" hidden></div>
+          <div class="field">
+            <label for="setup-email">Email</label>
+            <div class="field-control"><input id="setup-email" type="email" readonly></div>
+          </div>
+              <div class="field">
+                <label for="full-name">Full Name</label>
+                <div class="field-control">
+                  <input id="full-name" name="full-name" type="text" autocomplete="name" placeholder="Enter your full name" aria-describedby="full-name-error" required maxlength="120">
+                </div>
+                <p class="field-error" id="full-name-error" hidden></p>
+              </div>
+          <button type="submit" class="btn btn-primary" id="setup-submit">
+                <span class="btn-spinner" aria-hidden="true"></span>
+                <span class="btn-label">Continue</span>
+              </button>
+        </form>
+      </section>
+
+      <section class="auth-card" id="home-card" aria-labelledby="home-title" hidden>
+        <header class="auth-header">
+          <h1 id="home-title">Welcome</h1>
+          <p class="auth-subtitle">You&apos;re signed in to NAKESA.</p>
+        </header>
+        <div class="stack">
+          <div id="home-alert" hidden></div>
+          <dl class="profile-summary">
+            <dt>Email</dt><dd id="home-email"></dd>
+            <dt>Sign-in method</dt><dd id="home-provider"></dd>
+          </dl>
+          <div class="alert alert-info" role="status">Your practice dashboard is coming soon.</div>
+          <button type="button" class="btn btn-secondary" id="sign-out">
+            <span class="btn-spinner" aria-hidden="true"></span>
+            <span class="btn-label">Sign Out</span>
+          </button>
+        </div>
+      </section>
+    </main>
+    <footer class="auth-footer">
+      <p>For healthcare professionals. Your data is protected and access-controlled.</p>
+    </footer>
+  </div>
+</body>
+</html>

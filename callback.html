@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Completing sign-in to NAKESA.">
+  <meta name="theme-color" content="#173a5e">
+  <title>Signing in — NAKESA</title>
+  <link rel="stylesheet" href="css/auth.css">
+  <script type="module" src="js/pages/callback.js"></script>
+</head>
+<body>
+  <div class="page-loader" id="loader" role="status" aria-label="Loading">
+    <span class="spinner"></span>
+  </div>
+  <div class="auth-page" id="content" hidden>
+    <main class="auth-main">
+      <a class="logo" href="index.html" aria-label="NAKESA home">
+          <svg width="32" height="32" viewBox="0 0 56 56" aria-hidden="true" focusable="false"><rect width="56" height="56" rx="16" fill="currentColor"/><path d="M23 13h10v10h10v10H33v10H23V33H13V23h10z" fill="#fff"/></svg>
+          <span class="logo-text">NAKESA</span>
+        </a>
+      <section class="auth-card" aria-labelledby="auth-title">
+        <header class="auth-header">
+          <h1 id="auth-title">Sign-in didn&apos;t complete</h1>
+        </header>
+        <div class="stack">
+          <div class="alert alert-error" role="alert" id="callback-error">Unable to complete sign-in. Please try again.</div>
+          <a class="btn btn-primary" href="login.html"><span class="btn-label">Back to Log In</span></a>
+        </div>
+      </section>
+    </main>
+    <footer class="auth-footer">
+      <p>For healthcare professionals. Your data is protected and access-controlled.</p>
+    </footer>
+  </div>
+</body>
+</html>

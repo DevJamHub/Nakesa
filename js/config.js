@@ -10,7 +10,7 @@ export const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_pla1TfqgD36QZRrXfnVjrQ_g
 // Set to false until the provider is enabled in Supabase → Authentication → Providers.
 export const AUTH_PROVIDERS = {
   google: true,
-  apple: true,
+  apple: false, // Apple is not configured in Supabase yet — flip to true once it is.
   email: true,
 };
 

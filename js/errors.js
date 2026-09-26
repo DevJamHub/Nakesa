@@ -1,7 +1,9 @@
 // Turns technical Supabase / network errors into safe, friendly messages.
 // Technical details are only logged to the console when running locally.
 
-const IS_DEV = ['localhost', '127.0.0.1'].includes(window.location.hostname);
+export const IS_DEV = ['localhost', '127.0.0.1'].includes(window.location.hostname);
+
+const PROVIDER_NAMES = { google: 'Google', apple: 'Apple' };
 
 const BY_CODE = {
   invalid_credentials: 'Email or password is incorrect.',
@@ -21,11 +23,17 @@ const BY_CODE = {
   otp_expired: 'This link has expired. Please request a new one.',
 };
 
+/** Friendly text for a Supabase error code (e.g. from a callback URL), or null. */
+export const messageForCode = (code) => BY_CODE[code] ?? null;
+
 export function friendlyError(error, context = 'general') {
   if (IS_DEV) console.error(`[auth:${context}]`, error);
 
   if (error?.name === 'AuthRetryableFetchError' || error instanceof TypeError || !navigator.onLine) {
     return 'Network error. Please check your connection and try again.';
+  }
+  if (error?.code === 'provider_disabled' && PROVIDER_NAMES[error.provider]) {
+    return `${PROVIDER_NAMES[error.provider]} sign-in is not enabled yet. Please use another sign-in method.`;
   }
   if (error?.code && BY_CODE[error.code]) return BY_CODE[error.code];
   if (context === 'signIn' && error?.status === 400) {

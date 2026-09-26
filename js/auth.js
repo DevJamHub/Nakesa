@@ -1,10 +1,26 @@
 // Authentication service — the only file that calls Supabase Auth.
 // Page scripts use these functions instead of touching the client directly.
 import { supabase } from './supabase.js';
-import { PAGES } from './config.js';
+import { PAGES, SUPABASE_PUBLISHABLE_KEY, SUPABASE_URL } from './config.js';
 
-/** Absolute URL of a page in this site, used as a Supabase redirect target. */
+/**
+ * Absolute URL of a page in this site, used as a Supabase redirect target.
+ * Locally: http://127.0.0.1:5500/callback.html — this is the APP redirect and must be
+ * listed in Supabase → Authentication → URL Configuration → Redirect URLs.
+ * Do not confuse it with https://<project>.supabase.co/auth/v1/callback, which is
+ * Supabase's own callback and is only entered in Google Cloud / Apple Developer.
+ */
 export const pageUrl = (page) => new URL(page, window.location.href).href;
+
+/** Ask Supabase whether an OAuth provider is switched on (Authentication → Providers). */
+async function isProviderEnabled(provider) {
+  const response = await fetch(`${SUPABASE_URL}/auth/v1/settings`, {
+    headers: { apikey: SUPABASE_PUBLISHABLE_KEY },
+  });
+  if (!response.ok) return true; // can't tell — let Supabase decide
+  const settings = await response.json();
+  return settings.external?.[provider] === true;
+}
 
 export async function getSession() {
   const { data } = await supabase.auth.getSession();
@@ -18,6 +34,14 @@ export function onAuthChange(callback) {
 
 /** provider: 'google' | 'apple'. The browser is redirected to the provider. */
 export async function signInWithOAuth(provider) {
+  // Without this check a disabled provider shows raw JSON on supabase.co
+  // ("Unsupported provider: provider is not enabled") instead of a message here.
+  if (!(await isProviderEnabled(provider))) {
+    throw Object.assign(new Error(`Provider "${provider}" is not enabled in Supabase`), {
+      code: 'provider_disabled',
+      provider,
+    });
+  }
   const { error } = await supabase.auth.signInWithOAuth({
     provider,
     options: { redirectTo: pageUrl(PAGES.callback) },

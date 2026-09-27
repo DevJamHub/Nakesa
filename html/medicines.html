@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="description" content="Stok obat NAKESA.">
+  <meta name="theme-color" content="#173a5e">
+  <title>Stok Obat — NAKESA</title>
+  <link rel="stylesheet" href="../css/app.css">
+  <script type="module" src="../js/pages/medicines.js"></script>
+</head>
+<body class="app">
+  <div class="app-loader" id="loader" role="status" aria-label="Memuat"><span class="spinner"></span></div>
+  <header class="app-header" id="app-header" hidden></header>
+  <nav class="app-nav" id="app-nav" aria-label="Menu utama" hidden></nav>
+
+  <main class="app-main" id="app-main" hidden>
+    <div class="page-head">
+      <div>
+        <h1>Stok Obat</h1>
+        <p id="summary"></p>
+      </div>
+      <button type="button" class="btn btn-primary" id="add">＋ Tambah Obat</button>
+    </div>
+
+    <div class="search" style="margin-bottom:10px">
+      <input class="input" type="search" id="search" placeholder="Cari nama obat…" aria-label="Cari obat">
+    </div>
+    <div class="tabs" role="tablist" aria-label="Filter obat">
+      <button type="button" role="tab" aria-selected="true" data-filter="all">Semua</button>
+      <button type="button" role="tab" aria-selected="false" data-filter="check">⚠️ Perlu dicek</button>
+    </div>
+
+    <div class="list" id="list"></div>
+  </main>
+
+  <dialog id="medicine-dialog" aria-labelledby="dialog-title">
+    <form class="dialog-form" id="medicine-form" novalidate>
+      <div class="dialog-head">
+        <h2 id="dialog-title">Tambah Obat</h2>
+        <button type="button" class="dialog-close" data-close aria-label="Tutup">✕</button>
+      </div>
+      <div id="form-error" class="form-error" role="alert" hidden></div>
+
+      <div class="field">
+        <label for="name">Nama obat *</label>
+        <input class="input" id="name" name="name" maxlength="120" placeholder="Contoh: Paracetamol 500 mg" required>
+      </div>
+      <div class="field">
+        <label for="unit">Satuan</label>
+        <select class="input" id="unit" name="unit">
+          <option>tablet</option><option>kapsul</option><option>strip</option><option>botol</option>
+          <option>box</option><option>sachet</option><option>ampul</option><option>vial</option>
+          <option>tube</option><option>pcs</option>
+        </select>
+      </div>
+      <div class="two-cols">
+        <div class="field">
+          <label for="stock">Jumlah stok</label>
+          <input class="input" id="stock" name="stock" type="number" inputmode="numeric" min="0" step="1">
+        </div>
+        <div class="field">
+          <label for="min_stock">Ingatkan jika sisa</label>
+          <input class="input" id="min_stock" name="min_stock" type="number" inputmode="numeric" min="0" step="1">
+        </div>
+      </div>
+      <div class="two-cols">
+        <div class="field">
+          <label for="price">Harga jual</label>
+          <input class="input" id="price" name="price" inputmode="numeric" placeholder="Rp" autocomplete="off">
+        </div>
+        <div class="field">
+          <label for="expires_on">Kedaluwarsa</label>
+          <input class="input" id="expires_on" name="expires_on" type="date">
+        </div>
+      </div>
+
+      <div class="dialog-actions">
+        <button type="submit" class="btn btn-primary btn-big" id="save">Simpan</button>
+        <button type="button" class="btn btn-danger-ghost" id="delete" hidden>Hapus obat</button>
+      </div>
+    </form>
+  </dialog>
+
+  <div class="toast" id="toast" role="status" hidden></div>
+</body>
+</html>

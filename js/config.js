@@ -16,7 +16,7 @@ export const AUTH_PROVIDERS = {
 
 export const MIN_PASSWORD_LENGTH = 8;
 
-// Page file names (relative to the site root).
+// Page file names. All pages live in the /html folder, so these are relative to it.
 export const PAGES = {
   home: 'index.html',
   welcome: 'welcome.html',
@@ -25,6 +25,12 @@ export const PAGES = {
   forgotPassword: 'forgot-password.html',
   resetPassword: 'reset-password.html',
   callback: 'callback.html',
-  app: 'app.html', // profile setup (asks for a name when the account has none)
+  onboarding: 'onboarding.html', // first-time setup: name, profession, practice
   dashboard: 'dashboard.html', // main page after sign-in
+  bookings: 'bookings.html',
+  patients: 'patients.html',
+  medicines: 'medicines.html',
+  finance: 'finance.html',
+  practice: 'practice.html', // hours, open/closed, booking link, practice info
+  book: 'book.html', // public booking page for patients (no login)
 };

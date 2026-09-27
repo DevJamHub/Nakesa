@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="description" content="Booking janji periksa secara online.">
+  <meta name="theme-color" content="#173a5e">
+  <title>Booking Online — NAKESA</title>
+  <link rel="stylesheet" href="../css/app.css">
+  <script type="module" src="../js/pages/book.js"></script>
+</head>
+<body>
+  <div class="app-loader" id="loader" role="status" aria-label="Memuat"><span class="spinner"></span></div>
+
+  <main class="public stack" id="app-main" hidden>
+    <!-- Practice -->
+    <section class="card stack" aria-labelledby="practice-name">
+      <div class="row" style="flex-wrap:nowrap">
+        <span class="app-brand-icon" id="practice-icon" aria-hidden="true" style="width:56px;height:56px;font-size:1.8rem"></span>
+        <div style="min-width:0">
+          <h1 id="practice-name" style="font-size:1.35rem"></h1>
+          <p class="muted" id="practitioner"></p>
+        </div>
+      </div>
+      <div class="row">
+        <span class="open-pill" id="open-pill"></span>
+        <span class="muted small" id="address"></span>
+      </div>
+      <details id="hours-box">
+        <summary style="cursor:pointer;font-weight:700;color:var(--accent)">🕒 Lihat jadwal praktik</summary>
+        <table class="hours" style="margin-top:8px"><tbody id="hours"></tbody></table>
+      </details>
+      <a class="btn btn-wa" id="contact" target="_blank" rel="noopener" hidden>💬 Chat praktik via WhatsApp</a>
+    </section>
+
+    <!-- Booking form -->
+    <section class="card" id="form-card" aria-labelledby="form-title">
+      <h2 id="form-title" style="margin-bottom:14px">📅 Buat janji periksa</h2>
+      <form id="book-form" class="stack" novalidate>
+        <div id="form-error" class="form-error" role="alert" hidden></div>
+        <div class="field">
+          <label for="name">Nama pasien *</label>
+          <input class="input" id="name" name="p_name" autocomplete="name" maxlength="120" required>
+        </div>
+        <div class="field">
+          <label for="phone">Nomor WhatsApp *</label>
+          <input class="input" id="phone" name="p_phone" type="tel" inputmode="tel" autocomplete="tel" maxlength="30" placeholder="0812xxxxxxx" required>
+          <p class="field-hint">Praktik akan mengonfirmasi lewat nomor ini.</p>
+        </div>
+        <div class="two-cols">
+          <div class="field">
+            <label for="date">Tanggal *</label>
+            <input class="input" id="date" name="p_date" type="date" required>
+          </div>
+          <div class="field">
+            <label for="time">Jam (opsional)</label>
+            <input class="input" id="time" name="p_time" type="time">
+          </div>
+        </div>
+        <p class="field-hint" id="date-hint"></p>
+        <div class="field">
+          <span class="field-label">Layanan</span>
+          <div class="choices" id="services"></div>
+        </div>
+        <div class="field">
+          <label for="complaint">Keluhan (opsional)</label>
+          <textarea class="input" id="complaint" name="p_complaint" maxlength="500" rows="3"></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary btn-big" id="submit">Kirim Booking</button>
+      </form>
+    </section>
+
+    <!-- Closed for online booking -->
+    <section class="card empty-state" id="disabled-card" hidden>
+      <p class="empty-icon" aria-hidden="true">📵</p>
+      <p>Booking online sedang ditutup. Silakan hubungi praktik langsung.</p>
+    </section>
+
+    <!-- Done -->
+    <section class="card empty-state" id="success-card" hidden>
+      <p class="success-icon" aria-hidden="true">✅</p>
+      <h2>Booking terkirim!</h2>
+      <p class="muted" id="success-text"></p>
+      <a class="btn btn-wa" id="success-wa" target="_blank" rel="noopener" hidden>💬 Kabari praktik via WhatsApp</a>
+    </section>
+
+    <p class="muted small" style="text-align:center">Dibuat dengan NAKESA</p>
+  </main>
+</body>
+</html>

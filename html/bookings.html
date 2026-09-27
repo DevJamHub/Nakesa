@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="description" content="Booking pasien NAKESA.">
+  <meta name="theme-color" content="#173a5e">
+  <title>Booking — NAKESA</title>
+  <link rel="stylesheet" href="../css/app.css">
+  <script type="module" src="../js/pages/bookings.js"></script>
+</head>
+<body class="app">
+  <div class="app-loader" id="loader" role="status" aria-label="Memuat"><span class="spinner"></span></div>
+  <header class="app-header" id="app-header" hidden></header>
+  <nav class="app-nav" id="app-nav" aria-label="Menu utama" hidden></nav>
+
+  <main class="app-main" id="app-main" hidden>
+    <div class="page-head">
+      <div>
+        <h1>Booking Pasien</h1>
+        <p>Booking online dan janji temu manual.</p>
+      </div>
+      <button type="button" class="btn btn-primary" id="add">＋ Booking Manual</button>
+    </div>
+
+    <div class="tabs" role="tablist" aria-label="Filter booking">
+      <button type="button" role="tab" aria-selected="true" data-tab="upcoming">Akan datang</button>
+      <button type="button" role="tab" aria-selected="false" data-tab="history">Riwayat</button>
+    </div>
+
+    <div id="list"></div>
+  </main>
+
+  <!-- Manual booking -->
+  <dialog id="booking-dialog" aria-labelledby="booking-title">
+    <form class="dialog-form" id="booking-form" novalidate>
+      <div class="dialog-head">
+        <h2 id="booking-title">Booking Manual</h2>
+        <button type="button" class="dialog-close" data-close aria-label="Tutup">✕</button>
+      </div>
+      <div id="booking-error" class="form-error" role="alert" hidden></div>
+      <div class="field">
+        <label for="patient_name">Nama pasien *</label>
+        <input class="input" id="patient_name" name="patient_name" maxlength="120" list="patient-names" required>
+        <datalist id="patient-names"></datalist>
+      </div>
+      <div class="field">
+        <label for="patient_phone">No. HP / WA *</label>
+        <input class="input" id="patient_phone" name="patient_phone" type="tel" inputmode="tel" maxlength="30" required>
+      </div>
+      <div class="two-cols">
+        <div class="field">
+          <label for="booking_date">Tanggal *</label>
+          <input class="input" id="booking_date" name="booking_date" type="date" required>
+        </div>
+        <div class="field">
+          <label for="booking_time">Jam</label>
+          <input class="input" id="booking_time" name="booking_time" type="time">
+        </div>
+      </div>
+      <div class="field">
+        <span class="field-label">Layanan</span>
+        <div class="choices" id="service-choices"></div>
+      </div>
+      <div class="field">
+        <label for="complaint">Keluhan / catatan</label>
+        <textarea class="input" id="complaint" name="complaint" maxlength="500" rows="2"></textarea>
+      </div>
+      <div class="dialog-actions">
+        <button type="submit" class="btn btn-primary btn-big" id="booking-save">Simpan Booking</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Mark as done -->
+  <dialog id="done-dialog" aria-labelledby="done-title">
+    <form class="dialog-form" id="done-form" novalidate>
+      <div class="dialog-head">
+        <h2 id="done-title">Selesai dilayani</h2>
+        <button type="button" class="dialog-close" data-close aria-label="Tutup">✕</button>
+      </div>
+      <p class="muted" id="done-desc"></p>
+      <div id="done-error" class="form-error" role="alert" hidden></div>
+      <div class="field">
+        <label for="amount">Biaya yang dibayar (opsional)</label>
+        <input class="input input-money" id="amount" name="amount" inputmode="numeric" placeholder="0" autocomplete="off">
+        <p class="field-hint">Otomatis tercatat sebagai uang masuk di Keuangan.</p>
+      </div>
+      <label class="switch card" style="padding:14px">
+        <span><strong>Simpan ke daftar pasien</strong><br><span class="muted small" id="save-patient-hint"></span></span>
+        <input type="checkbox" id="save-patient" name="save_patient">
+        <span class="switch-track" aria-hidden="true"></span>
+      </label>
+      <div class="dialog-actions">
+        <button type="submit" class="btn btn-success btn-big" id="done-save">✓ Tandai Selesai</button>
+      </div>
+    </form>
+  </dialog>
+
+  <div class="toast" id="toast" role="status" hidden></div>
+</body>
+</html>

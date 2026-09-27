@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="description" content="Daftarkan praktik Anda di NAKESA.">
+  <meta name="theme-color" content="#173a5e">
+  <title>Daftarkan Praktik — NAKESA</title>
+  <link rel="stylesheet" href="../css/app.css">
+  <script type="module" src="../js/pages/onboarding.js"></script>
+</head>
+<body>
+  <div class="app-loader" id="loader" role="status" aria-label="Memuat"><span class="spinner"></span></div>
+
+  <main class="onboard" id="app-main" hidden>
+    <div class="onboard-brand"><span class="app-brand-icon" aria-hidden="true">✚</span> NAKESA</div>
+    <div class="steps" aria-hidden="true"><span></span><span></span><span></span></div>
+
+    <form id="onboard-form" class="card stack" novalidate>
+      <div id="form-error" class="form-error" role="alert" hidden></div>
+
+      <!-- Step 1: name -->
+      <section class="stack" data-step="1">
+        <div>
+          <p class="muted small">Langkah 1 dari 3</p>
+          <h1>Siapa nama Anda?</h1>
+          <p class="muted">Nama ini tampil untuk pasien di halaman booking.</p>
+        </div>
+        <div class="field">
+          <label for="full_name">Nama lengkap</label>
+          <input class="input" id="full_name" name="full_name" autocomplete="name" maxlength="120" placeholder="Contoh: Siti Aminah" required>
+        </div>
+      </section>
+
+      <!-- Step 2: profession -->
+      <section class="stack" data-step="2" hidden>
+        <div>
+          <p class="muted small">Langkah 2 dari 3</p>
+          <h1>Apa profesi Anda?</h1>
+          <p class="muted">Tampilan dan pilihan layanan akan menyesuaikan.</p>
+        </div>
+        <div class="tiles" id="profession-tiles" role="radiogroup" aria-label="Profesi"></div>
+        <div class="field" id="specialty-field" hidden>
+          <label for="specialty" id="specialty-label">Spesialis apa?</label>
+          <input class="input" id="specialty" name="specialty" maxlength="120">
+        </div>
+      </section>
+
+      <!-- Step 3: practice -->
+      <section class="stack" data-step="3" hidden>
+        <div>
+          <p class="muted small">Langkah 3 dari 3</p>
+          <h1>Data praktik Anda</h1>
+          <p class="muted">Bisa diubah kapan saja di menu Praktik.</p>
+        </div>
+        <div class="field">
+          <label for="practice_name">Nama praktik</label>
+          <input class="input" id="practice_name" name="practice_name" maxlength="120" required>
+        </div>
+        <div class="field">
+          <label for="phone">Nomor WhatsApp praktik</label>
+          <input class="input" id="phone" name="phone" type="tel" inputmode="tel" autocomplete="tel" maxlength="30" placeholder="0812xxxxxxx">
+          <p class="field-hint">Pasien akan menghubungi nomor ini.</p>
+        </div>
+        <div class="field">
+          <label for="address">Alamat praktik</label>
+          <textarea class="input" id="address" name="address" maxlength="300" rows="2" placeholder="Jl. Melati No. 5, Kel. ..., Kota ..."></textarea>
+        </div>
+      </section>
+
+      <div class="row-between">
+        <button type="button" class="btn btn-ghost" id="back" hidden>← Kembali</button>
+        <span></span>
+        <button type="submit" class="btn btn-primary" id="next">Lanjut →</button>
+      </div>
+    </form>
+  </main>
+</body>
+</html>

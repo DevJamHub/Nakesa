@@ -3,23 +3,21 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Log in to NAKESA.">
+  <meta name="description" content="Sign up or log in to NAKESA, digital practice management for healthcare professionals.">
   <meta name="theme-color" content="#173a5e">
-  <title>Log In — NAKESA</title>
-  <link rel="stylesheet" href="css/auth.css">
-  <script type="module" src="js/pages/login.js"></script>
+  <title>NAKESA — Get Started</title>
+  <link rel="stylesheet" href="../css/auth.css">
+  <script type="module" src="../js/pages/welcome.js"></script>
 </head>
 <body>
   <div class="auth-page">
     <main class="auth-main">
-      <a class="logo" href="index.html" aria-label="NAKESA home">
-          <svg width="32" height="32" viewBox="0 0 56 56" aria-hidden="true" focusable="false"><rect width="56" height="56" rx="16" fill="currentColor"/><path d="M23 13h10v10h10v10H33v10H23V33H13V23h10z" fill="#fff"/></svg>
-          <span class="logo-text">NAKESA</span>
-        </a>
-      <section class="auth-card" aria-labelledby="auth-title">
-        <header class="auth-header">
-          <h1 id="auth-title">Welcome Back</h1>
-          <p class="auth-subtitle">Log in to continue to NAKESA.</p>
+      <section class="auth-card" aria-labelledby="welcome-title">
+        <header class="welcome-hero">
+          <svg class="logo-mark" width="56" height="56" viewBox="0 0 56 56" aria-hidden="true" focusable="false"><rect width="56" height="56" rx="16" fill="currentColor"/><path d="M23 13h10v10h10v10H33v10H23V33H13V23h10z" fill="#fff"/></svg>
+          <h1 class="welcome-name" id="welcome-title">NAKESA</h1>
+          <p class="welcome-tagline">Manage Your Healthcare Practice.</p>
+          <p class="welcome-description">Patient records, visits, medicines and schedules — organized in one secure place for midwives, doctors and healthcare professionals.</p>
         </header>
 
         <div class="stack">
@@ -37,31 +35,13 @@
             </button>
           </div>
           <div class="divider" role="separator" data-requires="both"><span>or</span></div>
-          <form id="login-form" class="stack" novalidate data-provider="email">
-              <div class="field">
-                <label for="email">Email</label>
-                <div class="field-control">
-                  <input id="email" name="email" type="email" autocomplete="email" placeholder="Enter your email" aria-describedby="email-error" required inputmode="email">
-                </div>
-                <p class="field-error" id="email-error" hidden></p>
-              </div>
-              <div class="field">
-                <label for="password">Password</label>
-                <div class="field-control has-toggle">
-                  <input id="password" name="password" type="password" autocomplete="current-password" placeholder="Enter your password" aria-describedby="password-error" required>
-                  <button type="button" class="field-toggle" aria-controls="password" aria-pressed="false" aria-label="Show password">Show</button>
-                </div>
-                <p class="field-error" id="password-error" hidden></p>
-              </div>
-            <div class="form-row-end"><a class="text-link" href="forgot-password.html">Forgot password?</a></div>
-            <button type="submit" class="btn btn-primary" id="submit">
-                <span class="btn-spinner" aria-hidden="true"></span>
-                <span class="btn-label">Log In</span>
-              </button>
-          </form>
+          <a class="btn btn-secondary" href="signup.html" data-provider="email">
+            <span class="btn-icon" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" focusable="false"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg></span>
+            <span class="btn-label">Continue with Email</span>
+          </a>
         </div>
 
-        <p class="auth-switch">Don&apos;t have an account? <a href="signup.html">Create Account</a></p>
+        <p class="auth-switch">Already have an account? <a href="login.html">Log In</a></p>
       </section>
     </main>
     <footer class="auth-footer">

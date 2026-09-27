@@ -1,6 +1,6 @@
 import { supabase } from './supabase.js';
 
-const COLUMNS = 'id, full_name, email, avatar_url, created_at';
+const COLUMNS = 'id, full_name, email, avatar_url, profession, created_at';
 
 /**
  * Get the signed-in user's profile. The row is created by a database trigger
@@ -16,10 +16,11 @@ export async function fetchProfile(userId, attempts = 3) {
   return null;
 }
 
-export async function updateFullName(userId, fullName) {
+/** changes: { full_name?, profession? } — the only columns users may edit. */
+export async function updateProfile(userId, changes) {
   const { data, error } = await supabase
     .from('profiles')
-    .update({ full_name: fullName.trim() })
+    .update(changes)
     .eq('id', userId)
     .select(COLUMNS)
     .single();

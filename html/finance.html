@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="description" content="Catatan keuangan praktik NAKESA.">
+  <meta name="theme-color" content="#173a5e">
+  <title>Keuangan — NAKESA</title>
+  <link rel="stylesheet" href="../css/app.css">
+  <script type="module" src="../js/pages/finance.js"></script>
+</head>
+<body class="app">
+  <div class="app-loader" id="loader" role="status" aria-label="Memuat"><span class="spinner"></span></div>
+  <header class="app-header" id="app-header" hidden></header>
+  <nav class="app-nav" id="app-nav" aria-label="Menu utama" hidden></nav>
+
+  <main class="app-main" id="app-main" hidden>
+    <div class="page-head">
+      <div>
+        <h1>Catatan Keuangan</h1>
+        <p>Uang masuk dan keluar praktik.</p>
+      </div>
+    </div>
+
+    <div class="month-picker">
+      <button type="button" class="btn btn-ghost btn-small" id="prev-month" aria-label="Bulan sebelumnya">◀</button>
+      <strong id="month-label"></strong>
+      <button type="button" class="btn btn-ghost btn-small" id="next-month" aria-label="Bulan berikutnya">▶</button>
+    </div>
+
+    <div class="stats" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr))">
+      <div class="stat"><span class="stat-label">Uang masuk</span><span class="stat-value money-in" id="sum-in">–</span></div>
+      <div class="stat"><span class="stat-label">Uang keluar</span><span class="stat-value money-out" id="sum-out">–</span></div>
+      <div class="stat"><span class="stat-label">Sisa (untung)</span><span class="stat-value" id="sum-balance">–</span></div>
+    </div>
+
+    <div class="two-cols" style="margin-top:14px">
+      <button type="button" class="btn btn-success btn-big" data-new="masuk">＋ Uang Masuk</button>
+      <button type="button" class="btn btn-danger btn-big" data-new="keluar">− Uang Keluar</button>
+    </div>
+
+    <div id="list" style="margin-top:8px"></div>
+  </main>
+
+  <dialog id="tx-dialog" aria-labelledby="dialog-title">
+    <form class="dialog-form" id="tx-form" novalidate>
+      <div class="dialog-head">
+        <h2 id="dialog-title">Catat Uang</h2>
+        <button type="button" class="dialog-close" data-close aria-label="Tutup">✕</button>
+      </div>
+      <div id="form-error" class="form-error" role="alert" hidden></div>
+
+      <div class="segmented" role="radiogroup" aria-label="Jenis">
+        <label class="choice choice-in"><input type="radio" name="kind" value="masuk"><span>＋ Masuk</span></label>
+        <label class="choice choice-out"><input type="radio" name="kind" value="keluar"><span>− Keluar</span></label>
+      </div>
+      <div class="field">
+        <label for="amount">Jumlah (Rp) *</label>
+        <input class="input input-money" id="amount" name="amount" inputmode="numeric" placeholder="0" autocomplete="off" required>
+      </div>
+      <div class="field">
+        <span class="field-label">Untuk apa?</span>
+        <div class="choices" id="category-choices"></div>
+      </div>
+      <div class="field">
+        <label for="occurred_on">Tanggal</label>
+        <input class="input" id="occurred_on" name="occurred_on" type="date">
+      </div>
+      <div class="field">
+        <label for="note">Catatan</label>
+        <input class="input" id="note" name="note" maxlength="300" placeholder="Contoh: Bu Ani, periksa kehamilan">
+      </div>
+
+      <div class="dialog-actions">
+        <button type="submit" class="btn btn-primary btn-big" id="save">Simpan</button>
+        <button type="button" class="btn btn-danger-ghost" id="delete" hidden>Hapus catatan</button>
+      </div>
+    </form>
+  </dialog>
+
+  <div class="toast" id="toast" role="status" hidden></div>
+</body>
+</html>

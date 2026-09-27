@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="description" content="Pengaturan praktik NAKESA.">
+  <meta name="theme-color" content="#173a5e">
+  <title>Praktik — NAKESA</title>
+  <link rel="stylesheet" href="../css/app.css">
+  <script type="module" src="../js/pages/practice.js"></script>
+</head>
+<body class="app">
+  <div class="app-loader" id="loader" role="status" aria-label="Memuat"><span class="spinner"></span></div>
+  <header class="app-header" id="app-header" hidden></header>
+  <nav class="app-nav" id="app-nav" aria-label="Menu utama" hidden></nav>
+
+  <main class="app-main" id="app-main" hidden>
+    <div class="page-head">
+      <div>
+        <h1>Praktik Saya</h1>
+        <p>Status, jadwal, booking online, dan data praktik.</p>
+      </div>
+    </div>
+
+    <!-- Open / closed -->
+    <section class="card stack" aria-labelledby="status-title">
+      <label class="switch">
+        <span>
+          <strong class="status-title" id="status-title" style="font-size:1.1rem"></strong>
+          <span class="muted small" style="display:block">Pasien melihat status ini di halaman booking.</span>
+        </span>
+        <input type="checkbox" id="open-toggle">
+        <span class="switch-track" aria-hidden="true"></span>
+      </label>
+    </section>
+
+    <!-- Weekly schedule -->
+    <section class="section card" aria-labelledby="hours-title">
+      <div class="stack-sm" style="margin-bottom:14px">
+        <h2 id="hours-title">🕒 Jadwal praktik</h2>
+        <p class="muted small">Nyalakan hari praktik dan isi jamnya. Bisa lebih dari satu sesi (misal pagi dan sore).</p>
+      </div>
+      <div id="days"></div>
+      <div id="hours-error" class="form-error" role="alert" hidden style="margin-top:10px"></div>
+      <button type="button" class="btn btn-primary btn-block" id="save-hours" style="margin-top:14px">Simpan Jadwal</button>
+    </section>
+
+    <!-- Online booking -->
+    <section class="section card stack" aria-labelledby="booking-title">
+      <label class="switch">
+        <span>
+          <strong id="booking-title" style="font-size:1.1rem;color:var(--navy)">🌐 Terima booking online</strong>
+          <span class="muted small" style="display:block">Pasien bisa daftar sendiri lewat link di bawah.</span>
+        </span>
+        <input type="checkbox" id="booking-toggle">
+        <span class="switch-track" aria-hidden="true"></span>
+      </label>
+      <code class="link-box" id="booking-link"></code>
+      <div class="two-cols">
+        <button type="button" class="btn btn-ghost" id="copy-link">📋 Salin link</button>
+        <a class="btn btn-ghost" id="open-link" target="_blank" rel="noopener">👀 Lihat halaman</a>
+      </div>
+    </section>
+
+    <!-- Practice info -->
+    <section class="section card" aria-labelledby="info-title">
+      <h2 id="info-title" style="margin-bottom:14px">🏥 Data praktik</h2>
+      <form id="info-form" class="stack" novalidate>
+        <div id="info-error" class="form-error" role="alert" hidden></div>
+        <div class="field">
+          <label for="practice_name">Nama praktik *</label>
+          <input class="input" id="practice_name" name="name" maxlength="120" required>
+        </div>
+        <div class="field">
+          <label for="profession">Profesi</label>
+          <select class="input" id="profession" name="profession"></select>
+        </div>
+        <div class="field" id="specialty-field" hidden>
+          <label for="specialty" id="specialty-label"></label>
+          <input class="input" id="specialty" name="specialty" maxlength="120">
+        </div>
+        <div class="field">
+          <label for="phone">No. WhatsApp praktik</label>
+          <input class="input" id="phone" name="phone" type="tel" inputmode="tel" maxlength="30">
+        </div>
+        <div class="field">
+          <label for="address">Alamat</label>
+          <textarea class="input" id="address" name="address" maxlength="300" rows="2"></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary" id="save-info">Simpan Data Praktik</button>
+      </form>
+    </section>
+  </main>
+
+  <div class="toast" id="toast" role="status" hidden></div>
+</body>
+</html>

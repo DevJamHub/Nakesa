@@ -34,7 +34,7 @@ form.addEventListener('submit', async (event) => {
   if (!valid) return;
 
   clearAlert(alertBox);
-  setLoading(submit, true, 'Creating account…');
+  setLoading(submit, true, 'Membuat akun…');
   try {
     const result = await signUpWithEmail(fullName.value, email.value, password.value);
     if (result === 'signed_in') {

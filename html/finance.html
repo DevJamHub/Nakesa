@@ -18,7 +18,7 @@
     <div class="page-head">
       <div>
         <h1>Catatan Keuangan</h1>
-        <p>Uang masuk dan keluar praktik.</p>
+        <p id="subjudul">Uang masuk dan keluar praktik.</p>
       </div>
     </div>
 
@@ -34,9 +34,17 @@
       <div class="stat"><span class="stat-label">Sisa (untung)</span><span class="stat-value" id="sum-balance">–</span></div>
     </div>
 
+    <button type="button" class="btn btn-ghost btn-block" id="toggle-breakdown"
+      aria-expanded="false" aria-controls="breakdown" style="margin-top:12px">📊 Lihat Rincian per Kategori</button>
+    <div class="card breakdown" id="breakdown" hidden></div>
+
     <div class="two-cols" style="margin-top:14px">
       <button type="button" class="btn btn-success btn-big" data-new="masuk">＋ Uang Masuk</button>
       <button type="button" class="btn btn-danger btn-big" data-new="keluar">− Uang Keluar</button>
+    </div>
+
+    <div class="search" style="margin-top:14px">
+      <input class="input" type="search" id="search" placeholder="Cari catatan, misal: Bu Ani, Beli Obat…" aria-label="Cari catatan keuangan">
     </div>
 
     <div id="list" style="margin-top:8px"></div>

@@ -34,7 +34,7 @@ if (!session) {
     if (!valid) return;
 
     clearAlert(alertBox);
-    setLoading(submit, true, 'Saving…');
+    setLoading(submit, true, 'Menyimpan…');
     try {
       await updatePassword(password.value);
       window.location.replace(PAGES.dashboard);

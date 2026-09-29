@@ -339,3 +339,13 @@ dialog::backdrop { background: rgba(15, 30, 45, 0.45); }
 .money-out { color: var(--red); font-weight: 800; white-space: nowrap; }
 .month-picker { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 14px; }
 .month-picker strong { font-size: 1.1rem; color: var(--navy); }
+
+/* ---------- Finance breakdown per category ---------- */
+.breakdown { margin-top: 10px; display: grid; gap: 6px; }
+.breakdown h2 { font-size: 1rem; margin-top: 8px; }
+.breakdown-row { display: grid; gap: 4px; padding: 6px 0; }
+.breakdown-row-head { display: flex; justify-content: space-between; gap: 10px; font-weight: 600; }
+.breakdown-bar { height: 8px; border-radius: 99px; background: var(--line); overflow: hidden; }
+.breakdown-bar span { display: block; height: 100%; border-radius: inherit; }
+.breakdown-bar .bar-in { background: var(--green); }
+.breakdown-bar .bar-out { background: var(--red); }

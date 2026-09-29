@@ -3,25 +3,25 @@ import { MIN_PASSWORD_LENGTH } from './config.js';
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export function validateEmail(email) {
-  if (!email.trim()) return 'Email is required.';
-  if (!EMAIL_RE.test(email.trim())) return 'Please enter a valid email address.';
+  if (!email.trim()) return 'Email wajib diisi.';
+  if (!EMAIL_RE.test(email.trim())) return 'Format email belum benar.';
   return '';
 }
 
 export function validatePassword(password) {
-  if (!password) return 'Password is required.';
-  if (password.length < MIN_PASSWORD_LENGTH) return `Password must be at least ${MIN_PASSWORD_LENGTH} characters.`;
+  if (!password) return 'Kata sandi wajib diisi.';
+  if (password.length < MIN_PASSWORD_LENGTH) return `Kata sandi minimal ${MIN_PASSWORD_LENGTH} karakter.`;
   return '';
 }
 
 export function validateFullName(name) {
-  if (!name.trim()) return 'Full name is required.';
-  if (name.trim().length > 120) return 'Name is too long.';
+  if (!name.trim()) return 'Nama lengkap wajib diisi.';
+  if (name.trim().length > 120) return 'Nama terlalu panjang.';
   return '';
 }
 
 export function validateConfirm(password, confirm) {
-  if (!confirm) return 'Please confirm your password.';
-  if (password !== confirm) return 'Passwords do not match.';
+  if (!confirm) return 'Ketik ulang kata sandi Anda.';
+  if (password !== confirm) return 'Kata sandi tidak sama.';
   return '';
 }

@@ -18,7 +18,7 @@ function showError(message) {
 if (providerError) {
   if (IS_DEV) console.error('[auth:callback]', errorCode, providerError);
   const cancelled = providerError === 'access_denied' || /cancel/i.test(providerError);
-  showError(cancelled ? 'Sign-in was cancelled.' : messageForCode(errorCode));
+  showError(cancelled ? 'Proses masuk dibatalkan.' : messageForCode(errorCode));
 } else {
   const timeout = new Promise((resolve) => setTimeout(() => resolve(null), 10_000));
   const session = await Promise.race([getSession(), timeout]);
@@ -28,6 +28,6 @@ if (providerError) {
     // A ?code= that could not be exchanged: expired, already used, or opened in a
     // different browser than the one that started sign-in (PKCE needs the same one).
     if (IS_DEV) console.error('[auth:callback] no session after redirect', { hasCode });
-    showError(hasCode ? 'This sign-in link has expired or was opened in a different browser. Please log in again.' : null);
+    showError(hasCode ? 'Link sudah kedaluwarsa atau dibuka di browser lain. Silakan masuk lagi.' : null);
   }
 }

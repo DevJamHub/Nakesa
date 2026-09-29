@@ -4,12 +4,26 @@ import { bindRupiahInput, escapeHtml, friendlyDate, parseRupiah, rupiah, toISODa
 import { financeCategories } from '../professions.js';
 import { appError, fillForm, formValues, startPage, toast, whileSaving } from '../shell.js';
 
-const { profile } = await startPage('finance');
+const { profile, practice } = await startPage('finance');
+
+/* ---------- Task 01: Select & Change ---------- */
+// Selector tag: ambil <h1> pertama di halaman, lalu ganti teksnya.
+const title = document.querySelector('h1');
+title.textContent = `Keuangan ${practice.name}`;
+
+// Selector ID: ambil elemen dengan id="subjudul".
+const subtitle = document.querySelector('#subjudul');
+subtitle.textContent = 'Catat setiap uang masuk dan keluar supaya untung praktik terlihat jelas.';
+
+// Selector class: ambil elemen PERTAMA yang punya class="btn-success".
+const incomeButton = document.querySelector('.btn-success');
+incomeButton.textContent = '＋ Catat Uang Masuk';
 
 const list = document.getElementById('list');
 const dialog = document.getElementById('tx-dialog');
 const form = document.getElementById('tx-form');
 const errorBox = document.getElementById('form-error');
+const search = document.querySelector('#search');
 const month = new Date();
 month.setDate(1);
 let transactions = [];
@@ -37,6 +51,50 @@ async function load() {
 document.getElementById('prev-month').addEventListener('click', () => { month.setMonth(month.getMonth() - 1); load(); });
 document.getElementById('next-month').addEventListener('click', () => { month.setMonth(month.getMonth() + 1); load(); });
 
+/* ---------- Task 02: Handle User Event ---------- */
+// Event "input" fires on every keystroke, so the list filters while the user types.
+search.addEventListener('input', render);
+
+/* ---------- Task 03: Build One Complete Interaction ---------- */
+// Click "Lihat Rincian" → sum this month's transactions per category → show the detail.
+const breakdown = document.querySelector('#breakdown');
+const breakdownButton = document.querySelector('#toggle-breakdown');
+
+breakdownButton.addEventListener('click', () => {
+  const opening = breakdown.hidden;
+  breakdown.hidden = !opening;
+  breakdownButton.setAttribute('aria-expanded', String(opening));
+  breakdownButton.textContent = opening ? '📊 Tutup Rincian' : '📊 Lihat Rincian per Kategori';
+  renderBreakdown();
+});
+
+function renderBreakdown() {
+  if (breakdown.hidden) return;
+  breakdown.innerHTML = breakdownSection('masuk', 'Uang masuk dari') + breakdownSection('keluar', 'Uang keluar untuk');
+}
+
+function breakdownSection(kind, heading) {
+  const totals = {};
+  for (const t of transactions) {
+    if (t.kind === kind) totals[t.category] = (totals[t.category] ?? 0) + t.amount;
+  }
+  const rows = Object.entries(totals).sort((a, b) => b[1] - a[1]);
+  if (!rows.length) return `<h2>${heading}</h2><p class="muted">Belum ada catatan.</p>`;
+
+  const total = rows.reduce((sum, [, amount]) => sum + amount, 0);
+  return `<h2>${heading}</h2>` + rows.map(([category, amount]) => {
+    const percent = Math.round((amount / total) * 100);
+    return `
+      <div class="breakdown-row">
+        <div class="breakdown-row-head">
+          <span>${escapeHtml(category)}</span>
+          <span class="${kind === 'masuk' ? 'money-in' : 'money-out'}">${rupiah(amount)} · ${percent}%</span>
+        </div>
+        <div class="breakdown-bar"><span class="${kind === 'masuk' ? 'bar-in' : 'bar-out'}" style="width:${percent}%"></span></div>
+      </div>`;
+  }).join('');
+}
+
 /* ---------- Render ---------- */
 function render() {
   const sum = (kind) => transactions.filter((t) => t.kind === kind).reduce((total, t) => total + t.amount, 0);
@@ -47,14 +105,20 @@ function render() {
   const balance = document.getElementById('sum-balance');
   balance.textContent = `${income - expense < 0 ? '−' : ''}${rupiah(Math.abs(income - expense))}`;
   balance.className = `stat-value ${income - expense < 0 ? 'money-out' : ''}`;
+  renderBreakdown(); // keep an open breakdown in sync when the month or data changes
 
-  if (!transactions.length) {
+  // Totals always cover the whole month; the search only narrows the list below.
+  const q = search.value.trim().toLowerCase();
+  const shown = transactions.filter((t) =>
+    !q || t.category.toLowerCase().includes(q) || (t.note ?? '').toLowerCase().includes(q));
+
+  if (!shown.length) {
     list.innerHTML = `<div class="card empty-state" style="margin-top:14px"><p class="empty-icon" aria-hidden="true">💰</p>
-      <p class="muted">Belum ada catatan di bulan ini.</p></div>`;
+      <p class="muted">${transactions.length ? `Tidak ada catatan yang cocok dengan “${escapeHtml(search.value.trim())}”.` : 'Belum ada catatan di bulan ini.'}</p></div>`;
     return;
   }
   let lastDate = null;
-  list.innerHTML = transactions.map((t) => {
+  list.innerHTML = shown.map((t) => {
     const heading = t.occurred_on !== lastDate ? `<p class="group-label">${friendlyDate(t.occurred_on)}</p>` : '';
     lastDate = t.occurred_on;
     return `${heading}

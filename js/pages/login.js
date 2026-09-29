@@ -25,12 +25,12 @@ form.addEventListener('submit', async (event) => {
 
   const valid = validateFields([
     [email, validateEmail(email.value)],
-    [password, password.value ? '' : 'Password is required.'],
+    [password, password.value ? '' : 'Kata sandi wajib diisi.'],
   ]);
   if (!valid) return;
 
   clearAlert(alertBox);
-  setLoading(submit, true, 'Signing in…');
+  setLoading(submit, true, 'Sedang masuk…');
   try {
     await signInWithEmail(email.value, password.value);
     window.location.replace(PAGES.dashboard);

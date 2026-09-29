@@ -16,7 +16,7 @@ form.addEventListener('submit', async (event) => {
   if (!validateFields([[email, validateEmail(email.value)]])) return;
 
   clearAlert(alertBox);
-  setLoading(submit, true, 'Sending link…');
+  setLoading(submit, true, 'Mengirim link…');
   try {
     await sendPasswordReset(email.value);
     document.getElementById('sent-email').textContent = email.value.trim();

@@ -76,9 +76,9 @@ export function initPasswordToggles() {
     btn.addEventListener('click', () => {
       const reveal = input.type === 'password';
       input.type = reveal ? 'text' : 'password';
-      btn.textContent = reveal ? 'Hide' : 'Show';
+      btn.textContent = reveal ? 'Sembunyi' : 'Lihat';
       btn.setAttribute('aria-pressed', String(reveal));
-      btn.setAttribute('aria-label', reveal ? 'Hide password' : 'Show password');
+      btn.setAttribute('aria-label', reveal ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi');
     });
   });
 }
@@ -107,7 +107,7 @@ export function initOAuthButtons(alertBox, lockWhileBusy = []) {
       clearAlert(alertBox);
       const others = [...buttons, ...lockWhileBusy].filter((b) => b !== button);
       others.forEach((b) => (b.disabled = true));
-      setLoading(button, true, 'Signing in…');
+      setLoading(button, true, 'Sedang masuk…');
       try {
         await signInWithOAuth(button.dataset.oauth);
         // Success: the browser is navigating to Google/Apple — keep the loading state.

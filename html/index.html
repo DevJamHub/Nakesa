@@ -1,37 +1,70 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="id" class="scroll-smooth">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="NAKESA - Asisten digital untuk mengelola praktik tenaga kesehatan.">
   <title>NAKESA — Digital Practice Management</title>
-  <link rel="stylesheet" href="../style.css">
+  <!-- Tailwind CSS (Play CDN). Replaces the old hand-written css/style.css. -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        // Same breakpoints as the old style.css (max-width 430 / 720 / 980px), written mobile-first.
+        screens: { xs: '431px', md: '721px', lg: '981px' },
+        extend: {
+          colors: {
+            navy: '#173a5e',
+            primary: '#2c8ecb',
+            'primary-dark': '#236f9f',
+            'primary-soft': '#eaf6fc',
+            aqua: '#5bc0d8',
+            mint: '#49b89f',
+            ink: '#25415f',
+            muted: '#6f8297',
+            line: '#dce9f1',
+            soft: '#f3f9fc',
+          },
+          fontFamily: {
+            sans: ['Inter', 'ui-sans-serif', 'system-ui', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'sans-serif'],
+          },
+          boxShadow: { soft: '0 18px 50px rgba(36, 93, 125, 0.12)' },
+        },
+      },
+    };
+  </script>
+  <style type="text/tailwindcss">
+    @layer base {
+      :focus-visible { @apply outline outline-[3px] outline-offset-[3px] outline-[rgba(44,142,203,0.35)]; }
+    }
+  </style>
+  <script type="module" src="../js/pages/index.js"></script>
 </head>
-<body>
+<body class="min-w-0 overflow-x-hidden bg-white font-sans leading-[1.6] text-ink">
   <!-- TASK 1: Semantic HTML Structure -->
-  <header class="site-header">
-    <div class="container nav-wrapper">
-      <a class="brand" href="#beranda" aria-label="NAKESA Beranda">
-        <span class="brand-mark" aria-hidden="true">✚</span>
+  <header class="relative md:sticky md:top-0 z-20 border-b border-line bg-white/[.96] backdrop-blur-md">
+    <div class="mx-auto w-[min(100%_-_24px,620px)] xs:w-[min(100%_-_28px,620px)] md:w-[min(1180px,100%_-_40px)] flex min-h-[68px] xs:min-h-[76px] items-center justify-between gap-6">
+      <a class="inline-flex items-center gap-2.5 text-[1.2rem] font-black tracking-[-0.02em] text-navy" href="#beranda" aria-label="NAKESA Beranda">
+        <span class="grid h-[38px] w-[38px] place-items-center rounded-xl border border-[#cce8f2] bg-gradient-to-br from-primary to-aqua text-white shadow-[0_8px_20px_rgba(44,142,203,0.22)]" aria-hidden="true">✚</span>
         <span>NAKESA</span>
       </a>
 
-      <nav class="desktop-nav" aria-label="Navigasi utama">
-        <a href="#beranda">Beranda</a>
-        <a href="#fitur">Fitur</a>
-        <a href="#praktik">Praktik</a>
-        <a href="#tentang">Tentang</a>
-        <a class="nav-button" href="welcome.html">Masuk</a>
+      <nav class="hidden md:flex items-center gap-7 text-[0.94rem] font-[750]" id="desktop-nav" aria-label="Navigasi utama">
+        <a class="text-[#688099] transition-colors hover:text-primary" href="#beranda">Beranda</a>
+        <a class="text-[#688099] transition-colors hover:text-primary" href="#fitur">Fitur</a>
+        <a class="text-[#688099] transition-colors hover:text-primary" href="#praktik">Praktik</a>
+        <a class="text-[#688099] transition-colors hover:text-primary" href="#tentang">Tentang</a>
+        <a class="inline-flex min-h-[43px] items-center justify-center rounded-[11px] bg-primary px-[17px] text-white shadow-[0_8px_18px_rgba(44,142,203,0.22)]" href="welcome.html">Masuk</a>
       </nav>
 
-      <details class="mobile-nav">
-        <summary aria-label="Buka menu navigasi">☰</summary>
-        <nav aria-label="Navigasi mobile">
-          <a href="#beranda">Beranda</a>
-          <a href="#fitur">Fitur</a>
-          <a href="#praktik">Praktik</a>
-          <a href="#tentang">Tentang</a>
-          <a class="nav-button" href="welcome.html">Masuk</a>
+      <details class="relative md:hidden" id="mobile-menu">
+        <summary class="grid h-[42px] w-[42px] cursor-pointer list-none place-items-center rounded-xl bg-primary-soft text-[1.25rem] text-navy [&::-webkit-details-marker]:hidden" aria-label="Buka menu navigasi">☰</summary>
+        <nav class="absolute right-0 top-[calc(100%_+_10px)] grid min-w-[205px] gap-1 rounded-[15px] border border-line bg-white p-2.5 shadow-soft" aria-label="Navigasi mobile">
+          <a class="rounded-[10px] px-3 py-2.5 font-[750] text-[#637d93] hover:bg-primary-soft hover:text-primary" href="#beranda">Beranda</a>
+          <a class="rounded-[10px] px-3 py-2.5 font-[750] text-[#637d93] hover:bg-primary-soft hover:text-primary" href="#fitur">Fitur</a>
+          <a class="rounded-[10px] px-3 py-2.5 font-[750] text-[#637d93] hover:bg-primary-soft hover:text-primary" href="#praktik">Praktik</a>
+          <a class="rounded-[10px] px-3 py-2.5 font-[750] text-[#637d93] hover:bg-primary-soft hover:text-primary" href="#tentang">Tentang</a>
+          <a class="mt-1 inline-flex min-h-[43px] items-center justify-center rounded-[10px] bg-primary px-3 py-2.5 font-[750] text-white shadow-[0_8px_18px_rgba(44,142,203,0.22)] hover:bg-primary-dark" href="welcome.html">Masuk</a>
         </nav>
       </details>
     </div>
@@ -39,76 +72,76 @@
 
   <main>
     <!-- HERO -->
-    <section id="beranda" class="hero-section" aria-labelledby="hero-title">
-      <div class="container">
-        <div class="hero-card">
-          <div class="hero-content">
-            <p class="eyebrow">Digital Practice Management</p>
-            <h1 id="hero-title">Kelola Praktik.<br>Rawat Pasien.<br>Lebih Teratur.</h1>
-            <p class="hero-copy">
+    <section id="beranda" class="pt-5 pb-[18px] md:pt-8" aria-labelledby="hero-title">
+      <div class="mx-auto w-[min(100%_-_24px,620px)] xs:w-[min(100%_-_28px,620px)] md:w-[min(1180px,100%_-_40px)]">
+        <div class="grid min-h-[460px] grid-cols-1 lg:grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)] overflow-hidden rounded-[22px] md:rounded-[30px] border border-[#d8edf5] bg-[image:radial-gradient(circle_at_87%_20%,rgba(255,255,255,0.95),transparent_21%),linear-gradient(120deg,#effaff_0%,#e4f5fb_52%,#d9f0f7_100%)] shadow-soft">
+          <div class="relative z-[2] flex flex-col justify-center px-6 pt-8 pb-[26px] md:px-11 md:pt-[46px] md:pb-[30px] lg:p-[58px]">
+            <p class="mb-2.5 text-[0.8rem] font-black uppercase tracking-[0.09em] text-primary">Digital Practice Management</p>
+            <h1 class="text-[2.55rem] xs:text-[length:clamp(2.35rem,13vw,3.9rem)] md:text-[length:clamp(2.55rem,5vw,4.9rem)] font-bold leading-[0.98] tracking-[-0.055em] text-navy" id="hero-title">Kelola Praktik.<br>Rawat Pasien.<br>Lebih Teratur.</h1>
+            <p class="mt-[21px] mb-[25px] max-w-[505px] text-[0.96rem] md:text-[1.06rem] text-[#61778d]">
               NAKESA membantu tenaga kesehatan mencatat pasien, pemeriksaan,
               obat, stok, jadwal, dan administrasi praktik dalam satu sistem.
             </p>
-            <div class="hero-actions">
-              <a class="primary-button" href="#fitur">
+            <div class="flex flex-col md:flex-row flex-wrap gap-3">
+              <a class="inline-flex min-h-[48px] w-full md:w-auto items-center justify-center gap-[9px] rounded-xl bg-primary px-[19px] font-[850] text-white shadow-[0_11px_24px_rgba(44,142,203,0.23)] transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_15px_30px_rgba(44,142,203,0.3)]" href="#fitur">
                 Mulai Kelola <span aria-hidden="true">→</span>
               </a>
-              <a class="secondary-button" href="#tentang">Pelajari NAKESA</a>
+              <a class="inline-flex min-h-[48px] w-full md:w-auto items-center justify-center gap-[9px] rounded-xl border border-[#bfe0ed] bg-white/75 px-[19px] font-[850] text-primary-dark" href="#tentang">Pelajari NAKESA</a>
             </div>
           </div>
 
-          <div class="hero-visual" aria-label="Dashboard ringkas NAKESA">
-            <div class="floating-icon icon-patient" aria-hidden="true">👤</div>
-            <div class="floating-icon icon-medical" aria-hidden="true">✚</div>
-            <div class="floating-icon icon-medicine" aria-hidden="true">💊</div>
+          <div class="relative grid min-h-[360px] xs:min-h-[320px] md:min-h-[390px] lg:min-h-[460px] place-items-center before:absolute before:h-[300px] before:w-[300px] md:before:h-[430px] md:before:w-[430px] before:rounded-full before:bg-[rgba(177,225,238,0.55)] before:shadow-[0_0_0_32px_rgba(255,255,255,0.28),0_0_0_66px_rgba(255,255,255,0.12)] before:content-['']" aria-label="Dashboard ringkas NAKESA">
+            <div class="absolute z-[3] grid h-[45px] w-[45px] md:h-[52px] md:w-[52px] place-items-center rounded-[15px] border border-white/90 bg-white/[.86] shadow-[0_15px_25px_rgba(50,112,143,0.14)] left-[3%] md:left-[8%] top-[24%]" aria-hidden="true">👤</div>
+            <div class="absolute z-[3] grid h-[45px] w-[45px] md:h-[52px] md:w-[52px] place-items-center rounded-[15px] border border-white/90 bg-white/[.86] shadow-[0_15px_25px_rgba(50,112,143,0.14)] right-[3%] md:right-[7%] top-[18%]" aria-hidden="true">✚</div>
+            <div class="absolute z-[3] grid h-[45px] w-[45px] md:h-[52px] md:w-[52px] place-items-center rounded-[15px] border border-white/90 bg-white/[.86] shadow-[0_15px_25px_rgba(50,112,143,0.14)] right-[3%] md:right-[7%] bottom-[18%]" aria-hidden="true">💊</div>
 
-            <div class="dashboard-card">
-              <div class="dashboard-top">
+            <div class="relative z-[2] w-[91%] xs:w-[min(86%,420px)] md:w-[min(70%,440px)] lg:w-[min(78%,440px)] p-[18px] md:p-[22px] rounded-[22px] border border-[rgba(197,224,235,0.95)] bg-white/[.94] shadow-[0_25px_60px_rgba(50,112,143,0.18)]">
+              <div class="mb-[17px] flex items-center justify-between gap-4">
                 <div>
-                  <span class="mini-label">Ringkasan Praktik</span>
-                  <strong>Hari Ini</strong>
+                  <span class="mb-0.5 block text-[0.72rem] font-extrabold text-[#8aa1b4]">Ringkasan Praktik</span>
+                  <strong class="text-[1.15rem] text-navy">Hari Ini</strong>
                 </div>
-                <span class="status-dot">● Aktif</span>
+                <span class="text-[0.75rem] font-[850] text-mint">● Aktif</span>
               </div>
 
-              <div class="dashboard-stats">
-                <div class="stat-box blue-stat">
-                  <span class="stat-icon" aria-hidden="true">👥</span>
-                  <div>
-                    <span>Pasien</span>
-                    <strong>24</strong>
+              <div class="grid grid-cols-1 xs:grid-cols-2 gap-3">
+                <div class="flex items-center gap-3 rounded-[15px] bg-[#edf8fd] p-3.5">
+                  <span class="grid h-10 w-10 place-items-center rounded-[11px] bg-white/[.85] text-base" aria-hidden="true">👥</span>
+                  <div class="grid">
+                    <span class="text-[0.73rem] text-[#7e91a2]">Pasien</span>
+                    <strong class="text-[1.33rem] leading-[1.15] text-navy">24</strong>
                   </div>
                 </div>
-                <div class="stat-box green-stat">
-                  <span class="stat-icon" aria-hidden="true">🩺</span>
-                  <div>
-                    <span>Kunjungan</span>
-                    <strong>18</strong>
+                <div class="flex items-center gap-3 rounded-[15px] bg-[#eff9f5] p-3.5">
+                  <span class="grid h-10 w-10 place-items-center rounded-[11px] bg-white/[.85] text-base" aria-hidden="true">🩺</span>
+                  <div class="grid">
+                    <span class="text-[0.73rem] text-[#7e91a2]">Kunjungan</span>
+                    <strong class="text-[1.33rem] leading-[1.15] text-navy">18</strong>
                   </div>
                 </div>
               </div>
 
-              <div class="stock-summary">
-                <div class="summary-heading">
-                  <strong>Stok Obat</strong>
-                  <span>12 item</span>
+              <div class="mt-3.5 rounded-[15px] border border-[#e4edf2] p-[15px]">
+                <div class="mb-[9px] flex items-center justify-between gap-3">
+                  <strong class="text-navy">Stok Obat</strong>
+                  <span class="text-[0.72rem] text-[#93a4b2]">12 item</span>
                 </div>
-                <div class="stock-row">
+                <div class="flex items-center justify-between gap-3 border-t border-dashed border-[#e1ebf0] py-2 text-[0.8rem] text-[#60758a]">
                   <span>Paracetamol</span>
-                  <span class="stock-good">Tersedia</span>
+                  <span class="text-[0.72rem] font-[850] text-mint">Tersedia</span>
                 </div>
-                <div class="stock-row">
+                <div class="flex items-center justify-between gap-3 border-t border-dashed border-[#e1ebf0] py-2 text-[0.8rem] text-[#60758a]">
                   <span>Amoxicillin</span>
-                  <span class="stock-warning">Menipis</span>
+                  <span class="text-[0.72rem] font-[850] text-[#db9b2e]">Menipis</span>
                 </div>
-                <div class="stock-row">
+                <div class="flex items-center justify-between gap-3 border-t border-dashed border-[#e1ebf0] py-2 text-[0.8rem] text-[#60758a]">
                   <span>Vitamin</span>
-                  <span class="stock-good">Tersedia</span>
+                  <span class="text-[0.72rem] font-[850] text-mint">Tersedia</span>
                 </div>
               </div>
 
-              <div class="dashboard-footer">
-                <span>NAKESA</span>
+              <div class="mt-[15px] flex justify-between gap-3 text-[0.7rem] text-[#91a3b2]">
+                <span class="font-black tracking-[0.08em] text-primary">NAKESA</span>
                 <span>Semua aktivitas tercatat</span>
               </div>
             </div>
@@ -118,99 +151,99 @@
     </section>
 
     <!-- FITUR -->
-    <section id="fitur" class="section" aria-labelledby="fitur-title">
-      <div class="container">
-        <div class="section-heading">
-          <p class="eyebrow">Fitur Utama</p>
-          <h2 id="fitur-title">Satu sistem untuk seluruh aktivitas praktik</h2>
-          <p>
+    <section id="fitur" class="py-[62px] md:py-[84px]" aria-labelledby="fitur-title">
+      <div class="mx-auto w-[min(100%_-_24px,620px)] xs:w-[min(100%_-_28px,620px)] md:w-[min(1180px,100%_-_40px)]">
+        <div class="mb-8 max-w-[750px]">
+          <p class="mb-2.5 text-[0.8rem] font-black uppercase tracking-[0.09em] text-primary">Fitur Utama</p>
+          <h2 class="text-[length:clamp(1.85rem,3vw,2.75rem)] font-bold leading-[1.08] tracking-[-0.035em] text-navy" id="fitur-title">Satu sistem untuk seluruh aktivitas praktik</h2>
+          <p class="mt-3 text-muted">
             NAKESA dirancang agar pencatatan operasional praktik menjadi lebih
             terstruktur, mudah dicari, dan mudah dipantau.
           </p>
         </div>
 
-        <div class="feature-grid">
-          <article class="feature-card feature-blue">
-            <div class="feature-icon" aria-hidden="true">👤</div>
-            <h3>Manajemen Pasien</h3>
-            <p>Kelola identitas pasien, riwayat kunjungan, dan informasi penting secara terstruktur.</p>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-[18px]">
+          <article class="min-w-0 rounded-[17px] border border-line bg-white p-6 shadow-[0_10px_28px_rgba(39,96,130,0.055)] transition duration-200 hover:-translate-y-1 hover:shadow-soft">
+            <div class="mb-[18px] grid h-[58px] w-[58px] place-items-center rounded-[15px] bg-[#eaf6fc] text-[1.6rem]" aria-hidden="true">👤</div>
+            <h3 class="text-[1.12rem] font-bold text-navy">Manajemen Pasien</h3>
+            <p class="mt-2 text-[0.92rem] text-muted">Kelola identitas pasien, riwayat kunjungan, dan informasi penting secara terstruktur.</p>
           </article>
 
-          <article class="feature-card feature-purple">
-            <div class="feature-icon" aria-hidden="true">🩺</div>
-            <h3>Pemeriksaan & Tindakan</h3>
-            <p>Catat hasil pemeriksaan, tindakan, keluhan, dan catatan pelayanan kesehatan.</p>
+          <article class="min-w-0 rounded-[17px] border border-line bg-white p-6 shadow-[0_10px_28px_rgba(39,96,130,0.055)] transition duration-200 hover:-translate-y-1 hover:shadow-soft">
+            <div class="mb-[18px] grid h-[58px] w-[58px] place-items-center rounded-[15px] bg-[#f1edfc] text-[1.6rem]" aria-hidden="true">🩺</div>
+            <h3 class="text-[1.12rem] font-bold text-navy">Pemeriksaan & Tindakan</h3>
+            <p class="mt-2 text-[0.92rem] text-muted">Catat hasil pemeriksaan, tindakan, keluhan, dan catatan pelayanan kesehatan.</p>
           </article>
 
-          <article class="feature-card feature-green">
-            <div class="feature-icon" aria-hidden="true">💊</div>
-            <h3>Obat & Stok</h3>
-            <p>Pantau persediaan obat, penggunaan, dan kondisi stok agar lebih terkontrol.</p>
+          <article class="min-w-0 rounded-[17px] border border-line bg-white p-6 shadow-[0_10px_28px_rgba(39,96,130,0.055)] transition duration-200 hover:-translate-y-1 hover:shadow-soft">
+            <div class="mb-[18px] grid h-[58px] w-[58px] place-items-center rounded-[15px] bg-[#ebf8f3] text-[1.6rem]" aria-hidden="true">💊</div>
+            <h3 class="text-[1.12rem] font-bold text-navy">Obat & Stok</h3>
+            <p class="mt-2 text-[0.92rem] text-muted">Pantau persediaan obat, penggunaan, dan kondisi stok agar lebih terkontrol.</p>
           </article>
 
-          <article class="feature-card feature-orange">
-            <div class="feature-icon" aria-hidden="true">📦</div>
-            <h3>Inventaris</h3>
-            <p>Kelola alat kesehatan dan perlengkapan praktik dalam satu daftar inventaris.</p>
+          <article class="min-w-0 rounded-[17px] border border-line bg-white p-6 shadow-[0_10px_28px_rgba(39,96,130,0.055)] transition duration-200 hover:-translate-y-1 hover:shadow-soft">
+            <div class="mb-[18px] grid h-[58px] w-[58px] place-items-center rounded-[15px] bg-[#fff5e8] text-[1.6rem]" aria-hidden="true">📦</div>
+            <h3 class="text-[1.12rem] font-bold text-navy">Inventaris</h3>
+            <p class="mt-2 text-[0.92rem] text-muted">Kelola alat kesehatan dan perlengkapan praktik dalam satu daftar inventaris.</p>
           </article>
 
-          <article class="feature-card feature-cyan">
-            <div class="feature-icon" aria-hidden="true">📅</div>
-            <h3>Jadwal Kunjungan</h3>
-            <p>Atur jadwal praktik dan kunjungan pasien dengan tampilan yang mudah dipahami.</p>
+          <article class="min-w-0 rounded-[17px] border border-line bg-white p-6 shadow-[0_10px_28px_rgba(39,96,130,0.055)] transition duration-200 hover:-translate-y-1 hover:shadow-soft">
+            <div class="mb-[18px] grid h-[58px] w-[58px] place-items-center rounded-[15px] bg-[#eaf9fb] text-[1.6rem]" aria-hidden="true">📅</div>
+            <h3 class="text-[1.12rem] font-bold text-navy">Jadwal Kunjungan</h3>
+            <p class="mt-2 text-[0.92rem] text-muted">Atur jadwal praktik dan kunjungan pasien dengan tampilan yang mudah dipahami.</p>
           </article>
 
-          <article class="feature-card feature-pink">
-            <div class="feature-icon" aria-hidden="true">📊</div>
-            <h3>Laporan Praktik</h3>
-            <p>Lihat ringkasan aktivitas praktik melalui dashboard dan laporan yang terorganisir.</p>
+          <article class="min-w-0 rounded-[17px] border border-line bg-white p-6 shadow-[0_10px_28px_rgba(39,96,130,0.055)] transition duration-200 hover:-translate-y-1 hover:shadow-soft">
+            <div class="mb-[18px] grid h-[58px] w-[58px] place-items-center rounded-[15px] bg-[#fcf0f4] text-[1.6rem]" aria-hidden="true">📊</div>
+            <h3 class="text-[1.12rem] font-bold text-navy">Laporan Praktik</h3>
+            <p class="mt-2 text-[0.92rem] text-muted">Lihat ringkasan aktivitas praktik melalui dashboard dan laporan yang terorganisir.</p>
           </article>
         </div>
       </div>
     </section>
 
     <!-- PRAKTIK -->
-    <section id="praktik" class="section section-soft" aria-labelledby="praktik-title">
-      <div class="container">
-        <div class="practice-layout">
-          <article class="practice-card">
-            <p class="eyebrow">Untuk Tenaga Kesehatan</p>
-            <h2 id="praktik-title">Dibuat untuk praktik mandiri yang lebih terorganisir</h2>
-            <p>
+    <section id="praktik" class="py-[62px] md:py-[84px] bg-soft" aria-labelledby="praktik-title">
+      <div class="mx-auto w-[min(100%_-_24px,620px)] xs:w-[min(100%_-_28px,620px)] md:w-[min(1180px,100%_-_40px)]">
+        <div class="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_minmax(320px,0.8fr)] items-stretch gap-6">
+          <article class="rounded-[22px] border border-line bg-white px-6 py-[30px] md:p-[42px] shadow-[0_12px_32px_rgba(39,96,130,0.05)]">
+            <p class="mb-2.5 text-[0.8rem] font-black uppercase tracking-[0.09em] text-primary">Untuk Tenaga Kesehatan</p>
+            <h2 class="text-[length:clamp(1.85rem,3vw,2.75rem)] font-bold leading-[1.08] tracking-[-0.035em] text-navy" id="praktik-title">Dibuat untuk praktik mandiri yang lebih terorganisir</h2>
+            <p class="mt-3 text-muted">
               NAKESA dapat digunakan oleh berbagai tenaga kesehatan, termasuk
               bidan, dokter, perawat, dan profesi kesehatan lainnya.
             </p>
 
-            <div class="role-list" aria-label="Contoh pengguna NAKESA">
-              <span>👩‍⚕️ Bidan</span>
-              <span>👨‍⚕️ Dokter</span>
-              <span>🧑‍⚕️ Perawat</span>
-              <span>➕ Nakes lain</span>
+            <div class="mt-6 flex flex-wrap gap-2.5" aria-label="Contoh pengguna NAKESA">
+              <span class="rounded-full bg-[#eff7fb] px-3 py-[9px] text-[0.82rem] font-extrabold text-[#4e6f87]">👩‍⚕️ Bidan</span>
+              <span class="rounded-full bg-[#eff7fb] px-3 py-[9px] text-[0.82rem] font-extrabold text-[#4e6f87]">👨‍⚕️ Dokter</span>
+              <span class="rounded-full bg-[#eff7fb] px-3 py-[9px] text-[0.82rem] font-extrabold text-[#4e6f87]">🧑‍⚕️ Perawat</span>
+              <span class="rounded-full bg-[#eff7fb] px-3 py-[9px] text-[0.82rem] font-extrabold text-[#4e6f87]">➕ Nakes lain</span>
             </div>
           </article>
 
-          <aside class="workflow-card" aria-label="Alur penggunaan NAKESA">
-            <div class="workflow-item">
-              <span class="workflow-number">01</span>
+          <aside class="rounded-[22px] border border-line bg-white p-7 shadow-[0_12px_32px_rgba(39,96,130,0.05)]" aria-label="Alur penggunaan NAKESA">
+            <div class="grid grid-cols-[52px_minmax(0,1fr)] items-start gap-[13px]">
+              <span class="grid h-[46px] w-[46px] place-items-center rounded-[13px] bg-gradient-to-br from-primary to-aqua text-[0.82rem] font-black text-white">01</span>
               <div>
-                <strong>Catat Pasien</strong>
-                <p>Data pasien tersimpan rapi.</p>
+                <strong class="mt-[3px] block text-navy">Catat Pasien</strong>
+                <p class="mt-1 text-[0.82rem] text-muted">Data pasien tersimpan rapi.</p>
               </div>
             </div>
-            <div class="workflow-line" aria-hidden="true"></div>
-            <div class="workflow-item">
-              <span class="workflow-number">02</span>
+            <div class="my-1.5 ml-[22px] h-[25px] w-0.5 rounded-sm bg-[#cae6ef]" aria-hidden="true"></div>
+            <div class="grid grid-cols-[52px_minmax(0,1fr)] items-start gap-[13px]">
+              <span class="grid h-[46px] w-[46px] place-items-center rounded-[13px] bg-gradient-to-br from-primary to-aqua text-[0.82rem] font-black text-white">02</span>
               <div>
-                <strong>Layani & Periksa</strong>
-                <p>Pemeriksaan dan tindakan tercatat.</p>
+                <strong class="mt-[3px] block text-navy">Layani & Periksa</strong>
+                <p class="mt-1 text-[0.82rem] text-muted">Pemeriksaan dan tindakan tercatat.</p>
               </div>
             </div>
-            <div class="workflow-line" aria-hidden="true"></div>
-            <div class="workflow-item">
-              <span class="workflow-number">03</span>
+            <div class="my-1.5 ml-[22px] h-[25px] w-0.5 rounded-sm bg-[#cae6ef]" aria-hidden="true"></div>
+            <div class="grid grid-cols-[52px_minmax(0,1fr)] items-start gap-[13px]">
+              <span class="grid h-[46px] w-[46px] place-items-center rounded-[13px] bg-gradient-to-br from-primary to-aqua text-[0.82rem] font-black text-white">03</span>
               <div>
-                <strong>Kelola Praktik</strong>
-                <p>Obat, inventaris, jadwal, dan laporan terpantau.</p>
+                <strong class="mt-[3px] block text-navy">Kelola Praktik</strong>
+                <p class="mt-1 text-[0.82rem] text-muted">Obat, inventaris, jadwal, dan laporan terpantau.</p>
               </div>
             </div>
           </aside>
@@ -219,50 +252,51 @@
     </section>
 
     <!-- TENTANG -->
-    <section id="tentang" class="section" aria-labelledby="tentang-title">
-      <div class="container info-grid">
-        <article class="info-card">
-          <p class="eyebrow">Tentang NAKESA</p>
-          <h2 id="tentang-title">Asisten digital untuk praktik tenaga kesehatan</h2>
-          <p>
+    <section id="tentang" class="py-[62px] md:py-[84px]" aria-labelledby="tentang-title">
+      <div class="mx-auto w-[min(100%_-_24px,620px)] xs:w-[min(100%_-_28px,620px)] md:w-[min(1180px,100%_-_40px)] grid grid-cols-1 md:grid-cols-[minmax(0,1.2fr)_minmax(290px,0.8fr)] gap-[22px]">
+        <article class="rounded-[22px] border border-line bg-white px-6 py-[30px] md:p-[42px]">
+          <p class="mb-2.5 text-[0.8rem] font-black uppercase tracking-[0.09em] text-primary">Tentang NAKESA</p>
+          <h2 class="text-[length:clamp(1.85rem,3vw,2.75rem)] font-bold leading-[1.08] tracking-[-0.035em] text-navy" id="tentang-title">Asisten digital untuk praktik tenaga kesehatan</h2>
+          <p class="mt-3 text-muted">
             NAKESA adalah konsep aplikasi manajemen praktik yang menyatukan
             pencatatan pasien, pelayanan, persediaan, dan administrasi agar
             tenaga kesehatan dapat fokus memberikan layanan.
           </p>
         </article>
 
-        <aside class="stats-card" aria-label="Ringkasan kemampuan NAKESA">
-          <div>
-            <strong>6+</strong>
-            <span>Modul utama</span>
+        <aside class="grid grid-cols-3 gap-1.5 xs:gap-2.5 p-2.5 xs:p-[18px] rounded-[22px] border border-line bg-white" aria-label="Ringkasan kemampuan NAKESA">
+          <div class="flex min-w-0 flex-col justify-center rounded-[15px] bg-[#eef7fb] px-1.5 py-[15px] xs:px-3 xs:py-[21px] text-center">
+            <strong class="text-[1.22rem] xs:text-[1.5rem] text-navy">6+</strong>
+            <span class="text-[0.68rem] xs:text-[0.78rem] text-muted">Modul utama</span>
           </div>
-          <div>
-            <strong>1</strong>
-            <span>Sistem terpusat</span>
+          <div class="flex min-w-0 flex-col justify-center rounded-[15px] bg-[#eef7fb] px-1.5 py-[15px] xs:px-3 xs:py-[21px] text-center">
+            <strong class="text-[1.22rem] xs:text-[1.5rem] text-navy">1</strong>
+            <span class="text-[0.68rem] xs:text-[0.78rem] text-muted">Sistem terpusat</span>
           </div>
-          <div>
-            <strong>Multi</strong>
-            <span>Profesi nakes</span>
+          <div class="flex min-w-0 flex-col justify-center rounded-[15px] bg-[#eef7fb] px-1.5 py-[15px] xs:px-3 xs:py-[21px] text-center">
+            <strong class="text-[1.22rem] xs:text-[1.5rem] text-navy">Multi</strong>
+            <span class="text-[0.68rem] xs:text-[0.78rem] text-muted">Profesi nakes</span>
           </div>
         </aside>
       </div>
     </section>
   </main>
 
-  <footer id="login" class="site-footer">
-    <div class="container footer-content">
+  <footer id="login" class="bg-[#193c5d] py-11 text-[#dbeaf2]">
+    <div class="mx-auto w-[min(100%_-_24px,620px)] xs:w-[min(100%_-_28px,620px)] md:w-[min(1180px,100%_-_40px)] flex flex-col items-start md:flex-row md:items-center justify-between gap-7">
       <div>
-        <a class="brand brand-footer" href="#beranda">
-          <span class="brand-mark" aria-hidden="true">✚</span>
+        <a class="inline-flex items-center gap-2.5 text-[1.2rem] font-black tracking-[-0.02em] text-white" href="#beranda">
+          <span class="grid h-[38px] w-[38px] place-items-center rounded-xl border border-[#cce8f2] bg-gradient-to-br from-primary to-aqua text-white shadow-[0_8px_20px_rgba(44,142,203,0.22)]" aria-hidden="true">✚</span>
           <span>NAKESA</span>
         </a>
-        <p>Asisten digital untuk mengelola aktivitas praktik tenaga kesehatan.</p>
+        <p class="mt-[9px] text-[0.88rem] text-[#abc1d1]">Asisten digital untuk mengelola aktivitas praktik tenaga kesehatan.</p>
+        <p class="mt-1 text-[0.8rem] text-[#abc1d1]">© <span id="tahun">2026</span> NAKESA</p>
       </div>
 
-      <div class="footer-links">
-        <a href="#fitur">Fitur</a>
-        <a href="#praktik">Praktik</a>
-        <a href="#tentang">Tentang</a>
+      <div class="flex flex-wrap gap-5 text-[0.87rem] font-bold text-[#bdd0dc]">
+        <a class="hover:text-white" href="#fitur">Fitur</a>
+        <a class="hover:text-white" href="#praktik">Praktik</a>
+        <a class="hover:text-white" href="#tentang">Tentang</a>
       </div>
     </div>
   </footer>

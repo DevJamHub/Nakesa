@@ -2,12 +2,15 @@
 
 **Nama:** Sigit Novriyanto
 **Proyek:** NAKESA — aplikasi manajemen praktik mandiri tenaga kesehatan (bidan, dokter, perawat, dll.)
-**Halaman yang dikerjakan:** Keuangan (`html/finance.html`, `js/pages/finance.js`, `css/app.css`)
+**Halaman yang dikerjakan:**
+
+- Keuangan (`html/finance.html`, `js/pages/finance.js`, `css/app.css`): Task 01–04
+- Beranda / landing page (`html/index.html`, `js/pages/index.js`, `css/style.css`): Task 05–06
 
 **Tugas dari kelas:**
 
-1. Merubah CSS manual ke Tailwind CSS → lihat **Task 04**
-2. Implementasi JavaScript (select & change, handle user event) → lihat **Task 01** dan **Task 02** (ditambah **Task 03**)
+1. Merubah CSS manual ke Tailwind CSS → **Task 04** (halaman Keuangan) dan **Task 05** (halaman Beranda)
+2. Implementasi JavaScript (select & change, handle user event) → **Task 01**, **Task 02**, dan **Task 03** (halaman Keuangan), serta **Task 06** (halaman Beranda)
 
 Pada latihan di slide, contohnya memakai halaman *PresidenKu*. Di sini ketiga task saya terapkan pada proyek saya sendiri, **NAKESA**, di halaman **Keuangan**. Halaman ini dipakai pemilik praktik untuk mencatat uang masuk dan uang keluar setiap bulan.
 
@@ -680,6 +683,456 @@ Tampilan halaman Keuangan **tetap sama** seperti sebelumnya (warna, jarak, ukura
 
 ---
 
+## Task 05 — Halaman Beranda: CSS Manual ke Tailwind CSS
+
+> Halaman Beranda (`html/index.html`) sebelumnya **100% memakai CSS manual** dari `css/style.css` (900 baris). Sekarang seluruh gayanya ditulis dengan class Tailwind, dan `css/style.css` dihapus.
+
+### Kenapa halaman ini diubah seluruhnya?
+
+Berbeda dengan halaman Keuangan, `css/style.css` **hanya dipakai oleh `html/index.html`**. Jadi seluruh halaman bisa diubah ke Tailwind tanpa merusak halaman lain.
+
+Sebelum diubah, halaman ini juga sedang **rusak**. Di commit "week3", `style.css` dipindah ke folder `css/`, tetapi link di `index.html` masih `../style.css`. Akibatnya halaman tampil tanpa CSS sama sekali. Masalah ini ikut hilang karena halaman sekarang tidak memakai file CSS lagi.
+
+### Konsep tambahan: breakpoint (tampilan HP vs laptop)
+
+`style.css` ditulis **desktop-first**: gaya dasar untuk laptop, lalu diubah untuk layar kecil dengan `@media (max-width: ...)`.
+Tailwind ditulis **mobile-first**: class tanpa awalan berlaku untuk HP, lalu class berawalan (`md:`, `lg:`) berlaku mulai lebar tertentu **ke atas**.
+
+Supaya tampilannya tetap sama, breakpoint Tailwind disamakan dengan `style.css`:
+
+| `style.css` (lama) | Tailwind (baru) | Berlaku untuk |
+|---|---|---|
+| `@media (max-width: 430px)` | *(tanpa awalan)* | HP kecil, 0–430px |
+| `@media (max-width: 720px)` | `xs:` (mulai 431px) | HP besar, 431–720px |
+| `@media (max-width: 980px)` | `md:` (mulai 721px) | Tablet, 721–980px |
+| *(gaya dasar)* | `lg:` (mulai 981px) | Laptop, 981px ke atas |
+
+Contoh untuk grid fitur: `grid-cols-1 md:grid-cols-2 lg:grid-cols-3` artinya 1 kolom di HP, 2 kolom di tablet, dan 3 kolom di laptop.
+
+### Penerapan di NAKESA
+
+#### 1. `html/index.html`: memasang Tailwind CSS
+
+**Sebelum:**
+
+```html
+<html lang="id">
+<head>
+  ...
+  <title>NAKESA — Digital Practice Management</title>
+  <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+```
+
+**Sesudah:**
+
+```html
+<html lang="id" class="scroll-smooth">
+<head>
+  ...
+  <title>NAKESA — Digital Practice Management</title>
+  <!-- Tailwind CSS (Play CDN). Replaces the old hand-written css/style.css. -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        // Same breakpoints as the old style.css (max-width 430 / 720 / 980px), written mobile-first.
+        screens: { xs: '431px', md: '721px', lg: '981px' },
+        extend: {
+          colors: {
+            navy: '#173a5e',
+            primary: '#2c8ecb',
+            'primary-dark': '#236f9f',
+            'primary-soft': '#eaf6fc',
+            aqua: '#5bc0d8',
+            mint: '#49b89f',
+            ink: '#25415f',
+            muted: '#6f8297',
+            line: '#dce9f1',
+            soft: '#f3f9fc',
+          },
+          fontFamily: {
+            sans: ['Inter', 'ui-sans-serif', 'system-ui', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'sans-serif'],
+          },
+          boxShadow: { soft: '0 18px 50px rgba(36, 93, 125, 0.12)' },
+        },
+      },
+    };
+  </script>
+  <style type="text/tailwindcss">
+    @layer base {
+      :focus-visible { @apply outline outline-[3px] outline-offset-[3px] outline-[rgba(44,142,203,0.35)]; }
+    }
+  </style>
+  <script type="module" src="../js/pages/index.js"></script>
+</head>
+<body class="min-w-0 overflow-x-hidden bg-white font-sans leading-[1.6] text-ink">
+```
+
+> - Variabel warna di `:root` pada `style.css` (`--navy`, `--blue`, `--mint`, dll.) dipindah ke `colors`, sehingga bisa dipakai sebagai `text-navy`, `bg-primary`, `text-mint`, dan seterusnya.
+> - `html { scroll-behavior: smooth; }` diganti class `scroll-smooth` pada `<html>`.
+> - Berbeda dengan halaman Keuangan, di sini *preflight* (reset CSS Tailwind) **tidak dimatikan**, karena halaman ini tidak memakai CSS lain.
+> - `@apply` dipakai sekali untuk gaya fokus keyboard (`:focus-visible`), karena aturan ini berlaku untuk semua elemen dan tidak bisa ditulis sebagai class. VS Code mungkin menampilkan peringatan *"Unknown at rule @apply"*. Itu hanya karena linter CSS VS Code belum mengenal sintaks Tailwind, dan tidak memengaruhi halaman.
+> - Script `../js/pages/index.js` ditambahkan untuk Task 06.
+
+#### 2. `html/index.html`: header dan navigasi
+
+**Sebelum** (HTML + CSS di `css/style.css`):
+
+```html
+<header class="site-header">
+  <div class="container nav-wrapper">
+    <a class="brand" href="#beranda" aria-label="NAKESA Beranda">
+    ...
+    <nav class="desktop-nav" aria-label="Navigasi utama">
+      <a href="#beranda">Beranda</a>
+      ...
+      <a class="nav-button" href="welcome.html">Masuk</a>
+    </nav>
+```
+
+```css
+.site-header {
+  position: sticky; top: 0; z-index: 20;
+  border-bottom: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(12px);
+}
+.desktop-nav { display: flex; align-items: center; gap: 28px; font-size: 0.94rem; font-weight: 750; }
+.desktop-nav a:not(.nav-button) { color: #688099; transition: color 0.2s ease; }
+.desktop-nav a:not(.nav-button):hover { color: var(--blue); }
+
+@media (max-width: 720px) {
+  .site-header { position: relative; }
+  .desktop-nav { display: none; }
+}
+```
+
+**Sesudah** (semuanya di HTML, tanpa CSS):
+
+```html
+<header class="relative md:sticky md:top-0 z-20 border-b border-line bg-white/[.96] backdrop-blur-md">
+  <div class="mx-auto w-[min(100%_-_24px,620px)] xs:w-[min(100%_-_28px,620px)] md:w-[min(1180px,100%_-_40px)] flex min-h-[68px] xs:min-h-[76px] items-center justify-between gap-6">
+    <a class="inline-flex items-center gap-2.5 text-[1.2rem] font-black tracking-[-0.02em] text-navy" href="#beranda" aria-label="NAKESA Beranda">
+    ...
+    <nav class="hidden md:flex items-center gap-7 text-[0.94rem] font-[750]" id="desktop-nav" aria-label="Navigasi utama">
+      <a class="text-[#688099] transition-colors hover:text-primary" href="#beranda">Beranda</a>
+      ...
+      <a class="inline-flex min-h-[43px] items-center justify-center rounded-[11px] bg-primary px-[17px] text-white shadow-[0_8px_18px_rgba(44,142,203,0.22)]" href="welcome.html">Masuk</a>
+    </nav>
+```
+
+> - `hidden md:flex`: menu atas disembunyikan di HP dan baru tampil mulai 721px. Ini pengganti `@media (max-width: 720px) { .desktop-nav { display: none; } }`.
+> - `hover:text-primary` adalah pengganti `a:hover { color: ... }`.
+> - `bg-white/[.96]` artinya putih dengan transparansi 96%.
+> - Di dalam `[...]`, tanda `_` dibaca sebagai spasi. Jadi `w-[min(100%_-_24px,620px)]` sama dengan `width: min(100% - 24px, 620px)`.
+> - `id="desktop-nav"` ditambahkan untuk Task 06.
+
+#### 3. `html/index.html`: menu HP
+
+**Sebelum:**
+
+```html
+<details class="mobile-nav">
+  <summary aria-label="Buka menu navigasi">☰</summary>
+  <nav aria-label="Navigasi mobile">
+    <a href="#beranda">Beranda</a>
+```
+
+```css
+.mobile-nav { display: none; }
+@media (max-width: 720px) {
+  .mobile-nav { display: block; position: relative; }
+  .mobile-nav summary { list-style: none; cursor: pointer; width: 42px; height: 42px; display: grid; place-items: center;
+    border-radius: 12px; background: var(--blue-soft); color: var(--navy); font-size: 1.25rem; }
+  .mobile-nav summary::-webkit-details-marker { display: none; }
+  .mobile-nav nav { position: absolute; top: calc(100% + 10px); right: 0; min-width: 205px; display: grid; gap: 4px;
+    padding: 10px; border: 1px solid var(--line); border-radius: 15px; background: #ffffff; box-shadow: var(--shadow); }
+  .mobile-nav nav a { padding: 10px 12px; border-radius: 10px; color: #637d93; font-weight: 750; }
+  .mobile-nav nav a:hover { color: var(--blue); background: var(--blue-soft); }
+}
+```
+
+**Sesudah:**
+
+```html
+<details class="relative md:hidden" id="mobile-menu">
+  <summary class="grid h-[42px] w-[42px] cursor-pointer list-none place-items-center rounded-xl bg-primary-soft text-[1.25rem] text-navy [&::-webkit-details-marker]:hidden" aria-label="Buka menu navigasi">☰</summary>
+  <nav class="absolute right-0 top-[calc(100%_+_10px)] grid min-w-[205px] gap-1 rounded-[15px] border border-line bg-white p-2.5 shadow-soft" aria-label="Navigasi mobile">
+    <a class="rounded-[10px] px-3 py-2.5 font-[750] text-[#637d93] hover:bg-primary-soft hover:text-primary" href="#beranda">Beranda</a>
+```
+
+> - `md:hidden` adalah kebalikan dari menu atas: tampil di HP dan hilang mulai 721px.
+> - `[&::-webkit-details-marker]:hidden` adalah *arbitrary variant*, yaitu cara Tailwind menulis selector khusus (di sini menyembunyikan segitiga bawaan `<details>` di Safari).
+> - `id="mobile-menu"` ditambahkan untuk Task 06.
+> - **Perbaikan kecil:** di CSS lama, tombol "Masuk" di menu HP berubah menjadi biru muda dengan teks biru saat disentuh, karena aturan `.mobile-nav nav a:hover` menimpa `.nav-button`. Sekarang tombol itu memakai `hover:bg-primary-dark`, jadi tetap terlihat seperti tombol.
+
+#### 4. `html/index.html`: hero (judul besar + ilustrasi dashboard)
+
+**Sebelum:**
+
+```html
+<section id="beranda" class="hero-section" aria-labelledby="hero-title">
+  <div class="container">
+    <div class="hero-card">
+      <div class="hero-content">
+        <p class="eyebrow">Digital Practice Management</p>
+        <h1 id="hero-title">Kelola Praktik.<br>Rawat Pasien.<br>Lebih Teratur.</h1>
+        ...
+        <div class="hero-actions">
+          <a class="primary-button" href="#fitur">
+```
+
+```css
+.hero-card {
+  min-height: 460px; display: grid;
+  grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.08fr);
+  overflow: hidden; border: 1px solid #d8edf5; border-radius: var(--radius-xl);
+  background:
+    radial-gradient(circle at 87% 20%, rgba(255, 255, 255, 0.95), transparent 21%),
+    linear-gradient(120deg, #effaff 0%, #e4f5fb 52%, #d9f0f7 100%);
+  box-shadow: var(--shadow);
+}
+.hero-content h1 {
+  margin: 0; color: var(--navy);
+  font-size: clamp(2.55rem, 5vw, 4.9rem); line-height: 0.98; letter-spacing: -0.055em;
+}
+.primary-button:hover { transform: translateY(-2px); box-shadow: 0 15px 30px rgba(44, 142, 203, 0.3); }
+.hero-visual::before {
+  content: ""; position: absolute; width: 430px; height: 430px; border-radius: 50%;
+  background: rgba(177, 225, 238, 0.55);
+  box-shadow: 0 0 0 32px rgba(255, 255, 255, 0.28), 0 0 0 66px rgba(255, 255, 255, 0.12);
+}
+@media (max-width: 980px) { .hero-card { grid-template-columns: 1fr; } }
+@media (max-width: 720px) { .hero-content h1 { font-size: clamp(2.35rem, 13vw, 3.9rem); } }
+@media (max-width: 430px) { .hero-content h1 { font-size: 2.55rem; } }
+```
+
+**Sesudah:**
+
+```html
+<section id="beranda" class="pt-5 pb-[18px] md:pt-8" aria-labelledby="hero-title">
+  <div class="mx-auto w-[min(100%_-_24px,620px)] xs:w-[min(100%_-_28px,620px)] md:w-[min(1180px,100%_-_40px)]">
+    <div class="grid min-h-[460px] grid-cols-1 lg:grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)] overflow-hidden rounded-[22px] md:rounded-[30px] border border-[#d8edf5] bg-[image:radial-gradient(circle_at_87%_20%,rgba(255,255,255,0.95),transparent_21%),linear-gradient(120deg,#effaff_0%,#e4f5fb_52%,#d9f0f7_100%)] shadow-soft">
+      <div class="relative z-[2] flex flex-col justify-center px-6 pt-8 pb-[26px] md:px-11 md:pt-[46px] md:pb-[30px] lg:p-[58px]">
+        <p class="mb-2.5 text-[0.8rem] font-black uppercase tracking-[0.09em] text-primary">Digital Practice Management</p>
+        <h1 class="text-[2.55rem] xs:text-[length:clamp(2.35rem,13vw,3.9rem)] md:text-[length:clamp(2.55rem,5vw,4.9rem)] font-bold leading-[0.98] tracking-[-0.055em] text-navy" id="hero-title">Kelola Praktik.<br>Rawat Pasien.<br>Lebih Teratur.</h1>
+        ...
+        <div class="flex flex-col md:flex-row flex-wrap gap-3">
+          <a class="... transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_15px_30px_rgba(44,142,203,0.3)]" href="#fitur">
+      ...
+      <div class="relative grid ... place-items-center before:absolute before:h-[300px] before:w-[300px] md:before:h-[430px] md:before:w-[430px] before:rounded-full before:bg-[rgba(177,225,238,0.55)] before:shadow-[0_0_0_32px_rgba(255,255,255,0.28),0_0_0_66px_rgba(255,255,255,0.12)] before:content-['']" aria-label="Dashboard ringkas NAKESA">
+```
+
+> - Ukuran judul yang tadinya diatur di 3 tempat (gaya dasar dan 2 `@media`) sekarang ditulis dalam satu class: `text-[2.55rem] xs:text-[...] md:text-[...]`.
+> - Pseudo-element `::before` (lingkaran di belakang kartu dashboard) ditulis dengan awalan `before:`.
+> - `hover:-translate-y-0.5` adalah pengganti `transform: translateY(-2px)` saat hover.
+> - Nilai yang tidak ada di skala Tailwind (misal gradien, `clamp()`, bayangan khusus) ditulis di dalam `[...]`. Hint `image:` dan `length:` memberi tahu Tailwind jenis nilainya.
+
+#### 5. `html/index.html`: kartu fitur, praktik, tentang, dan footer
+
+Polanya sama untuk bagian lainnya. Contoh satu kartu fitur:
+
+**Sebelum:**
+
+```html
+<div class="feature-grid">
+  <article class="feature-card feature-blue">
+    <div class="feature-icon" aria-hidden="true">👤</div>
+    <h3>Manajemen Pasien</h3>
+    <p>Kelola identitas pasien, ...</p>
+  </article>
+```
+
+```css
+.feature-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
+.feature-card { min-width: 0; padding: 24px; border: 1px solid var(--line); border-radius: var(--radius-md);
+  background: #ffffff; box-shadow: 0 10px 28px rgba(39, 96, 130, 0.055); transition: transform 0.2s ease, box-shadow 0.2s ease; }
+.feature-card:hover { transform: translateY(-4px); box-shadow: var(--shadow); }
+.feature-icon { width: 58px; height: 58px; display: grid; place-items: center; margin-bottom: 18px; border-radius: 15px; font-size: 1.6rem; }
+.feature-blue .feature-icon { background: #eaf6fc; }
+.feature-card h3 { margin: 0; color: var(--navy); font-size: 1.12rem; }
+.feature-card p { margin: 8px 0 0; color: var(--muted); font-size: 0.92rem; }
+@media (max-width: 980px) { .feature-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 720px) { .feature-grid { grid-template-columns: 1fr; } }
+```
+
+**Sesudah:**
+
+```html
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-[18px]">
+  <article class="min-w-0 rounded-[17px] border border-line bg-white p-6 shadow-[0_10px_28px_rgba(39,96,130,0.055)] transition duration-200 hover:-translate-y-1 hover:shadow-soft">
+    <div class="mb-[18px] grid h-[58px] w-[58px] place-items-center rounded-[15px] bg-[#eaf6fc] text-[1.6rem]" aria-hidden="true">👤</div>
+    <h3 class="text-[1.12rem] font-bold text-navy">Manajemen Pasien</h3>
+    <p class="mt-2 text-[0.92rem] text-muted">Kelola identitas pasien, ...</p>
+  </article>
+```
+
+> Class pembeda warna (`feature-blue`, `feature-purple`, dll.) tidak diperlukan lagi. Warna latar ikon langsung ditulis di tiap kartu, misal `bg-[#eaf6fc]` atau `bg-[#f1edfc]`.
+
+Bagian lain diubah dengan cara yang sama:
+
+| Bagian | Class lama (`style.css`) | Diganti dengan (contoh class Tailwind) |
+|---|---|---|
+| Judul bagian | `.section-heading h2` | `text-[length:clamp(1.85rem,3vw,2.75rem)] font-bold leading-[1.08] text-navy` |
+| Label kecil biru | `.eyebrow` | `mb-2.5 text-[0.8rem] font-black uppercase tracking-[0.09em] text-primary` |
+| Jarak antar-bagian | `.section` + `@media` | `py-[62px] md:py-[84px]` |
+| Latar bagian Praktik | `.section-soft` | `bg-soft` |
+| Tata letak Praktik | `.practice-layout` + `@media` | `grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_minmax(320px,0.8fr)] gap-6` |
+| Label profesi | `.role-list span` | `rounded-full bg-[#eff7fb] px-3 py-[9px] font-extrabold` |
+| Nomor langkah 01/02/03 | `.workflow-number` | `bg-gradient-to-br from-primary to-aqua rounded-[13px] font-black text-white` |
+| Kotak angka (6+, 1, Multi) | `.stats-card div` + 2 `@media` | `px-1.5 py-[15px] xs:px-3 xs:py-[21px] text-center` |
+| Footer | `.site-footer`, `.footer-content` | `bg-[#193c5d] py-11`, `flex flex-col md:flex-row gap-7` |
+
+#### 6. `html/index.html`: tahun di footer (untuk Task 06)
+
+**Sebelum:**
+
+```html
+<p>Asisten digital untuk mengelola aktivitas praktik tenaga kesehatan.</p>
+```
+
+**Sesudah:**
+
+```html
+<p class="mt-[9px] text-[0.88rem] text-[#abc1d1]">Asisten digital untuk mengelola aktivitas praktik tenaga kesehatan.</p>
+<p class="mt-1 text-[0.8rem] text-[#abc1d1]">© <span id="tahun">2026</span> NAKESA</p>
+```
+
+#### 7. `css/style.css`: dihapus
+
+**Sebelum:** 900 baris CSS manual (variabel warna, 90+ aturan class, 3 blok `@media`).
+
+**Sesudah:** file **dihapus**, karena tidak ada halaman lain yang memakainya.
+
+### Hasil di halaman
+
+Halaman lama dan baru sudah dibandingkan lewat screenshot di Chrome, di lebar laptop (1280px) dan HP (390px). **Tampilannya sama.** Perbedaannya hanya:
+
+- tahun "© 2026" muncul di footer (dari Task 06)
+- menu "Beranda" di atas berwarna biru sebagai tanda halaman sedang di bagian Beranda (dari Task 06)
+
+| | Sebelum | Sesudah |
+|---|---|---|
+| File CSS untuk Beranda | `css/style.css` (900 baris) | tidak ada (0 baris) |
+| Link CSS di `index.html` | `../style.css` (**rusak**, file sudah dipindah) | tidak perlu |
+| Breakpoint responsive | 3 blok `@media (max-width)` | awalan `xs:`, `md:`, `lg:` |
+
+---
+
+## Task 06 — Halaman Beranda: JavaScript (Select & Change, Handle User Event)
+
+> Halaman Beranda sebelumnya **tidak punya JavaScript sama sekali**. Ditambahkan file baru `js/pages/index.js`.
+
+### Kebutuhannya
+
+1. **Menu HP tidak tertutup sendiri.** Setelah pengguna menekan ☰ lalu memilih "Fitur", halaman bergulir ke bagian Fitur, tetapi menunya tetap terbuka dan menutupi isi halaman. Pengguna harus menekan ☰ lagi.
+2. **Ikon ☰ tidak berubah** saat menu terbuka, sehingga pengguna tidak tahu cara menutupnya.
+3. **Pengguna tidak tahu sedang berada di bagian mana** saat menggulir halaman di laptop.
+4. **Tahun di footer** sebaiknya selalu mengikuti tahun sekarang, tanpa perlu diedit manual setiap tahun.
+
+### Penerapan di NAKESA
+
+#### `html/index.html`: menghubungkan file JavaScript
+
+**Sebelum:** tidak ada `<script>`.
+
+**Sesudah** (di dalam `<head>`):
+
+```html
+<script type="module" src="../js/pages/index.js"></script>
+```
+
+> `type="module"` membuat script berjalan **setelah** HTML selesai dimuat, sehingga `querySelector` pasti menemukan elemennya. Ini sama dengan halaman NAKESA lainnya.
+
+#### `js/pages/index.js`: file baru
+
+**Sebelum:** file belum ada.
+
+**Sesudah:**
+
+```js
+// Beranda (landing page): small interactions, no login needed.
+
+/* ---------- Select & Change ---------- */
+// Selector ID: ambil <span id="tahun"> di footer, lalu isi dengan tahun sekarang.
+const year = document.querySelector('#tahun');
+year.textContent = new Date().getFullYear();
+
+/* ---------- Handle User Event ---------- */
+const mobileMenu = document.querySelector('#mobile-menu');
+const menuButton = mobileMenu.querySelector('summary');
+
+// Event "toggle": menu HP dibuka/ditutup → ganti ikon ☰ / ✕.
+mobileMenu.addEventListener('toggle', () => {
+  menuButton.textContent = mobileMenu.open ? '✕' : '☰';
+  menuButton.setAttribute('aria-label', mobileMenu.open ? 'Tutup menu navigasi' : 'Buka menu navigasi');
+});
+
+// Event "click": setelah link di menu HP diklik, atau klik di luar menu, tutup menunya.
+document.addEventListener('click', (event) => {
+  if (!mobileMenu.open) return;
+  if (event.target.closest('#mobile-menu a') || !mobileMenu.contains(event.target)) mobileMenu.open = false;
+});
+
+// Event "scroll": tandai link menu atas sesuai bagian yang sedang dilihat.
+const sections = document.querySelectorAll('main section[id]');
+const navLinks = document.querySelectorAll('#desktop-nav a[href^="#"]');
+
+function markActiveLink() {
+  let current = sections[0].id;
+  for (const section of sections) {
+    if (section.getBoundingClientRect().top <= 120) current = section.id;
+  }
+  navLinks.forEach((link) => {
+    const active = link.getAttribute('href') === `#${current}`;
+    link.classList.toggle('text-primary', active);
+    link.classList.toggle('text-[#688099]', !active);
+    if (active) link.setAttribute('aria-current', 'true');
+    else link.removeAttribute('aria-current');
+  });
+}
+
+window.addEventListener('scroll', markActiveLink, { passive: true });
+markActiveLink();
+```
+
+### Select & Change di halaman Beranda
+
+| Elemen dipilih | Selector | Yang diubah | Sebelum | Sesudah |
+|---|---|---|---|---|
+| Tahun di footer | `#tahun` (ID) | `textContent` | 2026 (ditulis manual) | tahun sekarang, otomatis |
+| Tombol menu HP | `summary` (tag, di dalam `#mobile-menu`) | `textContent` dan `aria-label` | ☰ | ✕ saat menu terbuka |
+| Link menu atas | `#desktop-nav a[href^="#"]` (atribut) | class Tailwind lewat `classList.toggle` | semua abu-abu | link bagian yang dilihat menjadi biru (`text-primary`) |
+
+### Handle User Event di halaman Beranda
+
+| User | Event | JavaScript | UI Response |
+|---|---|---|---|
+| Menekan ☰ di HP | `toggle` pada `<details>` | Cek `mobileMenu.open` | Ikon berubah menjadi ✕ (atau kembali ☰) |
+| Memilih "Fitur" di menu HP | `click` | `event.target.closest('#mobile-menu a')` → `mobileMenu.open = false` | Menu tertutup, halaman bergulir ke Fitur |
+| Menyentuh area di luar menu | `click` | `!mobileMenu.contains(event.target)` → `mobileMenu.open = false` | Menu tertutup |
+| Menggulir halaman di laptop | `scroll` | `markActiveLink()` mencari bagian yang sedang di atas layar | Link menu yang sesuai berwarna biru |
+
+### Penjelasan
+
+- **Satu listener untuk banyak link.** Event `click` dipasang sekali di `document`, bukan di setiap link. `event.target.closest('#mobile-menu a')` mengecek apakah yang diklik adalah link di dalam menu. Cara ini disebut *event delegation*.
+- **`mobileMenu.open`** adalah properti bawaan `<details>`. Mengisinya dengan `false` langsung menutup menu dan juga memicu event `toggle`, jadi ikon otomatis kembali menjadi ☰.
+- **`getBoundingClientRect().top`** memberi jarak bagian dari atas layar. Bagian terakhir yang sudah lewat 120px dari atas (tinggi header) dianggap sedang dilihat.
+- **`classList.toggle(nama, kondisi)`** menambah class kalau kondisinya `true` dan menghapusnya kalau `false`. Di sini JavaScript mengganti **class Tailwind** (`text-primary` ↔ `text-[#688099]`), sehingga gayanya tetap dari Tailwind dan tidak perlu menulis CSS baru.
+- **`{ passive: true }`** memberi tahu browser bahwa listener scroll tidak akan membatalkan scroll, sehingga menggulir tetap lancar di HP.
+- **`aria-current` dan `aria-label`** membantu pengguna pembaca layar mengetahui menu mana yang aktif dan fungsi tombol ☰/✕.
+
+### Checklist
+
+- [x] **Select & change:** `querySelector` dengan selector ID, tag, dan atribut; mengubah `textContent`, atribut, dan class.
+- [x] **Handle user event:** event `toggle`, `click`, dan `scroll` ditangkap dengan `addEventListener`.
+- [x] **JavaScript berjalan:** sintaks sudah dicek dengan `node --check`.
+- [x] **Tidak merusak halaman:** tampilan dibandingkan dengan versi lama lewat screenshot, dan hasilnya sama.
+
+---
+
 ## Ringkasan
 
 | Task | Materi | Penerapan di NAKESA (halaman Keuangan) |
@@ -688,9 +1141,14 @@ Tampilan halaman Keuangan **tetap sama** seperti sebelumnya (warna, jarak, ukura
 | 02 — Handle User Event | `addEventListener('input', …)` | Kotak pencarian untuk menyaring catatan keuangan |
 | 03 — One Complete Interaction | Click → event → olah data → update DOM | Tombol "Lihat Rincian per Kategori" dengan jumlah, persentase, dan bar |
 | 04 — CSS Manual ke Tailwind | Utility class Tailwind (CDN) | `style="..."` dan CSS khusus Keuangan diganti class Tailwind |
+| 05 — Beranda: CSS Manual ke Tailwind | Tailwind + breakpoint `xs:`/`md:`/`lg:` | Seluruh `index.html` memakai Tailwind, `css/style.css` (900 baris) dihapus |
+| 06 — Beranda: Select & Change + Event | `querySelector`, `classList`, `addEventListener` (`toggle`, `click`, `scroll`) | Menu HP otomatis tertutup, ikon ☰/✕, menu aktif saat scroll, tahun otomatis |
 
 **File yang diubah:**
 
 - `html/finance.html`: `id="subjudul"`, kotak pencarian `#search`, tombol `#toggle-breakdown`, panel `#breakdown`, pemasangan Tailwind CDN, class Tailwind menggantikan `style="..."` (Task 04)
 - `js/pages/finance.js`: kode Task 01, 02, dan 03; class Tailwind dan fungsi `moneyClass` (Task 04)
 - `css/app.css`: gaya panel rincian per kategori (Task 03), lalu dihapus bersama `.month-picker` dan `.money-in/out` karena diganti Tailwind (Task 04)
+- `html/index.html`: seluruh class diganti Tailwind, konfigurasi Tailwind, `id` untuk JavaScript, tahun di footer (Task 05)
+- `css/style.css`: **dihapus** (Task 05)
+- `js/pages/index.js`: **file baru**, JavaScript halaman Beranda (Task 06)

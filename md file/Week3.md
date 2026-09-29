@@ -30,17 +30,38 @@ Ada tiga jenis selector:
 
 ### Penerapan di NAKESA
 
-Di `html/finance.html`, paragraf di bawah judul diberi id supaya bisa dipilih:
+#### 1. `html/finance.html`: paragraf subjudul diberi `id`
+
+**Sebelum:**
 
 ```html
+<h1>Catatan Keuangan</h1>
+<p>Uang masuk dan keluar praktik.</p>
+```
+
+**Sesudah:**
+
+```html
+<h1>Catatan Keuangan</h1>
 <p id="subjudul">Uang masuk dan keluar praktik.</p>
 ```
 
-Di `js/pages/finance.js`:
+> Ditambahkan `id="subjudul"` supaya paragraf ini bisa diambil dengan selector ID.
+
+#### 2. `js/pages/finance.js`: mengambil dan mengubah elemen
+
+**Sebelum:**
+
+```js
+const { profile } = await startPage('finance');
+```
+
+**Sesudah:**
 
 ```js
 const { profile, practice } = await startPage('finance');
 
+/* ---------- Task 01: Select & Change ---------- */
 // Selector tag: ambil <h1> pertama di halaman, lalu ganti teksnya.
 const title = document.querySelector('h1');
 title.textContent = `Keuangan ${practice.name}`;
@@ -54,7 +75,9 @@ const incomeButton = document.querySelector('.btn-success');
 incomeButton.textContent = '＋ Catat Uang Masuk';
 ```
 
-### Hasil
+> `practice` ditambahkan supaya data praktik (termasuk namanya) bisa dipakai untuk judul.
+
+### Hasil di halaman
 
 | Elemen | Sebelum kode dijalankan | Setelah kode dijalankan |
 |---|---|---|
@@ -95,33 +118,107 @@ elemen.addEventListener('namaEvent', fungsiYangDijalankan);
 
 ### Penerapan di NAKESA
 
-HTML: kotak pencarian di atas daftar catatan.
+#### 1. `html/finance.html`: menambah kotak pencarian
+
+**Sebelum:**
 
 ```html
-<div class="search" style="margin-top:14px">
-  <input class="input" type="search" id="search"
-         placeholder="Cari catatan, misal: Bu Ani, Beli Obat…" aria-label="Cari catatan keuangan">
+<div class="two-cols" style="margin-top:14px">
+  <button type="button" class="btn btn-success btn-big" data-new="masuk">＋ Uang Masuk</button>
+  <button type="button" class="btn btn-danger btn-big" data-new="keluar">− Uang Keluar</button>
 </div>
+
+<div id="list" style="margin-top:8px"></div>
 ```
 
-JavaScript: ambil elemennya, lalu pasang event listener.
+**Sesudah:**
+
+```html
+<div class="two-cols" style="margin-top:14px">
+  <button type="button" class="btn btn-success btn-big" data-new="masuk">＋ Uang Masuk</button>
+  <button type="button" class="btn btn-danger btn-big" data-new="keluar">− Uang Keluar</button>
+</div>
+
+<div class="search" style="margin-top:14px">
+  <input class="input" type="search" id="search" placeholder="Cari catatan, misal: Bu Ani, Beli Obat…" aria-label="Cari catatan keuangan">
+</div>
+
+<div id="list" style="margin-top:8px"></div>
+```
+
+#### 2. `js/pages/finance.js`: mengambil elemen pencarian
+
+**Sebelum:**
 
 ```js
-const search = document.querySelector('#search');
+const list = document.getElementById('list');
+const dialog = document.getElementById('tx-dialog');
+const form = document.getElementById('tx-form');
+const errorBox = document.getElementById('form-error');
+```
 
-// Event "input" menyala setiap ketikan, jadi daftar tersaring sambil mengetik.
+**Sesudah:**
+
+```js
+const list = document.getElementById('list');
+const dialog = document.getElementById('tx-dialog');
+const form = document.getElementById('tx-form');
+const errorBox = document.getElementById('form-error');
+const search = document.querySelector('#search');
+```
+
+#### 3. `js/pages/finance.js`: memasang event listener
+
+**Sebelum:**
+
+```js
+document.getElementById('prev-month').addEventListener('click', () => { month.setMonth(month.getMonth() - 1); load(); });
+document.getElementById('next-month').addEventListener('click', () => { month.setMonth(month.getMonth() + 1); load(); });
+```
+
+**Sesudah:**
+
+```js
+document.getElementById('prev-month').addEventListener('click', () => { month.setMonth(month.getMonth() - 1); load(); });
+document.getElementById('next-month').addEventListener('click', () => { month.setMonth(month.getMonth() + 1); load(); });
+
+/* ---------- Task 02: Handle User Event ---------- */
+// Event "input" fires on every keystroke, so the list filters while the user types.
 search.addEventListener('input', render);
 ```
 
-Di dalam fungsi `render()`, daftar disaring sesuai kata yang diketik:
+#### 4. `js/pages/finance.js`: menyaring daftar di fungsi `render()`
+
+**Sebelum:**
 
 ```js
+if (!transactions.length) {
+  list.innerHTML = `<div class="card empty-state" style="margin-top:14px"><p class="empty-icon" aria-hidden="true">💰</p>
+    <p class="muted">Belum ada catatan di bulan ini.</p></div>`;
+  return;
+}
+let lastDate = null;
+list.innerHTML = transactions.map((t) => {
+```
+
+**Sesudah:**
+
+```js
+// Totals always cover the whole month; the search only narrows the list below.
 const q = search.value.trim().toLowerCase();
 const shown = transactions.filter((t) =>
   !q || t.category.toLowerCase().includes(q) || (t.note ?? '').toLowerCase().includes(q));
+
+if (!shown.length) {
+  list.innerHTML = `<div class="card empty-state" style="margin-top:14px"><p class="empty-icon" aria-hidden="true">💰</p>
+    <p class="muted">${transactions.length ? `Tidak ada catatan yang cocok dengan “${escapeHtml(search.value.trim())}”.` : 'Belum ada catatan di bulan ini.'}</p></div>`;
+  return;
+}
+let lastDate = null;
+list.innerHTML = shown.map((t) => {
 ```
 
-Kalau tidak ada yang cocok, muncul pesan: *"Tidak ada catatan yang cocok dengan “…”"*.
+> Sebelumnya semua `transactions` langsung ditampilkan. Sekarang yang ditampilkan hanya `shown`, yaitu transaksi yang cocok dengan kata pencarian. Kalau tidak ada yang cocok, muncul pesan *"Tidak ada catatan yang cocok dengan “…”"*.
 
 ### Alur interaksi
 
@@ -162,17 +259,45 @@ Kalau tidak ada yang cocok, muncul pesan: *"Tidak ada catatan yang cocok dengan 
 
 ### Penerapan di NAKESA
 
-**HTML** (`html/finance.html`): tombol dan panel rincian, awalnya disembunyikan dengan atribut `hidden`.
+#### 1. `html/finance.html`: menambah tombol dan panel rincian
+
+**Sebelum:**
 
 ```html
-<button type="button" class="btn btn-ghost btn-block" id="toggle-breakdown"
-  aria-expanded="false" aria-controls="breakdown">📊 Lihat Rincian per Kategori</button>
-<div class="card breakdown" id="breakdown" hidden></div>
+<div class="stats" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr))">
+  ...
+  <div class="stat"><span class="stat-label">Sisa (untung)</span><span class="stat-value" id="sum-balance">–</span></div>
+</div>
+
+<div class="two-cols" style="margin-top:14px">
 ```
 
-**JavaScript** (`js/pages/finance.js`):
+**Sesudah:**
+
+```html
+<div class="stats" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr))">
+  ...
+  <div class="stat"><span class="stat-label">Sisa (untung)</span><span class="stat-value" id="sum-balance">–</span></div>
+</div>
+
+<button type="button" class="btn btn-ghost btn-block" id="toggle-breakdown"
+  aria-expanded="false" aria-controls="breakdown" style="margin-top:12px">📊 Lihat Rincian per Kategori</button>
+<div class="card breakdown" id="breakdown" hidden></div>
+
+<div class="two-cols" style="margin-top:14px">
+```
+
+> Panel `#breakdown` awalnya disembunyikan dengan atribut `hidden`.
+
+#### 2. `js/pages/finance.js`: event klik dan pengolahan data
+
+**Sebelum:** belum ada. Halaman hanya menampilkan total uang masuk, keluar, dan sisa.
+
+**Sesudah** (ditambahkan setelah kode Task 02):
 
 ```js
+/* ---------- Task 03: Build One Complete Interaction ---------- */
+// Click "Lihat Rincian" → sum this month's transactions per category → show the detail.
 const breakdown = document.querySelector('#breakdown');
 const breakdownButton = document.querySelector('#toggle-breakdown');
 
@@ -205,20 +330,60 @@ function breakdownSection(kind, heading) {
   const total = rows.reduce((sum, [, amount]) => sum + amount, 0);
   return `<h2>${heading}</h2>` + rows.map(([category, amount]) => {
     const percent = Math.round((amount / total) * 100);
-    return `...baris kategori + bar selebar ${percent}%...`;
+    return `
+      <div class="breakdown-row">
+        <div class="breakdown-row-head">
+          <span>${escapeHtml(category)}</span>
+          <span class="${kind === 'masuk' ? 'money-in' : 'money-out'}">${rupiah(amount)} · ${percent}%</span>
+        </div>
+        <div class="breakdown-bar"><span class="${kind === 'masuk' ? 'bar-in' : 'bar-out'}" style="width:${percent}%"></span></div>
+      </div>`;
   }).join('');
 }
 ```
 
-Supaya rincian tetap benar saat pengguna mengganti bulan atau menambah, mengubah, atau menghapus catatan, `renderBreakdown()` juga dipanggil dari `render()`:
+#### 3. `js/pages/finance.js`: rincian ikut diperbarui di `render()`
+
+**Sebelum:**
 
 ```js
+balance.textContent = `${income - expense < 0 ? '−' : ''}${rupiah(Math.abs(income - expense))}`;
+balance.className = `stat-value ${income - expense < 0 ? 'money-out' : ''}`;
+```
+
+**Sesudah:**
+
+```js
+balance.textContent = `${income - expense < 0 ? '−' : ''}${rupiah(Math.abs(income - expense))}`;
+balance.className = `stat-value ${income - expense < 0 ? 'money-out' : ''}`;
 renderBreakdown(); // keep an open breakdown in sync when the month or data changes
 ```
 
-**CSS** (`css/app.css`): gaya untuk panel rincian dan bar persentase (`.breakdown`, `.breakdown-row`, `.breakdown-bar`, `.bar-in`, `.bar-out`).
+> Dengan baris ini, rincian tetap benar saat pengguna mengganti bulan atau menambah, mengubah, atau menghapus catatan.
 
-### Contoh tampilan
+#### 4. `css/app.css`: gaya panel rincian
+
+**Sebelum:** belum ada.
+
+**Sesudah** (ditambahkan di akhir file):
+
+```css
+/* ---------- Finance breakdown per category ---------- */
+.breakdown { margin-top: 10px; display: grid; gap: 6px; }
+.breakdown h2 { font-size: 1rem; margin-top: 8px; }
+.breakdown-row { display: grid; gap: 4px; padding: 6px 0; }
+.breakdown-row-head { display: flex; justify-content: space-between; gap: 10px; font-weight: 600; }
+.breakdown-bar { height: 8px; border-radius: 99px; background: var(--line); overflow: hidden; }
+.breakdown-bar span { display: block; height: 100%; border-radius: inherit; }
+.breakdown-bar .bar-in { background: var(--green); }
+.breakdown-bar .bar-out { background: var(--red); }
+```
+
+### Hasil di halaman
+
+**Sebelum tombol diklik:** hanya terlihat tombol "📊 Lihat Rincian per Kategori". Panel rincian tersembunyi.
+
+**Setelah tombol diklik:** tombol berubah menjadi "📊 Tutup Rincian" dan panel rincian muncul:
 
 ```
 Uang masuk dari

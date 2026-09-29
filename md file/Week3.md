@@ -2,7 +2,12 @@
 
 **Nama:** Sigit Novriyanto
 **Proyek:** NAKESA — aplikasi manajemen praktik mandiri tenaga kesehatan (bidan, dokter, perawat, dll.)
-**Halaman yang dikerjakan:** Keuangan (`html/finance.html`, `js/pages/finance.js`)
+**Halaman yang dikerjakan:** Keuangan (`html/finance.html`, `js/pages/finance.js`, `css/app.css`)
+
+**Tugas dari kelas:**
+
+1. Merubah CSS manual ke Tailwind CSS → lihat **Task 04**
+2. Implementasi JavaScript (select & change, handle user event) → lihat **Task 01** dan **Task 02** (ditambah **Task 03**)
 
 Pada latihan di slide, contohnya memakai halaman *PresidenKu*. Di sini ketiga task saya terapkan pada proyek saya sendiri, **NAKESA**, di halaman **Keuangan**. Halaman ini dipakai pemilik praktik untuk mencatat uang masuk dan uang keluar setiap bulan.
 
@@ -379,6 +384,8 @@ renderBreakdown(); // keep an open breakdown in sync when the month or data chan
 .breakdown-bar .bar-out { background: var(--red); }
 ```
 
+> **Catatan:** CSS di atas kemudian dihapus dan diganti dengan class Tailwind. Lihat **Task 04**.
+
 ### Hasil di halaman
 
 **Sebelum tombol diklik:** hanya terlihat tombol "📊 Lihat Rincian per Kategori". Panel rincian tersembunyi.
@@ -418,6 +425,261 @@ Listrik & Air                Rp 200.000 · 25%
 
 ---
 
+## Task 04 — Merubah CSS Manual ke Tailwind CSS
+
+> Ganti CSS yang ditulis manual (file `.css` dan atribut `style="..."`) dengan *utility class* Tailwind CSS.
+
+### Konsep
+
+- **CSS manual:** kita membuat nama class sendiri (misal `.month-picker`), lalu menulis aturannya di file `.css`.
+- **Tailwind CSS:** kita tidak menulis file CSS. Gayanya langsung ditulis sebagai class kecil di HTML, satu class untuk satu aturan.
+
+| CSS manual | Class Tailwind | Artinya |
+|---|---|---|
+| `display: flex` | `flex` | Susun elemen berjajar |
+| `align-items: center` | `items-center` | Rata tengah secara vertikal |
+| `justify-content: space-between` | `justify-between` | Dorong elemen ke kiri dan kanan |
+| `gap: 10px` | `gap-2.5` | Jarak antar-elemen 10px (1 = 4px) |
+| `margin-top: 14px` | `mt-3.5` | Jarak atas 14px |
+| `margin-bottom: 14px` | `mb-3.5` | Jarak bawah 14px |
+| `padding: 6px 0` | `py-1.5` | Padding atas-bawah 6px |
+| `height: 8px` | `h-2` | Tinggi 8px |
+| `border-radius: 99px` | `rounded-full` | Sudut membulat penuh |
+| `overflow: hidden` | `overflow-hidden` | Sembunyikan isi yang keluar |
+| `font-weight: 600` / `800` | `font-semibold` / `font-extrabold` | Ketebalan huruf |
+| `white-space: nowrap` | `whitespace-nowrap` | Teks tidak turun baris |
+| `grid-template-columns: repeat(auto-fit, minmax(150px, 1fr))` | `grid-cols-[repeat(auto-fit,minmax(150px,1fr))]` | Nilai bebas ditulis di dalam `[...]` |
+
+### Batasan yang dipilih
+
+Halaman lain di NAKESA (Pasien, Obat, Dashboard, dll.) juga memakai `css/app.css`. Supaya halaman lain **tidak rusak**, yang diubah ke Tailwind hanya CSS **khusus halaman Keuangan**:
+
+- semua atribut `style="..."` di `html/finance.html` dan di HTML yang dibuat `js/pages/finance.js`
+- class `.month-picker`, `.breakdown-*`, `.bar-in`, `.bar-out`, `.money-in`, `.money-out` (hanya dipakai di halaman Keuangan)
+
+Class bersama seperti `.btn`, `.card`, `.stat`, `.search`, `.two-cols` tetap dari `app.css`.
+
+### Penerapan di NAKESA
+
+#### 1. `html/finance.html`: memasang Tailwind CSS
+
+**Sebelum:**
+
+```html
+<link rel="stylesheet" href="../css/app.css">
+<script type="module" src="../js/pages/finance.js"></script>
+```
+
+**Sesudah:**
+
+```html
+<link rel="stylesheet" href="../css/app.css">
+<!-- Tailwind CSS (Play CDN). Preflight is off so it doesn't reset the shared app.css styles. -->
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    corePlugins: { preflight: false },
+    theme: {
+      extend: {
+        colors: { navy: 'var(--navy)', line: 'var(--line)', 'money-in': 'var(--green)', 'money-out': 'var(--red)' },
+      },
+    },
+  };
+</script>
+<script type="module" src="../js/pages/finance.js"></script>
+```
+
+> - Tailwind dipasang lewat **CDN**, jadi tidak perlu `npm install` atau proses build.
+> - `preflight: false` mematikan *reset CSS* bawaan Tailwind. Kalau tidak dimatikan, gaya tombol, judul, dan kartu dari `app.css` ikut berubah.
+> - `colors` menambahkan warna NAKESA ke Tailwind, sehingga bisa dipakai sebagai `text-navy`, `bg-line`, `text-money-in`, `bg-money-out`, dan seterusnya. Warnanya tetap diambil dari variabel di `app.css`, jadi tidak ada warna yang berubah.
+
+#### 2. `html/finance.html`: pemilih bulan
+
+**Sebelum:**
+
+```html
+<div class="month-picker">
+  <button type="button" class="btn btn-ghost btn-small" id="prev-month" aria-label="Bulan sebelumnya">◀</button>
+  <strong id="month-label"></strong>
+  <button type="button" class="btn btn-ghost btn-small" id="next-month" aria-label="Bulan berikutnya">▶</button>
+</div>
+```
+
+**Sesudah:**
+
+```html
+<div class="flex items-center justify-between gap-2.5 mb-3.5">
+  <button type="button" class="btn btn-ghost btn-small" id="prev-month" aria-label="Bulan sebelumnya">◀</button>
+  <strong class="text-lg text-navy" id="month-label"></strong>
+  <button type="button" class="btn btn-ghost btn-small" id="next-month" aria-label="Bulan berikutnya">▶</button>
+</div>
+```
+
+#### 3. `html/finance.html`: ringkasan, tombol rincian, tombol tambah, pencarian, daftar
+
+**Sebelum:**
+
+```html
+<div class="stats" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr))">
+  <div class="stat"><span class="stat-label">Uang masuk</span><span class="stat-value money-in" id="sum-in">–</span></div>
+  <div class="stat"><span class="stat-label">Uang keluar</span><span class="stat-value money-out" id="sum-out">–</span></div>
+  ...
+</div>
+
+<button type="button" class="btn btn-ghost btn-block" id="toggle-breakdown"
+  aria-expanded="false" aria-controls="breakdown" style="margin-top:12px">📊 Lihat Rincian per Kategori</button>
+<div class="card breakdown" id="breakdown" hidden></div>
+
+<div class="two-cols" style="margin-top:14px">
+...
+<div class="search" style="margin-top:14px">
+...
+<div id="list" style="margin-top:8px"></div>
+```
+
+**Sesudah:**
+
+```html
+<div class="grid gap-3 grid-cols-[repeat(auto-fit,minmax(150px,1fr))]">
+  <div class="stat"><span class="stat-label">Uang masuk</span><span class="stat-value font-extrabold whitespace-nowrap !text-money-in" id="sum-in">–</span></div>
+  <div class="stat"><span class="stat-label">Uang keluar</span><span class="stat-value font-extrabold whitespace-nowrap !text-money-out" id="sum-out">–</span></div>
+  ...
+</div>
+
+<button type="button" class="btn btn-ghost btn-block mt-3" id="toggle-breakdown"
+  aria-expanded="false" aria-controls="breakdown">📊 Lihat Rincian per Kategori</button>
+<div class="card mt-2.5 grid gap-1.5" id="breakdown" hidden></div>
+
+<div class="two-cols mt-3.5">
+...
+<div class="search mt-3.5">
+...
+<div class="mt-2" id="list"></div>
+```
+
+> - Semua `style="..."` di file HTML sudah hilang.
+> - Tanda `!` pada `!text-money-in` artinya `!important`. Ini perlu karena aturan `.stat .stat-value { color: navy }` di `app.css` lebih kuat daripada satu class biasa.
+
+#### 4. `js/pages/finance.js`: class untuk jumlah uang
+
+**Sebelum:** belum ada. Warna uang diatur class `.money-in` / `.money-out` di `app.css`.
+
+**Sesudah** (ditambahkan setelah `let editing = null;`):
+
+```js
+// Tailwind classes for money amounts (green = masuk, red = keluar).
+const moneyClass = (kind) => `font-extrabold whitespace-nowrap ${kind === 'masuk' ? 'text-money-in' : 'text-money-out'}`;
+```
+
+> Class yang sama dipakai di dua tempat (daftar catatan dan rincian), jadi dibuat satu fungsi supaya tidak ditulis ulang.
+
+#### 5. `js/pages/finance.js`: HTML rincian per kategori (Task 03)
+
+**Sebelum:**
+
+```js
+if (!rows.length) return `<h2>${heading}</h2><p class="muted">Belum ada catatan.</p>`;
+
+const total = rows.reduce((sum, [, amount]) => sum + amount, 0);
+return `<h2>${heading}</h2>` + rows.map(([category, amount]) => {
+  const percent = Math.round((amount / total) * 100);
+  return `
+    <div class="breakdown-row">
+      <div class="breakdown-row-head">
+        <span>${escapeHtml(category)}</span>
+        <span class="${kind === 'masuk' ? 'money-in' : 'money-out'}">${rupiah(amount)} · ${percent}%</span>
+      </div>
+      <div class="breakdown-bar"><span class="${kind === 'masuk' ? 'bar-in' : 'bar-out'}" style="width:${percent}%"></span></div>
+    </div>`;
+```
+
+**Sesudah:**
+
+```js
+const title = `<h2 class="text-base mt-2">${heading}</h2>`;
+if (!rows.length) return `${title}<p class="muted">Belum ada catatan.</p>`;
+
+const total = rows.reduce((sum, [, amount]) => sum + amount, 0);
+return title + rows.map(([category, amount]) => {
+  const percent = Math.round((amount / total) * 100);
+  // The bar width is computed at runtime, so it stays an inline style (Tailwind can't know it in advance).
+  return `
+    <div class="grid gap-1 py-1.5">
+      <div class="flex justify-between gap-2.5 font-semibold">
+        <span>${escapeHtml(category)}</span>
+        <span class="${moneyClass(kind)}">${rupiah(amount)} · ${percent}%</span>
+      </div>
+      <div class="h-2 rounded-full bg-line overflow-hidden"><span class="block h-full rounded-full ${kind === 'masuk' ? 'bg-money-in' : 'bg-money-out'}" style="width:${percent}%"></span></div>
+    </div>`;
+```
+
+> `style="width:${percent}%"` **sengaja tidak diubah**. Lebar bar baru diketahui saat JavaScript berjalan (misal 37%), jadi tidak bisa ditulis sebagai class Tailwind yang sudah pasti sejak awal.
+
+#### 6. `js/pages/finance.js`: warna sisa uang, kotak kosong, dan daftar catatan
+
+**Sebelum:**
+
+```js
+balance.className = `stat-value ${income - expense < 0 ? 'money-out' : ''}`;
+...
+list.innerHTML = `<div class="card empty-state" style="margin-top:14px">...`;
+...
+<span class="${t.kind === 'masuk' ? 'money-in' : 'money-out'}">${t.kind === 'masuk' ? '+' : '−'} ${rupiah(t.amount)}</span>
+```
+
+**Sesudah:**
+
+```js
+balance.className = `stat-value whitespace-nowrap ${income - expense < 0 ? '!text-money-out' : ''}`;
+...
+list.innerHTML = `<div class="card empty-state mt-3.5">...`;
+...
+<span class="${moneyClass(t.kind)}">${t.kind === 'masuk' ? '+' : '−'} ${rupiah(t.amount)}</span>
+```
+
+> Ini sekaligus contoh **JavaScript mengubah tampilan lewat class Tailwind**: saat sisa uang minus, JavaScript menambahkan class `!text-money-out` sehingga angkanya menjadi merah.
+
+#### 7. `css/app.css`: CSS manual dihapus
+
+**Sebelum** (di akhir file):
+
+```css
+.money-in { color: var(--green); font-weight: 800; white-space: nowrap; }
+.money-out { color: var(--red); font-weight: 800; white-space: nowrap; }
+.month-picker { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 14px; }
+.month-picker strong { font-size: 1.1rem; color: var(--navy); }
+
+/* ---------- Finance breakdown per category ---------- */
+.breakdown { margin-top: 10px; display: grid; gap: 6px; }
+.breakdown h2 { font-size: 1rem; margin-top: 8px; }
+.breakdown-row { display: grid; gap: 4px; padding: 6px 0; }
+.breakdown-row-head { display: flex; justify-content: space-between; gap: 10px; font-weight: 600; }
+.breakdown-bar { height: 8px; border-radius: 99px; background: var(--line); overflow: hidden; }
+.breakdown-bar span { display: block; height: 100%; border-radius: inherit; }
+.breakdown-bar .bar-in { background: var(--green); }
+.breakdown-bar .bar-out { background: var(--red); }
+```
+
+**Sesudah:** 14 baris di atas **dihapus**. Semua gayanya sekarang ditulis sebagai class Tailwind di `finance.html` dan `finance.js`.
+
+### Hasil di halaman
+
+Tampilan halaman Keuangan **tetap sama** seperti sebelumnya (warna, jarak, ukuran huruf). Yang berubah hanya cara penulisan gayanya:
+
+| | Sebelum | Sesudah |
+|---|---|---|
+| Atribut `style="..."` di `finance.html` | 5 | 0 |
+| Atribut `style="..."` di `finance.js` | 2 | 1 (lebar bar, nilainya dinamis) |
+| Baris CSS khusus Keuangan di `app.css` | 14 | 0 |
+
+### Penjelasan
+
+- Tailwind **Play CDN** membaca class di halaman saat halaman berjalan, termasuk class yang baru ditambahkan JavaScript lewat `innerHTML` atau `className`. Karena itu class di `finance.js` tetap mendapat gaya.
+- Play CDN cocok untuk belajar dan prototipe. Untuk aplikasi yang dirilis, sebaiknya Tailwind dipasang lewat npm (Tailwind CLI) supaya file CSS-nya kecil dan tidak bergantung pada CDN.
+- Nama class di JavaScript ditulis **utuh** (`'text-money-in'`, bukan `'text-money-' + kind`). Ini kebiasaan yang baik, karena Tailwind versi npm mencari nama class utuh di file sumber.
+
+---
+
 ## Ringkasan
 
 | Task | Materi | Penerapan di NAKESA (halaman Keuangan) |
@@ -425,9 +687,10 @@ Listrik & Air                Rp 200.000 · 25%
 | 01 — Select & Change | `querySelector` + `textContent` | Judul, subjudul, dan tombol diubah lewat selector tag, ID, dan class |
 | 02 — Handle User Event | `addEventListener('input', …)` | Kotak pencarian untuk menyaring catatan keuangan |
 | 03 — One Complete Interaction | Click → event → olah data → update DOM | Tombol "Lihat Rincian per Kategori" dengan jumlah, persentase, dan bar |
+| 04 — CSS Manual ke Tailwind | Utility class Tailwind (CDN) | `style="..."` dan CSS khusus Keuangan diganti class Tailwind |
 
 **File yang diubah:**
 
-- `html/finance.html`: `id="subjudul"`, kotak pencarian `#search`, tombol `#toggle-breakdown`, panel `#breakdown`
-- `js/pages/finance.js`: kode Task 01, 02, dan 03
-- `css/app.css`: gaya panel rincian per kategori
+- `html/finance.html`: `id="subjudul"`, kotak pencarian `#search`, tombol `#toggle-breakdown`, panel `#breakdown`, pemasangan Tailwind CDN, class Tailwind menggantikan `style="..."` (Task 04)
+- `js/pages/finance.js`: kode Task 01, 02, dan 03; class Tailwind dan fungsi `moneyClass` (Task 04)
+- `css/app.css`: gaya panel rincian per kategori (Task 03), lalu dihapus bersama `.month-picker` dan `.money-in/out` karena diganti Tailwind (Task 04)

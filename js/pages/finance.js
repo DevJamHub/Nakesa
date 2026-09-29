@@ -29,6 +29,9 @@ month.setDate(1);
 let transactions = [];
 let editing = null;
 
+// Tailwind classes for money amounts (green = masuk, red = keluar).
+const moneyClass = (kind) => `font-extrabold whitespace-nowrap ${kind === 'masuk' ? 'text-money-in' : 'text-money-out'}`;
+
 bindRupiahInput(form.amount);
 
 /* ---------- Month ---------- */
@@ -79,18 +82,20 @@ function breakdownSection(kind, heading) {
     if (t.kind === kind) totals[t.category] = (totals[t.category] ?? 0) + t.amount;
   }
   const rows = Object.entries(totals).sort((a, b) => b[1] - a[1]);
-  if (!rows.length) return `<h2>${heading}</h2><p class="muted">Belum ada catatan.</p>`;
+  const title = `<h2 class="text-base mt-2">${heading}</h2>`;
+  if (!rows.length) return `${title}<p class="muted">Belum ada catatan.</p>`;
 
   const total = rows.reduce((sum, [, amount]) => sum + amount, 0);
-  return `<h2>${heading}</h2>` + rows.map(([category, amount]) => {
+  return title + rows.map(([category, amount]) => {
     const percent = Math.round((amount / total) * 100);
+    // The bar width is computed at runtime, so it stays an inline style (Tailwind can't know it in advance).
     return `
-      <div class="breakdown-row">
-        <div class="breakdown-row-head">
+      <div class="grid gap-1 py-1.5">
+        <div class="flex justify-between gap-2.5 font-semibold">
           <span>${escapeHtml(category)}</span>
-          <span class="${kind === 'masuk' ? 'money-in' : 'money-out'}">${rupiah(amount)} · ${percent}%</span>
+          <span class="${moneyClass(kind)}">${rupiah(amount)} · ${percent}%</span>
         </div>
-        <div class="breakdown-bar"><span class="${kind === 'masuk' ? 'bar-in' : 'bar-out'}" style="width:${percent}%"></span></div>
+        <div class="h-2 rounded-full bg-line overflow-hidden"><span class="block h-full rounded-full ${kind === 'masuk' ? 'bg-money-in' : 'bg-money-out'}" style="width:${percent}%"></span></div>
       </div>`;
   }).join('');
 }
@@ -104,7 +109,7 @@ function render() {
   document.getElementById('sum-out').textContent = rupiah(expense);
   const balance = document.getElementById('sum-balance');
   balance.textContent = `${income - expense < 0 ? '−' : ''}${rupiah(Math.abs(income - expense))}`;
-  balance.className = `stat-value ${income - expense < 0 ? 'money-out' : ''}`;
+  balance.className = `stat-value whitespace-nowrap ${income - expense < 0 ? '!text-money-out' : ''}`;
   renderBreakdown(); // keep an open breakdown in sync when the month or data changes
 
   // Totals always cover the whole month; the search only narrows the list below.
@@ -113,7 +118,7 @@ function render() {
     !q || t.category.toLowerCase().includes(q) || (t.note ?? '').toLowerCase().includes(q));
 
   if (!shown.length) {
-    list.innerHTML = `<div class="card empty-state" style="margin-top:14px"><p class="empty-icon" aria-hidden="true">💰</p>
+    list.innerHTML = `<div class="card empty-state mt-3.5"><p class="empty-icon" aria-hidden="true">💰</p>
       <p class="muted">${transactions.length ? `Tidak ada catatan yang cocok dengan “${escapeHtml(search.value.trim())}”.` : 'Belum ada catatan di bulan ini.'}</p></div>`;
     return;
   }
@@ -128,7 +133,7 @@ function render() {
             <div class="item-title">${escapeHtml(t.category)}</div>
             ${t.note ? `<div class="item-sub">${escapeHtml(t.note)}</div>` : ''}
           </div>
-          <span class="${t.kind === 'masuk' ? 'money-in' : 'money-out'}">${t.kind === 'masuk' ? '+' : '−'} ${rupiah(t.amount)}</span>
+          <span class="${moneyClass(t.kind)}">${t.kind === 'masuk' ? '+' : '−'} ${rupiah(t.amount)}</span>
         </div>
       </button>`;
   }).join('');

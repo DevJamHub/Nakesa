@@ -7,6 +7,18 @@
   <meta name="theme-color" content="#173a5e">
   <title>Keuangan — NAKESA</title>
   <link rel="stylesheet" href="../css/app.css">
+  <!-- Tailwind CSS (Play CDN). Preflight is off so it doesn't reset the shared app.css styles. -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      corePlugins: { preflight: false },
+      theme: {
+        extend: {
+          colors: { navy: 'var(--navy)', line: 'var(--line)', 'money-in': 'var(--green)', 'money-out': 'var(--red)' },
+        },
+      },
+    };
+  </script>
   <script type="module" src="../js/pages/finance.js"></script>
 </head>
 <body class="app">
@@ -22,32 +34,32 @@
       </div>
     </div>
 
-    <div class="month-picker">
+    <div class="flex items-center justify-between gap-2.5 mb-3.5">
       <button type="button" class="btn btn-ghost btn-small" id="prev-month" aria-label="Bulan sebelumnya">◀</button>
-      <strong id="month-label"></strong>
+      <strong class="text-lg text-navy" id="month-label"></strong>
       <button type="button" class="btn btn-ghost btn-small" id="next-month" aria-label="Bulan berikutnya">▶</button>
     </div>
 
-    <div class="stats" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr))">
-      <div class="stat"><span class="stat-label">Uang masuk</span><span class="stat-value money-in" id="sum-in">–</span></div>
-      <div class="stat"><span class="stat-label">Uang keluar</span><span class="stat-value money-out" id="sum-out">–</span></div>
+    <div class="grid gap-3 grid-cols-[repeat(auto-fit,minmax(150px,1fr))]">
+      <div class="stat"><span class="stat-label">Uang masuk</span><span class="stat-value font-extrabold whitespace-nowrap !text-money-in" id="sum-in">–</span></div>
+      <div class="stat"><span class="stat-label">Uang keluar</span><span class="stat-value font-extrabold whitespace-nowrap !text-money-out" id="sum-out">–</span></div>
       <div class="stat"><span class="stat-label">Sisa (untung)</span><span class="stat-value" id="sum-balance">–</span></div>
     </div>
 
-    <button type="button" class="btn btn-ghost btn-block" id="toggle-breakdown"
-      aria-expanded="false" aria-controls="breakdown" style="margin-top:12px">📊 Lihat Rincian per Kategori</button>
-    <div class="card breakdown" id="breakdown" hidden></div>
+    <button type="button" class="btn btn-ghost btn-block mt-3" id="toggle-breakdown"
+      aria-expanded="false" aria-controls="breakdown">📊 Lihat Rincian per Kategori</button>
+    <div class="card mt-2.5 grid gap-1.5" id="breakdown" hidden></div>
 
-    <div class="two-cols" style="margin-top:14px">
+    <div class="two-cols mt-3.5">
       <button type="button" class="btn btn-success btn-big" data-new="masuk">＋ Uang Masuk</button>
       <button type="button" class="btn btn-danger btn-big" data-new="keluar">− Uang Keluar</button>
     </div>
 
-    <div class="search" style="margin-top:14px">
+    <div class="search mt-3.5">
       <input class="input" type="search" id="search" placeholder="Cari catatan, misal: Bu Ani, Beli Obat…" aria-label="Cari catatan keuangan">
     </div>
 
-    <div id="list" style="margin-top:8px"></div>
+    <div class="mt-2" id="list"></div>
   </main>
 
   <dialog id="tx-dialog" aria-labelledby="dialog-title">

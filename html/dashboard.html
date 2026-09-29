@@ -4,9 +4,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="description" content="Beranda praktik NAKESA.">
-  <meta name="theme-color" content="#173a5e">
+  <meta name="theme-color" content="#faf9f5">
   <title>Beranda — NAKESA</title>
-  <link rel="stylesheet" href="../css/app.css">
+  <script src="../js/theme.js"></script> <!-- light/dark before the page is drawn -->
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="../js/tailwind-setup.js"></script> <!-- shared Tailwind config + components -->
   <script type="module" src="../js/pages/dashboard.js"></script>
 </head>
 <body class="app">
@@ -15,19 +17,20 @@
   <nav class="app-nav" id="app-nav" aria-label="Menu utama" hidden></nav>
 
   <main class="app-main" id="app-main" hidden>
-    <div class="page-head">
-      <div>
-        <p class="muted small" id="today"></p>
-        <h1 id="greeting">Selamat datang</h1>
-      </div>
+    <!-- Greeting -->
+    <div class="pb-2 pt-4 text-center nav:pt-8">
+      <p class="text-sm text-muted" id="today"></p>
+      <h1 class="mt-2 text-[2rem] sm:text-[2.6rem]">
+        <span class="text-accent" aria-hidden="true">✻</span> <span id="greeting">Selamat datang</span>
+      </h1>
     </div>
 
     <!-- Open / closed -->
-    <section class="card status-card" id="status-card" aria-labelledby="status-title">
+    <section class="card status-card mt-7" id="status-card" aria-labelledby="status-title">
       <label class="switch">
         <span>
           <span class="status-title" id="status-title"></span>
-          <span class="muted small" id="status-hint" style="display:block"></span>
+          <span class="mt-0.5 block text-sm text-muted" id="status-hint"></span>
         </span>
         <input type="checkbox" id="open-toggle">
         <span class="switch-track" aria-hidden="true"></span>
@@ -35,23 +38,23 @@
     </section>
 
     <!-- Tip when no schedule yet -->
-    <a class="card row" id="hours-tip" href="practice.html" hidden style="margin-top:12px;text-decoration:none">
-      <span style="font-size:1.6rem" aria-hidden="true">🕒</span>
-      <span><strong>Atur jadwal praktik</strong><br><span class="muted small">Supaya pasien tahu kapan bisa datang.</span></span>
+    <a class="card mt-3 flex items-center gap-3 text-inherit no-underline transition hover:-translate-y-0.5 hover:shadow-pop" id="hours-tip" href="practice.html" hidden>
+      <span class="grid h-10 w-10 place-items-center rounded-lg bg-yellow-soft text-xl" aria-hidden="true">🕒</span>
+      <span><strong class="text-ink">Atur jadwal praktik</strong><br><span class="text-sm text-muted">Supaya pasien tahu kapan bisa datang.</span></span>
     </a>
 
-    <section class="section" aria-labelledby="summary-title">
-      <h2 id="summary-title">Ringkasan hari ini</h2>
+    <section class="mt-10" aria-labelledby="summary-title">
+      <h2 class="mb-3" id="summary-title">Ringkasan hari ini</h2>
       <div class="stats">
         <a class="stat" href="bookings.html"><span class="stat-icon" aria-hidden="true">📅</span><span class="stat-label">Booking hari ini</span><span class="stat-value" id="stat-bookings">–</span></a>
         <a class="stat" href="finance.html"><span class="stat-icon" aria-hidden="true">💰</span><span class="stat-label">Pemasukan hari ini</span><span class="stat-value" id="stat-income">–</span></a>
         <a class="stat" href="patients.html"><span class="stat-icon" aria-hidden="true">👥</span><span class="stat-label">Total pasien</span><span class="stat-value" id="stat-patients">–</span></a>
-        <a class="stat" href="medicines.html"><span class="stat-icon" aria-hidden="true">💊</span><span class="stat-label">Obat perlu dicek</span><span class="stat-value" id="stat-medicines">–</span></a>
+        <a class="stat" href="medicines.html" id="medicine-card" aria-haspopup="dialog"><span class="stat-icon" aria-hidden="true">💊</span><span class="stat-label">Obat perlu dicek</span><span class="stat-value" id="stat-medicines">–</span></a>
       </div>
     </section>
 
-    <section class="section" aria-labelledby="quick-title">
-      <h2 id="quick-title">Catat cepat</h2>
+    <section class="mt-10" aria-labelledby="quick-title">
+      <h2 class="mb-3" id="quick-title">Catat cepat</h2>
       <div class="quick-actions">
         <a class="btn btn-ghost" href="bookings.html?new=1"><span aria-hidden="true">📅</span>Tambah Booking</a>
         <a class="btn btn-ghost" href="patients.html?new=1"><span aria-hidden="true">👤</span>Tambah Pasien</a>
@@ -60,18 +63,18 @@
       </div>
     </section>
 
-    <section class="section" aria-labelledby="today-title">
-      <div class="row-between" style="margin-bottom:12px">
+    <section class="mt-10" aria-labelledby="today-title">
+      <div class="mb-3 flex items-center justify-between gap-2.5">
         <h2 id="today-title">Pasien booking hari ini</h2>
-        <a href="bookings.html" class="small">Lihat semua</a>
+        <a href="bookings.html" class="text-sm font-medium no-underline hover:underline">Lihat semua →</a>
       </div>
-      <div class="list" id="today-list"></div>
+      <div class="list lg:grid-cols-2" id="today-list"></div>
     </section>
 
-    <section class="section card stack" aria-labelledby="share-title">
+    <section class="card mt-10 grid gap-4" aria-labelledby="share-title">
       <div>
         <h2 id="share-title">Link booking online</h2>
-        <p class="muted">Bagikan ke pasien lewat WhatsApp, Instagram, atau status.</p>
+        <p class="mt-1 text-muted">Bagikan ke pasien lewat WhatsApp, Instagram, atau status.</p>
       </div>
       <code class="link-box" id="booking-link"></code>
       <div class="two-cols">

@@ -4,7 +4,9 @@ import { DAYS, escapeHtml } from '../format.js';
 import { bookingLink } from '../practice-utils.js';
 import { PROFESSIONS, professionOf } from '../professions.js';
 import { updateProfile } from '../profile.js';
-import { appError, formValues, setOpenBadge, startPage, toast, whileSaving } from '../shell.js';
+import {
+  appError, closeDialog, formValues, openPopup, setOpenBadge, startPage, toast, whileSaving,
+} from '../shell.js';
 
 let { user, profile, practice } = await startPage('practice');
 
@@ -70,7 +72,10 @@ days.innerHTML = WEEK.map((day) => `
       <span class="switch-track" aria-hidden="true"></span>
     </label>
     <div class="stack-sm sessions"></div>
-    <button type="button" class="btn btn-ghost btn-small add-session" hidden>＋ Tambah sesi</button>
+    <div class="row day-tools" hidden>
+      <button type="button" class="btn btn-ghost btn-small add-session">＋ Tambah sesi</button>
+      <button type="button" class="btn btn-ghost btn-small copy-day" aria-haspopup="dialog">📋 Salin ke hari lain</button>
+    </div>
   </div>`).join('');
 
 function sessionHtml(opens = '08:00', closes = '12:00') {
@@ -85,7 +90,7 @@ function sessionHtml(opens = '08:00', closes = '12:00') {
 
 function setDayOpen(row, open) {
   row.querySelector('.day-open').checked = open;
-  row.querySelector('.add-session').hidden = !open;
+  row.querySelector('.day-tools').hidden = !open;
   const sessions = row.querySelector('.sessions');
   if (!open) sessions.innerHTML = '';
   else if (!sessions.children.length) sessions.insertAdjacentHTML('beforeend', sessionHtml());
@@ -98,19 +103,72 @@ for (const row of days.querySelectorAll('.day-row')) {
   setDayOpen(row, own.length > 0);
 }
 
+/* Unsaved changes: show a note and warn before leaving the page. */
+let dirty = false;
+function setDirty(value) {
+  dirty = value;
+  document.getElementById('hours-dirty').hidden = !value;
+}
+window.addEventListener('beforeunload', (event) => {
+  if (dirty) event.preventDefault();
+});
+
 days.addEventListener('change', (event) => {
   if (event.target.classList.contains('day-open')) setDayOpen(event.target.closest('.day-row'), event.target.checked);
+  setDirty(true);
 });
 days.addEventListener('click', (event) => {
   const row = event.target.closest('.day-row');
   if (event.target.closest('.add-session')) {
     row.querySelector('.sessions').insertAdjacentHTML('beforeend', sessionHtml('16:00', '20:00'));
+    setDirty(true);
   }
   if (event.target.closest('.session-remove')) {
     event.target.closest('.session').remove();
     if (!row.querySelector('.session')) setDayOpen(row, false);
+    setDirty(true);
   }
+  if (event.target.closest('.copy-day')) openCopyDay(row);
 });
+
+/* Copy one day's sessions to other days (e.g. Senin → Selasa–Jumat). */
+const sessionsOf = (row) => [...row.querySelectorAll('.session')]
+  .map((session) => [...session.querySelectorAll('input')].map((input) => input.value));
+
+function openCopyDay(source) {
+  const from = Number(source.dataset.day);
+  const popup = openPopup({
+    title: `Salin jadwal ${DAYS[from]}`,
+    body: `
+      <p class="muted">${sessionsOf(source).map(([o, c]) => `${o}–${c}`).join(', ')}</p>
+      <div class="field">
+        <span class="field-label">Salin ke hari:</span>
+        <div class="choices" id="copy-days">
+          ${WEEK.filter((d) => d !== from).map((d) => `
+            <label class="choice"><input type="checkbox" value="${d}"><span>${DAYS[d]}</span></label>`).join('')}
+        </div>
+      </div>
+      <button type="button" class="btn btn-ghost btn-small justify-self-start" id="copy-weekdays">Pilih Senin–Jumat</button>`,
+    footer: '<button type="button" class="btn btn-primary btn-big" id="copy-apply">Salin Jadwal</button>',
+  });
+  const boxes = [...popup.querySelectorAll('#copy-days input')];
+  popup.querySelector('#copy-weekdays').addEventListener('click', () => {
+    boxes.forEach((box) => { box.checked = Number(box.value) >= 1 && Number(box.value) <= 5; });
+  });
+  popup.querySelector('#copy-apply').addEventListener('click', () => {
+    const targets = boxes.filter((box) => box.checked).map((box) => Number(box.value));
+    if (!targets.length) return toast('Pilih minimal satu hari', 'error');
+    const sessions = sessionsOf(source);
+    for (const day of targets) {
+      const row = days.querySelector(`.day-row[data-day="${day}"]`);
+      row.querySelector('.sessions').innerHTML = sessions.map(([o, c]) => sessionHtml(o, c)).join('');
+      setDayOpen(row, true);
+    }
+    setDirty(true);
+    closeDialog(popup);
+    toast(`Jadwal ${DAYS[from]} disalin ke ${targets.length} hari. Tekan “Simpan Jadwal”.`);
+  });
+}
 
 document.getElementById('save-hours').addEventListener('click', async (event) => {
   hoursError.hidden = true;
@@ -132,6 +190,7 @@ document.getElementById('save-hours').addEventListener('click', async (event) =>
       await run(supabase.from('practice_hours').delete().eq('owner_id', user.id));
       if (rows.length) await run(supabase.from('practice_hours').insert(rows));
     });
+    setDirty(false);
     toast('Jadwal disimpan');
   } catch (error) {
     hoursError.textContent = appError(error);

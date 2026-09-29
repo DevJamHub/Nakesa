@@ -1133,6 +1133,27 @@ markActiveLink();
 
 ---
 
+## Menyorot Bagian yang Memakai Tailwind CSS
+
+Supaya mudah ditunjukkan saat presentasi, ditambahkan file `js/tailwind-highlight.js`. File ini dipasang di `html/index.html` dan `html/finance.html`.
+
+**Cara pakai:** tambahkan `?tailwind` di akhir alamat halaman, misalnya:
+
+- `html/index.html?tailwind` (Beranda: hampir semua elemen tersorot, karena seluruh halaman sudah Tailwind)
+- `html/finance.html?tailwind` (Keuangan: hanya bagian yang diganti di Task 04 yang tersorot)
+
+Hasilnya:
+
+- Setiap elemen yang diberi gaya oleh class Tailwind mendapat **garis putus-putus biru**.
+- Saat kursor diarahkan ke elemen, garisnya menebal dan muncul keterangan class Tailwind-nya, misal `Tailwind: text-lg text-navy`.
+- Di pojok kiri bawah tampil jumlah elemen yang memakai Tailwind, beserta tombol **Matikan**.
+
+Tanpa `?tailwind`, file ini tidak melakukan apa-apa, jadi tampilan untuk pengguna biasa tidak berubah.
+
+**Cara kerjanya:** Tailwind CDN membuat satu `<style>` berisi CSS untuk class yang dipakai di halaman. Script membaca daftar class dari `<style>` itu, lalu menandai elemen yang memiliki salah satu class tersebut. `MutationObserver` menandai ulang saat JavaScript menambah elemen baru, misalnya daftar catatan keuangan.
+
+---
+
 ## Ringkasan
 
 | Task | Materi | Penerapan di NAKESA (halaman Keuangan) |

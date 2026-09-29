@@ -4,9 +4,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="description" content="Stok obat NAKESA.">
-  <meta name="theme-color" content="#173a5e">
-  <title>Stok Obat — NAKESA</title>
-  <link rel="stylesheet" href="../css/app.css">
+  <meta name="theme-color" content="#faf9f5">
+  <title>Obat — NAKESA</title>
+  <script src="../js/theme.js"></script> <!-- light/dark before the page is drawn -->
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="../js/tailwind-setup.js"></script> <!-- shared Tailwind config + components -->
   <script type="module" src="../js/pages/medicines.js"></script>
 </head>
 <body class="app">
@@ -15,15 +17,16 @@
   <nav class="app-nav" id="app-nav" aria-label="Menu utama" hidden></nav>
 
   <main class="app-main" id="app-main" hidden>
-    <div class="page-head">
+    <div class="mb-7 flex flex-wrap items-end justify-between gap-3">
       <div>
+        <div class="mb-3 text-5xl leading-none" aria-hidden="true">💊</div>
         <h1>Stok Obat</h1>
-        <p id="summary"></p>
+        <p class="mt-1 text-muted" id="summary"></p>
       </div>
       <button type="button" class="btn btn-primary" id="add">＋ Tambah Obat</button>
     </div>
 
-    <div class="search" style="margin-bottom:10px">
+    <div class="search mb-3">
       <input class="input" type="search" id="search" placeholder="Cari nama obat…" aria-label="Cari obat">
     </div>
     <div class="tabs" role="tablist" aria-label="Filter obat">

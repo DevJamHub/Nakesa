@@ -1,8 +1,10 @@
-// Stok obat: quick +/- stock, add/edit/delete, warnings for low stock and expiry.
+// Stok obat: quick +/- stock, restock pop-up, add/edit/delete, warnings for low stock and expiry.
 import { deleteRow, insertRow, run, supabase, updateRow } from '../db.js';
 import { bindRupiahInput, escapeHtml, formatDate, parseRupiah, rupiah } from '../format.js';
 import { medicineStatus } from '../practice-utils.js';
-import { appError, fillForm, formValues, startPage, toast, whileSaving } from '../shell.js';
+import {
+  appError, closeDialog, confirmDialog, fillForm, formValues, openPopup, startPage, toast, whileSaving,
+} from '../shell.js';
 
 await startPage('medicines');
 
@@ -12,7 +14,9 @@ const dialog = document.getElementById('medicine-dialog');
 const form = document.getElementById('medicine-form');
 const errorBox = document.getElementById('form-error');
 let medicines = [];
-let filter = 'all';
+// ?filter=check (from the Beranda pop-up) opens the "Perlu dicek" tab.
+let filter = new URLSearchParams(location.search).get('filter') === 'check' ? 'check' : 'all';
+document.querySelectorAll('[data-filter]').forEach((b) => b.setAttribute('aria-selected', String(b.dataset.filter === filter)));
 let editing = null;
 
 bindRupiahInput(form.price);
@@ -64,10 +68,10 @@ function render() {
           <span class="badge badge-${status.tone}">${status.label}</span>
         </div>
         <div class="row-between">
-          <span class="muted small">Sisa stok</span>
+          <button type="button" class="btn btn-ghost btn-small" data-restock="${m.id}" aria-haspopup="dialog">📦 Stok masuk</button>
           <div class="stepper" role="group" aria-label="Ubah stok ${escapeHtml(m.name)}">
             <button type="button" data-step="-1" data-id="${m.id}" aria-label="Kurangi" ${m.stock <= 0 ? 'disabled' : ''}>−</button>
-            <strong>${m.stock} <span class="small muted">${escapeHtml(m.unit)}</span></strong>
+            <strong data-stock="${m.id}">${m.stock} <span class="small muted">${escapeHtml(m.unit)}</span></strong>
             <button type="button" data-step="1" data-id="${m.id}" aria-label="Tambah">＋</button>
           </div>
         </div>
@@ -78,6 +82,8 @@ function render() {
 list.addEventListener('click', async (event) => {
   const edit = event.target.closest('[data-edit]');
   if (edit) return openForm(medicines.find((m) => m.id === edit.dataset.edit));
+  const restock = event.target.closest('[data-restock]');
+  if (restock) return openRestock(medicines.find((m) => m.id === restock.dataset.restock));
 
   const step = event.target.closest('[data-step]');
   if (!step) return;
@@ -88,11 +94,72 @@ list.addEventListener('click', async (event) => {
     const saved = await updateRow('medicines', medicine.id, { stock });
     medicines = medicines.map((m) => (m.id === saved.id ? saved : m));
     render();
+    bumpStock(saved.id);
   } catch (error) {
     step.disabled = false;
     toast(appError(error), 'error');
   }
 });
+
+/** Short "pop" on the stock number so the change is noticed. */
+function bumpStock(id) {
+  list.querySelector(`[data-stock="${id}"]`)?.classList.add('bump');
+}
+
+/* ---------- Restock pop-up: add many at once instead of tapping ＋ many times ---------- */
+function openRestock(m) {
+  const popup = openPopup({
+    title: `Stok masuk: ${m.name}`,
+    body: `
+      <p class="muted">Sisa sekarang: <strong>${m.stock} ${escapeHtml(m.unit)}</strong></p>
+      <div class="field">
+        <label for="restock-amount">Jumlah yang masuk (${escapeHtml(m.unit)})</label>
+        <input class="input input-money" id="restock-amount" type="number" inputmode="numeric" min="1" step="1" placeholder="0">
+      </div>
+      <div class="filter-chips !mb-0" id="restock-quick">
+        ${[10, 50, 100].map((n) => `<button type="button" class="chip" data-add="${n}">＋ ${n}</button>`).join('')}
+      </div>
+      <p class="preview-line" id="restock-preview" aria-live="polite"></p>
+      <div id="restock-error" class="form-error" role="alert" hidden></div>`,
+    footer: '<button type="button" class="btn btn-primary btn-big" id="restock-save">Simpan Stok</button>',
+  });
+  const input = popup.querySelector('#restock-amount');
+  const preview = popup.querySelector('#restock-preview');
+  const errorText = popup.querySelector('#restock-error');
+  const save = popup.querySelector('#restock-save');
+  const amount = () => Math.max(0, Math.floor(Number(input.value) || 0));
+  const update = () => {
+    preview.textContent = amount() ? `Stok baru: ${m.stock + amount()} ${m.unit}` : '';
+  };
+
+  input.addEventListener('input', update);
+  input.addEventListener('keydown', (event) => { if (event.key === 'Enter') save.click(); });
+  popup.querySelector('#restock-quick').addEventListener('click', (event) => {
+    const chip = event.target.closest('[data-add]');
+    if (!chip) return;
+    input.value = amount() + Number(chip.dataset.add);
+    update();
+  });
+  save.addEventListener('click', async () => {
+    if (!amount()) {
+      errorText.textContent = 'Isi jumlah obat yang masuk.';
+      errorText.hidden = false;
+      return input.focus();
+    }
+    try {
+      const saved = await whileSaving(save, () => updateRow('medicines', m.id, { stock: m.stock + amount() }));
+      medicines = medicines.map((x) => (x.id === saved.id ? saved : x));
+      closeDialog(popup);
+      render();
+      bumpStock(saved.id);
+      toast(`Stok ${saved.name} sekarang ${saved.stock} ${saved.unit}`);
+    } catch (error) {
+      errorText.textContent = appError(error);
+      errorText.hidden = false;
+    }
+  });
+  input.focus();
+}
 
 function openForm(medicine) {
   editing = medicine;
@@ -129,7 +196,7 @@ form.addEventListener('submit', async (event) => {
       }
     });
     medicines.sort((a, b) => a.name.localeCompare(b.name, 'id'));
-    dialog.close();
+    closeDialog(dialog);
     render();
     toast('Obat disimpan');
   } catch (error) {
@@ -139,11 +206,15 @@ form.addEventListener('submit', async (event) => {
 });
 
 document.getElementById('delete').addEventListener('click', async () => {
-  if (!editing || !confirm(`Hapus ${editing.name} dari daftar obat?`)) return;
+  if (!editing) return;
+  const ok = await confirmDialog({
+    icon: '🗑️', title: `Hapus ${editing.name}?`, message: 'Obat ini akan dihapus dari daftar stok.', confirmLabel: 'Ya, hapus',
+  });
+  if (!ok) return;
   try {
     await deleteRow('medicines', editing.id);
     medicines = medicines.filter((m) => m.id !== editing.id);
-    dialog.close();
+    closeDialog(dialog);
     render();
     toast('Obat dihapus');
   } catch (error) {

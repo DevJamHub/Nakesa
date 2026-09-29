@@ -3,28 +3,33 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <meta name="description" content="Daftarkan praktik Anda di NAKESA.">
-  <meta name="theme-color" content="#173a5e">
-  <title>Daftarkan Praktik — NAKESA</title>
-  <link rel="stylesheet" href="../css/app.css">
+  <meta name="description" content="Siapkan praktik Anda di NAKESA.">
+  <meta name="theme-color" content="#faf9f5">
+  <title>Siapkan Praktik — NAKESA</title>
+  <script src="../js/theme.js"></script> <!-- light/dark before the page is drawn -->
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="../js/tailwind-setup.js"></script> <!-- shared Tailwind config + components -->
   <script type="module" src="../js/pages/onboarding.js"></script>
 </head>
 <body>
+  <button type="button" class="icon-btn theme-toggle theme-fab" data-theme-toggle></button>
   <div class="app-loader" id="loader" role="status" aria-label="Memuat"><span class="spinner"></span></div>
 
   <main class="onboard" id="app-main" hidden>
-    <div class="onboard-brand"><span class="app-brand-icon" aria-hidden="true">✚</span> NAKESA</div>
+    <div class="mb-5 flex items-center gap-2.5 font-serif text-xl font-semibold text-ink">
+      <span class="grid h-9 w-9 place-items-center rounded-lg bg-accent text-base text-white" aria-hidden="true">✚</span> NAKESA
+    </div>
     <div class="steps" aria-hidden="true"><span></span><span></span><span></span></div>
 
-    <form id="onboard-form" class="card stack" novalidate>
+    <form id="onboard-form" class="card grid gap-5" novalidate>
       <div id="form-error" class="form-error" role="alert" hidden></div>
 
       <!-- Step 1: name -->
-      <section class="stack" data-step="1">
+      <section class="grid gap-4" data-step="1">
         <div>
-          <p class="muted small">Langkah 1 dari 3</p>
-          <h1>Siapa nama Anda?</h1>
-          <p class="muted">Nama ini tampil untuk pasien di halaman booking.</p>
+          <p class="text-sm text-muted">Langkah 1 dari 3</p>
+          <h1 class="mt-1">Siapa nama Anda?</h1>
+          <p class="mt-1 text-muted">Nama ini tampil untuk pasien di halaman booking.</p>
         </div>
         <div class="field">
           <label for="full_name">Nama lengkap</label>
@@ -33,11 +38,11 @@
       </section>
 
       <!-- Step 2: profession -->
-      <section class="stack" data-step="2" hidden>
+      <section class="grid gap-4" data-step="2" hidden>
         <div>
-          <p class="muted small">Langkah 2 dari 3</p>
-          <h1>Apa profesi Anda?</h1>
-          <p class="muted">Tampilan dan pilihan layanan akan menyesuaikan.</p>
+          <p class="text-sm text-muted">Langkah 2 dari 3</p>
+          <h1 class="mt-1">Apa profesi Anda?</h1>
+          <p class="mt-1 text-muted">Pilihan layanan akan menyesuaikan.</p>
         </div>
         <div class="tiles" id="profession-tiles" role="radiogroup" aria-label="Profesi"></div>
         <div class="field" id="specialty-field" hidden>
@@ -47,11 +52,11 @@
       </section>
 
       <!-- Step 3: practice -->
-      <section class="stack" data-step="3" hidden>
+      <section class="grid gap-4" data-step="3" hidden>
         <div>
-          <p class="muted small">Langkah 3 dari 3</p>
-          <h1>Data praktik Anda</h1>
-          <p class="muted">Bisa diubah kapan saja di menu Praktik.</p>
+          <p class="text-sm text-muted">Langkah 3 dari 3</p>
+          <h1 class="mt-1">Data praktik Anda</h1>
+          <p class="mt-1 text-muted">Bisa diubah kapan saja di menu Praktik.</p>
         </div>
         <div class="field">
           <label for="practice_name">Nama praktik</label>
@@ -68,7 +73,7 @@
         </div>
       </section>
 
-      <div class="row-between">
+      <div class="flex items-center justify-between gap-2.5">
         <button type="button" class="btn btn-ghost" id="back" hidden>← Kembali</button>
         <span></span>
         <button type="submit" class="btn btn-primary" id="next">Lanjut →</button>

@@ -4,9 +4,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="description" content="Pengaturan praktik NAKESA.">
-  <meta name="theme-color" content="#173a5e">
+  <meta name="theme-color" content="#faf9f5">
   <title>Praktik — NAKESA</title>
-  <link rel="stylesheet" href="../css/app.css">
+  <script src="../js/theme.js"></script> <!-- light/dark before the page is drawn -->
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="../js/tailwind-setup.js"></script> <!-- shared Tailwind config + components -->
   <script type="module" src="../js/pages/practice.js"></script>
 </head>
 <body class="app">
@@ -15,42 +17,45 @@
   <nav class="app-nav" id="app-nav" aria-label="Menu utama" hidden></nav>
 
   <main class="app-main" id="app-main" hidden>
-    <div class="page-head">
-      <div>
-        <h1>Praktik Saya</h1>
-        <p>Status, jadwal, booking online, dan data praktik.</p>
-      </div>
+    <div class="mb-7">
+      <div class="mb-3 text-5xl leading-none" aria-hidden="true">🏥</div>
+      <h1>Praktik Saya</h1>
+      <p class="mt-1 text-muted">Status, jadwal, booking online, dan data praktik.</p>
     </div>
 
     <!-- Open / closed -->
-    <section class="card stack" aria-labelledby="status-title">
+    <section class="card" aria-labelledby="status-title">
       <label class="switch">
         <span>
-          <strong class="status-title" id="status-title" style="font-size:1.1rem"></strong>
-          <span class="muted small" style="display:block">Pasien melihat status ini di halaman booking.</span>
+          <strong class="text-lg font-semibold text-ink" id="status-title"></strong>
+          <span class="block text-sm text-muted">Pasien melihat status ini di halaman booking.</span>
         </span>
         <input type="checkbox" id="open-toggle">
         <span class="switch-track" aria-hidden="true"></span>
       </label>
     </section>
 
+    <!-- Laptop: schedule on the left, booking link and practice data on the right -->
+    <div class="mt-8 grid items-start gap-8 lg:grid-cols-2">
     <!-- Weekly schedule -->
-    <section class="section card" aria-labelledby="hours-title">
-      <div class="stack-sm" style="margin-bottom:14px">
+    <section class="card" aria-labelledby="hours-title">
+      <div class="mb-4 grid gap-1">
         <h2 id="hours-title">🕒 Jadwal praktik</h2>
-        <p class="muted small">Nyalakan hari praktik dan isi jamnya. Bisa lebih dari satu sesi (misal pagi dan sore).</p>
+        <p class="text-sm text-muted">Nyalakan hari praktik dan isi jamnya. Bisa lebih dari satu sesi (misal pagi dan sore).</p>
       </div>
       <div id="days"></div>
-      <div id="hours-error" class="form-error" role="alert" hidden style="margin-top:10px"></div>
-      <button type="button" class="btn btn-primary btn-block" id="save-hours" style="margin-top:14px">Simpan Jadwal</button>
+      <p class="dirty-note" id="hours-dirty" role="status" hidden>● Ada perubahan jadwal yang belum disimpan</p>
+      <div id="hours-error" class="form-error mt-2.5" role="alert" hidden></div>
+      <button type="button" class="btn btn-primary btn-block mt-4" id="save-hours">Simpan Jadwal</button>
     </section>
 
+    <div class="grid gap-8">
     <!-- Online booking -->
-    <section class="section card stack" aria-labelledby="booking-title">
+    <section class="card grid gap-4" aria-labelledby="booking-title">
       <label class="switch">
         <span>
-          <strong id="booking-title" style="font-size:1.1rem;color:var(--navy)">🌐 Terima booking online</strong>
-          <span class="muted small" style="display:block">Pasien bisa daftar sendiri lewat link di bawah.</span>
+          <strong class="text-lg font-semibold text-ink" id="booking-title">🌐 Terima booking online</strong>
+          <span class="block text-sm text-muted">Pasien bisa daftar sendiri lewat link di bawah.</span>
         </span>
         <input type="checkbox" id="booking-toggle">
         <span class="switch-track" aria-hidden="true"></span>
@@ -63,9 +68,9 @@
     </section>
 
     <!-- Practice info -->
-    <section class="section card" aria-labelledby="info-title">
-      <h2 id="info-title" style="margin-bottom:14px">🏥 Data praktik</h2>
-      <form id="info-form" class="stack" novalidate>
+    <section class="card" aria-labelledby="info-title">
+      <h2 class="mb-4" id="info-title">🏥 Data praktik</h2>
+      <form id="info-form" class="grid gap-4" novalidate>
         <div id="info-error" class="form-error" role="alert" hidden></div>
         <div class="field">
           <label for="practice_name">Nama praktik *</label>
@@ -90,6 +95,8 @@
         <button type="submit" class="btn btn-primary" id="save-info">Simpan Data Praktik</button>
       </form>
     </section>
+    </div>
+    </div>
   </main>
 
   <div class="toast" id="toast" role="status" hidden></div>

@@ -34,7 +34,6 @@ if (error) {
 
 function render(p) {
   const profession = professionOf(p.profession);
-  document.documentElement.style.setProperty('--accent', profession.color);
   document.title = `Booking ${p.name}`;
 
   document.getElementById('practice-icon').textContent = profession.icon;
@@ -45,7 +44,7 @@ function render(p) {
   document.getElementById('address').textContent = p.address ? `📍 ${p.address}` : '';
 
   const pill = document.getElementById('open-pill');
-  pill.textContent = p.is_open ? '● Sedang buka' : '● Sedang tutup';
+  pill.innerHTML = `<span class="live-dot" aria-hidden="true"></span>${p.is_open ? 'Sedang buka' : 'Sedang tutup'}`;
   pill.classList.toggle('is-open', p.is_open);
 
   // Schedule, Monday first

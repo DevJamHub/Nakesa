@@ -4,32 +4,34 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Menyelesaikan proses masuk ke NAKESA.">
-  <meta name="theme-color" content="#173a5e">
+  <meta name="theme-color" content="#faf9f5">
   <title>Sedang masuk — NAKESA</title>
-  <link rel="stylesheet" href="../css/auth.css">
+  <script src="../js/theme.js"></script> <!-- light/dark before the page is drawn -->
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="../js/tailwind-setup.js"></script> <!-- shared Tailwind config + components -->
   <script type="module" src="../js/pages/callback.js"></script>
 </head>
 <body>
-  <div class="page-loader" id="loader" role="status" aria-label="Memuat">
-    <span class="spinner"></span>
-  </div>
-  <div class="auth-page" id="content" hidden>
-    <main class="auth-main">
-      <a class="logo" href="index.html" aria-label="Beranda NAKESA">
-          <svg width="32" height="32" viewBox="0 0 56 56" aria-hidden="true" focusable="false"><rect width="56" height="56" rx="16" fill="currentColor"/><path d="M23 13h10v10h10v10H33v10H23V33H13V23h10z" fill="#fff"/></svg>
-          <span class="logo-text">NAKESA</span>
-        </a>
-      <section class="auth-card" aria-labelledby="auth-title">
-        <header class="auth-header">
-          <h1 id="auth-title">Gagal masuk</h1>
+  <button type="button" class="icon-btn theme-toggle theme-fab" data-theme-toggle></button>
+  <div class="page-loader" id="loader" role="status" aria-label="Memuat"><span class="spinner"></span></div>
+  <div class="flex min-h-screen flex-col items-center px-4 pb-8 pt-16" id="content" hidden>
+    <main class="flex w-full max-w-[420px] flex-1 flex-col justify-center gap-6">
+      <a class="flex items-center justify-center gap-2.5 font-serif text-2xl font-semibold text-ink no-underline" href="index.html" aria-label="Beranda NAKESA">
+        <span class="grid h-10 w-10 place-items-center rounded-xl bg-accent text-lg text-white shadow-sm" aria-hidden="true">✚</span>
+        NAKESA
+      </a>
+      <section class="card grid gap-6 p-6 sm:p-8" aria-labelledby="auth-title">
+        <header class="text-center">
+          <h1 class="text-[1.75rem]" id="auth-title">Gagal masuk</h1>
         </header>
-        <div class="stack">
+        <div class="grid gap-4">
           <div class="alert alert-error" role="alert" id="callback-error">Proses masuk tidak berhasil. Silakan coba lagi.</div>
           <a class="btn btn-primary" href="login.html"><span class="btn-label">Kembali ke Masuk</span></a>
         </div>
+
       </section>
     </main>
-    <footer class="auth-footer">
+    <footer class="mt-8 max-w-[420px] text-center text-xs text-muted">
       <p>Untuk tenaga kesehatan. Data Anda terlindungi dan hanya bisa diakses oleh Anda.</p>
     </footer>
   </div>

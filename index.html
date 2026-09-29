@@ -11,8 +11,11 @@
     location.replace((hasAuthResult ? 'html/callback.html' : 'html/index.html') + location.search + location.hash);
   </script>
   <meta http-equiv="refresh" content="1; url=html/index.html">
+  <script src="js/theme.js"></script>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="js/tailwind-setup.js"></script> <!-- shared Tailwind config + components -->
 </head>
-<body>
-  <a href="html/index.html">Buka NAKESA</a>
+<body class="grid place-items-center">
+  <a class="btn btn-primary" href="html/index.html">Buka NAKESA</a>
 </body>
 </html>

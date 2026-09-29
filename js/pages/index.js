@@ -32,8 +32,7 @@ function markActiveLink() {
   }
   navLinks.forEach((link) => {
     const active = link.getAttribute('href') === `#${current}`;
-    link.classList.toggle('text-primary', active);
-    link.classList.toggle('text-[#688099]', !active);
+    link.classList.toggle('is-active', active); // style: .desktop-nav a.is-active in css/index.css
     if (active) link.setAttribute('aria-current', 'true');
     else link.removeAttribute('aria-current');
   });

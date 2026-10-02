@@ -2,7 +2,9 @@
 import { deleteRow, insertRow, run, supabase, updateRow } from '../db.js';
 import { bindRupiahInput, escapeHtml, friendlyDate, parseRupiah, rupiah, toISODate, todayISO } from '../format.js';
 import { financeCategories } from '../professions.js';
-import { appError, fillForm, formValues, startPage, toast, whileSaving } from '../shell.js';
+import {
+  appError, closeDialog, confirmDialog, fillForm, formValues, startPage, toast, whileSaving,
+} from '../shell.js';
 
 const { profile, practice } = await startPage('finance');
 
@@ -28,9 +30,10 @@ const month = new Date();
 month.setDate(1);
 let transactions = [];
 let editing = null;
+let kindFilter = 'all';
 
 // Tailwind classes for money amounts (green = masuk, red = keluar).
-const moneyClass = (kind) => `font-extrabold whitespace-nowrap ${kind === 'masuk' ? 'text-money-in' : 'text-money-out'}`;
+const moneyClass = (kind) => `font-semibold whitespace-nowrap ${kind === 'masuk' ? 'text-green' : 'text-red'}`;
 
 bindRupiahInput(form.amount);
 
@@ -57,6 +60,15 @@ document.getElementById('next-month').addEventListener('click', () => { month.se
 /* ---------- Task 02: Handle User Event ---------- */
 // Event "input" fires on every keystroke, so the list filters while the user types.
 search.addEventListener('input', render);
+
+// Chips: show all records, only money in, or only money out.
+document.getElementById('kind-filter').addEventListener('click', (event) => {
+  const chip = event.target.closest('[data-kind]');
+  if (!chip) return;
+  kindFilter = chip.dataset.kind;
+  document.querySelectorAll('[data-kind]').forEach((c) => c.setAttribute('aria-pressed', String(c === chip)));
+  render();
+});
 
 /* ---------- Task 03: Build One Complete Interaction ---------- */
 // Click "Lihat Rincian" → sum this month's transactions per category → show the detail.
@@ -95,7 +107,7 @@ function breakdownSection(kind, heading) {
           <span>${escapeHtml(category)}</span>
           <span class="${moneyClass(kind)}">${rupiah(amount)} · ${percent}%</span>
         </div>
-        <div class="h-2 rounded-full bg-line overflow-hidden"><span class="block h-full rounded-full ${kind === 'masuk' ? 'bg-money-in' : 'bg-money-out'}" style="width:${percent}%"></span></div>
+        <div class="h-2 rounded-full bg-line overflow-hidden"><span class="block h-full rounded-full ${kind === 'masuk' ? 'bg-green' : 'bg-red'}" style="width:${percent}%"></span></div>
       </div>`;
   }).join('');
 }
@@ -109,17 +121,17 @@ function render() {
   document.getElementById('sum-out').textContent = rupiah(expense);
   const balance = document.getElementById('sum-balance');
   balance.textContent = `${income - expense < 0 ? '−' : ''}${rupiah(Math.abs(income - expense))}`;
-  balance.className = `stat-value whitespace-nowrap ${income - expense < 0 ? '!text-money-out' : ''}`;
+  balance.className = `stat-value whitespace-nowrap ${income - expense < 0 ? '!text-red' : ''}`;
   renderBreakdown(); // keep an open breakdown in sync when the month or data changes
 
   // Totals always cover the whole month; the search only narrows the list below.
   const q = search.value.trim().toLowerCase();
-  const shown = transactions.filter((t) =>
-    !q || t.category.toLowerCase().includes(q) || (t.note ?? '').toLowerCase().includes(q));
+  const shown = transactions.filter((t) => (kindFilter === 'all' || t.kind === kindFilter)
+    && (!q || t.category.toLowerCase().includes(q) || (t.note ?? '').toLowerCase().includes(q)));
 
   if (!shown.length) {
     list.innerHTML = `<div class="card empty-state mt-3.5"><p class="empty-icon" aria-hidden="true">💰</p>
-      <p class="muted">${transactions.length ? `Tidak ada catatan yang cocok dengan “${escapeHtml(search.value.trim())}”.` : 'Belum ada catatan di bulan ini.'}</p></div>`;
+      <p class="muted">${emptyText(q)}</p></div>`;
     return;
   }
   let lastDate = null;
@@ -137,6 +149,12 @@ function render() {
         </div>
       </button>`;
   }).join('');
+}
+
+function emptyText(q) {
+  if (!transactions.length) return 'Belum ada catatan di bulan ini.';
+  if (q) return `Tidak ada catatan yang cocok dengan “${escapeHtml(search.value.trim())}”.`;
+  return kindFilter === 'masuk' ? 'Belum ada uang masuk di bulan ini.' : 'Belum ada uang keluar di bulan ini.';
 }
 
 /* ---------- Add / edit ---------- */
@@ -180,7 +198,7 @@ form.addEventListener('submit', async (event) => {
   try {
     await whileSaving(document.getElementById('save'), () =>
       (editing ? updateRow('transactions', editing.id, row) : insertRow('transactions', row)));
-    dialog.close();
+    closeDialog(dialog);
     toast('Catatan disimpan');
     // Jump to the month of the saved entry so it is visible.
     const saved = new Date(`${row.occurred_on}T00:00:00`);
@@ -197,10 +215,15 @@ function fail(message) {
 }
 
 document.getElementById('delete').addEventListener('click', async () => {
-  if (!editing || !confirm('Hapus catatan ini?')) return;
+  if (!editing) return;
+  const ok = await confirmDialog({
+    icon: '🗑️', title: 'Hapus catatan ini?',
+    message: `${editing.category} · ${rupiah(editing.amount)}`, confirmLabel: 'Ya, hapus',
+  });
+  if (!ok) return;
   try {
     await deleteRow('transactions', editing.id);
-    dialog.close();
+    closeDialog(dialog);
     toast('Catatan dihapus');
     await load();
   } catch (error) {

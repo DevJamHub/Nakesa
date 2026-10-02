@@ -4,39 +4,42 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="description" content="Booking janji periksa secara online.">
-  <meta name="theme-color" content="#173a5e">
+  <meta name="theme-color" content="#faf9f5">
   <title>Booking Online — NAKESA</title>
-  <link rel="stylesheet" href="../css/app.css">
+  <script src="../js/theme.js"></script> <!-- light/dark before the page is drawn -->
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="../js/tailwind-setup.js"></script> <!-- shared Tailwind config + components -->
   <script type="module" src="../js/pages/book.js"></script>
 </head>
 <body>
+  <button type="button" class="icon-btn theme-toggle theme-fab" data-theme-toggle></button>
   <div class="app-loader" id="loader" role="status" aria-label="Memuat"><span class="spinner"></span></div>
 
-  <main class="public stack" id="app-main" hidden>
+  <main class="public" id="app-main" hidden>
     <!-- Practice -->
-    <section class="card stack" aria-labelledby="practice-name">
-      <div class="row" style="flex-wrap:nowrap">
-        <span class="app-brand-icon" id="practice-icon" aria-hidden="true" style="width:56px;height:56px;font-size:1.8rem"></span>
-        <div style="min-width:0">
-          <h1 id="practice-name" style="font-size:1.35rem"></h1>
-          <p class="muted" id="practitioner"></p>
+    <section class="card grid gap-4" aria-labelledby="practice-name">
+      <div class="flex items-center gap-3.5">
+        <span class="grid h-14 w-14 shrink-0 place-items-center rounded-xl bg-raised text-3xl" id="practice-icon" aria-hidden="true"></span>
+        <div class="min-w-0">
+          <h1 class="text-2xl" id="practice-name"></h1>
+          <p class="text-muted" id="practitioner"></p>
         </div>
       </div>
-      <div class="row">
+      <div class="flex flex-wrap items-center gap-2.5">
         <span class="open-pill" id="open-pill"></span>
-        <span class="muted small" id="address"></span>
+        <span class="text-sm text-muted" id="address"></span>
       </div>
-      <details id="hours-box">
-        <summary style="cursor:pointer;font-weight:700;color:var(--accent)">🕒 Lihat jadwal praktik</summary>
-        <table class="hours" style="margin-top:8px"><tbody id="hours"></tbody></table>
+      <details class="rounded-lg bg-raised px-3.5 py-2.5" id="hours-box">
+        <summary class="font-semibold text-accent-ink">🕒 Lihat jadwal praktik</summary>
+        <table class="hours mt-2"><tbody id="hours"></tbody></table>
       </details>
       <a class="btn btn-wa" id="contact" target="_blank" rel="noopener" hidden>💬 Chat praktik via WhatsApp</a>
     </section>
 
     <!-- Booking form -->
     <section class="card" id="form-card" aria-labelledby="form-title">
-      <h2 id="form-title" style="margin-bottom:14px">📅 Buat janji periksa</h2>
-      <form id="book-form" class="stack" novalidate>
+      <h2 class="mb-4" id="form-title">📅 Buat janji periksa</h2>
+      <form id="book-form" class="grid gap-4" novalidate>
         <div id="form-error" class="form-error" role="alert" hidden></div>
         <div class="field">
           <label for="name">Nama pasien *</label>
@@ -80,11 +83,11 @@
     <section class="card empty-state" id="success-card" hidden>
       <p class="success-icon" aria-hidden="true">✅</p>
       <h2>Booking terkirim!</h2>
-      <p class="muted" id="success-text"></p>
+      <p class="text-muted" id="success-text"></p>
       <a class="btn btn-wa" id="success-wa" target="_blank" rel="noopener" hidden>💬 Kabari praktik via WhatsApp</a>
     </section>
 
-    <p class="muted small" style="text-align:center">Dibuat dengan NAKESA</p>
+    <p class="text-center text-sm text-muted">Dibuat dengan <span class="font-serif font-semibold text-ink">NAKESA</span> <span class="text-accent">✻</span></p>
   </main>
 </body>
 </html>

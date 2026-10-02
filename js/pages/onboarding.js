@@ -49,7 +49,6 @@ function start({ profile, practice }) {
   function onProfessionChange() {
     const key = form.profession.value;
     const p = professionOf(key);
-    document.documentElement.style.setProperty('--accent', key ? p.color : '');
     const field = document.getElementById('specialty-field');
     field.hidden = !(key && p.specialtyLabel);
     document.getElementById('specialty-label').textContent = p.specialtyLabel ?? '';

@@ -4,9 +4,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="description" content="Booking pasien NAKESA.">
-  <meta name="theme-color" content="#173a5e">
+  <meta name="theme-color" content="#faf9f5">
   <title>Booking — NAKESA</title>
-  <link rel="stylesheet" href="../css/app.css">
+  <script src="../js/theme.js"></script> <!-- light/dark before the page is drawn -->
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="../js/tailwind-setup.js"></script> <!-- shared Tailwind config + components -->
   <script type="module" src="../js/pages/bookings.js"></script>
 </head>
 <body class="app">
@@ -15,10 +17,11 @@
   <nav class="app-nav" id="app-nav" aria-label="Menu utama" hidden></nav>
 
   <main class="app-main" id="app-main" hidden>
-    <div class="page-head">
+    <div class="mb-7 flex flex-wrap items-end justify-between gap-3">
       <div>
+        <div class="mb-3 text-5xl leading-none" aria-hidden="true">📅</div>
         <h1>Booking Pasien</h1>
-        <p>Booking online dan janji temu manual.</p>
+        <p class="mt-1 text-muted">Booking online dan janji temu manual.</p>
       </div>
       <button type="button" class="btn btn-primary" id="add">＋ Booking Manual</button>
     </div>
@@ -27,6 +30,8 @@
       <button type="button" role="tab" aria-selected="true" data-tab="upcoming">Akan datang</button>
       <button type="button" role="tab" aria-selected="false" data-tab="history">Riwayat</button>
     </div>
+
+    <div class="filter-chips" id="status-filter" role="group" aria-label="Saring status"></div>
 
     <div id="list"></div>
   </main>
@@ -79,15 +84,15 @@
         <h2 id="done-title">Selesai dilayani</h2>
         <button type="button" class="dialog-close" data-close aria-label="Tutup">✕</button>
       </div>
-      <p class="muted" id="done-desc"></p>
+      <p class="text-muted" id="done-desc"></p>
       <div id="done-error" class="form-error" role="alert" hidden></div>
       <div class="field">
         <label for="amount">Biaya yang dibayar (opsional)</label>
         <input class="input input-money" id="amount" name="amount" inputmode="numeric" placeholder="0" autocomplete="off">
         <p class="field-hint">Otomatis tercatat sebagai uang masuk di Keuangan.</p>
       </div>
-      <label class="switch card" style="padding:14px">
-        <span><strong>Simpan ke daftar pasien</strong><br><span class="muted small" id="save-patient-hint"></span></span>
+      <label class="switch rounded-lg bg-raised p-3.5">
+        <span><strong class="text-ink">Simpan ke daftar pasien</strong><br><span class="text-sm text-muted" id="save-patient-hint"></span></span>
         <input type="checkbox" id="save-patient" name="save_patient">
         <span class="switch-track" aria-hidden="true"></span>
       </label>

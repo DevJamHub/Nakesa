@@ -5,12 +5,16 @@ import {
   bindRupiahInput, escapeHtml, formatDate, friendlyDate, parseRupiah, shortTime, todayISO, waLink, waNumber,
 } from '../format.js';
 import { BOOKING_STATUS } from '../practice-utils.js';
-import { appError, fillForm, formValues, startPage, toast, whileSaving } from '../shell.js';
+import {
+  appError, closeDialog, confirmDialog, fillForm, formValues, refreshNavBadges, startPage, toast, whileSaving,
+} from '../shell.js';
 
 const { practice, profession } = await startPage('bookings');
 const today = todayISO();
 const list = document.getElementById('list');
+const statusChips = document.getElementById('status-filter');
 let tab = 'upcoming';
+let statusFilter = 'all';
 let bookings = [];
 let patients = [];
 
@@ -43,14 +47,39 @@ await load();
 document.querySelectorAll('[data-tab]').forEach((button) => {
   button.addEventListener('click', () => {
     tab = button.dataset.tab;
+    statusFilter = 'all';
     document.querySelectorAll('[data-tab]').forEach((b) => b.setAttribute('aria-selected', String(b === button)));
     load();
   });
 });
 
+/* ---------- Status filter chips ---------- */
+
+function renderChips() {
+  const counts = {};
+  for (const b of bookings) counts[b.status] = (counts[b.status] ?? 0) + 1;
+  const statuses = Object.keys(BOOKING_STATUS).filter((s) => counts[s]);
+  statusChips.hidden = statuses.length < 2; // nothing to choose between
+  statusChips.innerHTML = [['all', 'Semua', bookings.length], ...statuses.map((s) => [s, BOOKING_STATUS[s].label, counts[s]])]
+    .map(([key, label, count]) => `
+      <button type="button" class="chip" data-status="${key}" aria-pressed="${key === statusFilter}">
+        ${label} <span class="chip-count">${count}</span>
+      </button>`).join('');
+}
+
+statusChips.addEventListener('click', (event) => {
+  const chip = event.target.closest('[data-status]');
+  if (!chip) return;
+  statusFilter = chip.dataset.status;
+  render();
+});
+
 /* ---------- Render ---------- */
 function render() {
-  if (!bookings.length) {
+  if (statusFilter !== 'all' && !bookings.some((b) => b.status === statusFilter)) statusFilter = 'all';
+  renderChips();
+  const shown = statusFilter === 'all' ? bookings : bookings.filter((b) => b.status === statusFilter);
+  if (!shown.length) {
     list.innerHTML = `<div class="card empty-state"><p class="empty-icon" aria-hidden="true">📅</p>
       <p class="muted">${tab === 'upcoming'
         ? 'Belum ada booking. Bagikan link booking di Beranda supaya pasien bisa daftar online.'
@@ -58,7 +87,7 @@ function render() {
     return;
   }
   let lastDate = null;
-  list.innerHTML = bookings.map((b) => {
+  list.innerHTML = shown.map((b) => {
     const heading = b.booking_date !== lastDate
       ? `<p class="group-label">${friendlyDate(b.booking_date)}${b.booking_date === today ? '' : ` · ${formatDate(b.booking_date, { day: 'numeric', month: 'short' })}`}</p>`
       : '';
@@ -85,7 +114,7 @@ function card(b) {
     actions = `<a class="btn btn-ghost btn-small" href="${waLink(b.patient_phone)}" target="_blank" rel="noopener">💬 WA</a>`;
   }
   return `
-    <div class="item" style="margin-bottom:10px">
+    <div class="item mb-2.5">
       <div class="item-main">
         <div>
           <div class="item-title">${escapeHtml(b.patient_name)}</div>
@@ -107,13 +136,21 @@ list.addEventListener('click', async (event) => {
   const booking = bookings.find((b) => b.id === button.dataset.id);
 
   if (button.dataset.action === 'done') return openDone(booking);
-  if (button.dataset.action === 'cancel' && !confirm(`Batalkan booking ${booking.patient_name}?`)) return;
+  if (button.dataset.action === 'cancel') {
+    const ok = await confirmDialog({
+      icon: '🗓️', title: `Batalkan booking ${booking.patient_name}?`,
+      message: booking.status === 'baru' ? 'Booking ini akan ditolak.' : 'Jangan lupa kabari pasien lewat WhatsApp.',
+      confirmLabel: 'Ya, batalkan',
+    });
+    if (!ok) return;
+  }
 
   const status = button.dataset.action === 'confirm' ? 'dikonfirmasi' : 'batal';
   button.disabled = true;
   try {
     await updateRow('bookings', booking.id, { status });
     toast(status === 'dikonfirmasi' ? 'Dikonfirmasi. Tekan “Kabari via WA” untuk memberi tahu pasien.' : 'Booking dibatalkan');
+    refreshNavBadges();
     await load();
   } catch (error) {
     button.disabled = false;
@@ -167,7 +204,7 @@ doneForm.addEventListener('submit', async (event) => {
         patients.push(await insertRow('patients', { full_name: b.patient_name, phone: b.patient_phone }));
       }
     });
-    doneDialog.close();
+    closeDialog(doneDialog);
     toast(amount > 0 ? 'Selesai & pembayaran tercatat' : 'Booking selesai');
     await load();
   } catch (error) {
@@ -190,16 +227,20 @@ bookingForm.patient_name.addEventListener('change', () => {
   if (p?.phone && !bookingForm.patient_phone.value) bookingForm.patient_phone.value = p.phone;
 });
 
-function openBooking() {
-  fillForm(bookingForm, { booking_date: today });
+function openBooking(prefill = {}) {
+  fillForm(bookingForm, { booking_date: today, ...prefill });
   bookingForm.booking_date.min = today;
   bookingError.hidden = true;
   bookingDialog.showModal();
   bookingForm.patient_name.focus();
 }
 
-document.getElementById('add').addEventListener('click', openBooking);
-if (new URLSearchParams(location.search).has('new')) openBooking();
+document.getElementById('add').addEventListener('click', () => openBooking());
+// ?new=1&name=…&phone=… (from the patient pop-up) opens the form already filled in.
+const params = new URLSearchParams(location.search);
+if (params.has('new')) {
+  openBooking({ patient_name: params.get('name') ?? '', patient_phone: params.get('phone') ?? '' });
+}
 
 bookingForm.addEventListener('submit', async (event) => {
   event.preventDefault();
@@ -212,7 +253,7 @@ bookingForm.addEventListener('submit', async (event) => {
   try {
     await whileSaving(document.getElementById('booking-save'), () =>
       insertRow('bookings', { ...values, status: 'dikonfirmasi', source: 'manual' }));
-    bookingDialog.close();
+    closeDialog(bookingDialog);
     toast('Booking disimpan');
     await load();
   } catch (error) {

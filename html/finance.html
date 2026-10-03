@@ -30,11 +30,29 @@
       <button type="button" class="btn btn-ghost btn-small" id="next-month" aria-label="Bulan berikutnya">▶</button>
     </div>
 
+    <!-- Amounts shrink a little on narrow phones instead of running past the card edge. -->
     <div class="grid grid-cols-[repeat(auto-fit,minmax(160px,1fr))] gap-3">
-      <div class="stat"><span class="stat-label">Uang masuk</span><span class="stat-value whitespace-nowrap !text-green" id="sum-in">–</span></div>
-      <div class="stat"><span class="stat-label">Uang keluar</span><span class="stat-value whitespace-nowrap !text-red" id="sum-out">–</span></div>
-      <div class="stat"><span class="stat-label">Sisa (untung)</span><span class="stat-value" id="sum-balance">–</span></div>
+      <div class="stat"><span class="stat-label">Uang masuk</span><span class="stat-value text-[clamp(1.2rem,5.2vw,1.65rem)] !text-green" id="sum-in">–</span></div>
+      <div class="stat"><span class="stat-label">Uang keluar</span><span class="stat-value text-[clamp(1.2rem,5.2vw,1.65rem)] !text-red" id="sum-out">–</span></div>
+      <div class="stat"><span class="stat-label">Sisa (untung)</span><span class="stat-value text-[clamp(1.2rem,5.2vw,1.65rem)]" id="sum-balance">–</span></div>
     </div>
+
+    <!-- US 6.4: money in / out of the last 6 months. Bars are drawn by js/pages/finance.js. -->
+    <section class="card mt-3 grid gap-2 p-4" aria-labelledby="trend-title">
+      <div class="flex flex-wrap items-center justify-between gap-x-4 gap-y-1.5">
+        <div>
+          <h2 class="text-base" id="trend-title">Tren 6 Bulan</h2>
+          <p class="text-xs text-muted">Ketuk salah satu bulan untuk membukanya.</p>
+        </div>
+        <div class="flex items-center gap-3 text-xs text-muted">
+          <span class="inline-flex items-center gap-1.5"><span class="h-2.5 w-2.5 rounded-sm bg-chart-in" aria-hidden="true"></span>Uang masuk</span>
+          <span class="inline-flex items-center gap-1.5"><span class="h-2.5 w-2.5 rounded-sm bg-chart-out" aria-hidden="true"></span>Uang keluar</span>
+        </div>
+      </div>
+      <div class="transition-opacity" id="trend-chart"></div>
+      <p class="flex min-h-[2.75rem] flex-wrap items-center gap-x-3 gap-y-0.5 text-sm leading-snug text-muted sm:min-h-[1.5rem]"
+        id="trend-readout"></p>
+    </section>
 
     <button type="button" class="btn btn-ghost btn-block mt-3" id="toggle-breakdown"
       aria-expanded="false" aria-controls="breakdown">📊 Lihat Rincian per Kategori</button>

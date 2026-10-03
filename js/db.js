@@ -11,6 +11,20 @@ export async function run(query) {
   return data;
 }
 
+/**
+ * Every row of a query. The Supabase API returns at most 1000 rows per request, so read
+ * page by page. `makeQuery` builds a fresh query with a stable order, e.g.
+ * fetchAll(() => supabase.from('transactions').select('amount').order('id'))
+ */
+export async function fetchAll(makeQuery, pageSize = 1000) {
+  const rows = [];
+  for (let from = 0; ; from += pageSize) {
+    const page = await run(makeQuery().range(from, from + pageSize - 1));
+    rows.push(...page);
+    if (page.length < pageSize) return rows;
+  }
+}
+
 export const insertRow = (table, row) => run(supabase.from(table).insert(row).select().single());
 
 export const updateRow = (table, id, changes) =>

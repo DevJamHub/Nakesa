@@ -1,6 +1,7 @@
-// Keuangan: money in / out per month, with a monthly summary.
-import { deleteRow, insertRow, run, supabase, updateRow } from '../db.js';
+// Keuangan: money in / out per month, with a monthly summary and a 6-month trend.
+import { deleteRow, fetchAll, insertRow, run, supabase, updateRow } from '../db.js';
 import { bindRupiahInput, escapeHtml, friendlyDate, parseRupiah, rupiah, toISODate, todayISO } from '../format.js';
+import { compactAmount, monthKey, monthlyTotals, niceMax, trendWindow } from '../finance-trend.js';
 import { financeCategories } from '../professions.js';
 import {
   appError, closeDialog, confirmDialog, fillForm, formValues, startPage, toast, whileSaving,
@@ -43,6 +44,7 @@ async function load() {
     month.toLocaleDateString('id-ID', { month: 'long', year: 'numeric' });
   const first = toISODate(month);
   const last = toISODate(new Date(month.getFullYear(), month.getMonth() + 1, 0));
+  const trendLoaded = loadTrend(); // the chart loads alongside this month's list
   try {
     transactions = await run(supabase.from('transactions').select('*')
       .gte('occurred_on', first).lte('occurred_on', last)
@@ -52,7 +54,146 @@ async function load() {
     toast(appError(error), 'error');
   }
   render();
+  await trendLoaded;
 }
+
+/* ---------- US 6.4: Trend of the last 6 months ---------- */
+// One query for the whole window (only kind, amount, date), summed per month in the browser.
+// Each month is a button: hover/focus shows its numbers below the chart, a tap opens that month.
+const trendChart = document.getElementById('trend-chart');
+const trendReadout = document.getElementById('trend-readout');
+const monthName = (date) => date.toLocaleDateString('id-ID', { month: 'long', year: 'numeric' });
+let trend = []; // [{ month, key, masuk, keluar }], oldest first
+let trendShape = ''; // months currently drawn; same months → bars move, others → redraw
+
+async function loadTrend() {
+  const months = trendWindow(month);
+  const end = months.at(-1);
+  trendChart.classList.add('opacity-60'); // keep the old chart visible while loading
+  try {
+    const rows = await fetchAll(() => supabase.from('transactions').select('kind, amount, occurred_on')
+      .gte('occurred_on', toISODate(months[0]))
+      .lte('occurred_on', toISODate(new Date(end.getFullYear(), end.getMonth() + 1, 0)))
+      .order('id'));
+    trend = monthlyTotals(rows, months);
+    renderTrend();
+  } catch (error) {
+    trend = [];
+    trendShape = '';
+    trendChart.innerHTML = `<p class="py-6 text-center text-sm text-muted">${escapeHtml(appError(error))}</p>`;
+    trendReadout.textContent = '';
+  }
+  trendChart.classList.remove('opacity-60');
+}
+
+function renderTrend() {
+  const top = niceMax(Math.max(...trend.flatMap((m) => [m.masuk, m.keluar])));
+  if (!top) {
+    trendShape = '';
+    trendChart.innerHTML = '<p class="py-6 text-center text-sm text-muted">Belum ada catatan dalam 6 bulan ini.</p>';
+    trendReadout.textContent = '';
+    return;
+  }
+  const shape = trend.map((m) => m.key).join();
+  if (shape !== trendShape) {
+    trendShape = shape;
+    drawTrend();
+    requestAnimationFrame(() => updateTrend(top)); // bars grow from the baseline
+  } else {
+    updateTrend(top);
+  }
+}
+
+/** Chart frame: axis labels, two hairline gridlines, one button per month, and a table for screen readers. */
+function drawTrend() {
+  const bar = (kind) => `<span class="w-3 rounded-t transition-[height] duration-500 ease-out sm:w-4 ${
+    kind === 'masuk' ? 'bg-chart-in' : 'bg-chart-out'}" data-bar="${kind}" style="height:0"></span>`;
+  trendChart.innerHTML = `
+    <div class="flex gap-2 pt-2">
+      <div class="relative h-40 w-10 shrink-0 text-right text-[11px] leading-none text-muted" aria-hidden="true">
+        <span class="absolute right-0 top-0 -translate-y-1/2" data-tick="top"></span>
+        <span class="absolute right-0 top-1/2 -translate-y-1/2" data-tick="half"></span>
+        <span class="absolute bottom-0 right-0 translate-y-1/2">0</span>
+      </div>
+      <div class="relative h-40 min-w-0 flex-1">
+        <div class="absolute inset-x-0 top-0 border-t border-line"></div>
+        <div class="absolute inset-x-0 top-1/2 border-t border-line"></div>
+        <div class="absolute inset-0 grid grid-cols-6 gap-1 border-b border-line-strong">
+          ${trend.map((m) => `
+            <button type="button" class="flex h-full items-end justify-center gap-0.5 rounded-t-md pt-1 transition-colors hover:bg-raised/70 aria-pressed:bg-raised"
+              data-trend="${m.key}">${bar('masuk')}${bar('keluar')}</button>`).join('')}
+        </div>
+      </div>
+    </div>
+    <div class="mt-1.5 flex gap-2" aria-hidden="true">
+      <div class="w-10 shrink-0"></div>
+      <div class="grid min-w-0 flex-1 grid-cols-6 gap-1 text-center text-xs text-muted">
+        ${trend.map((m) => `<span data-trend-label="${m.key}">${m.month.toLocaleDateString('id-ID', { month: 'short' })}</span>`).join('')}
+      </div>
+    </div>
+    <table class="sr-only">
+      <caption>Uang masuk dan keluar per bulan</caption>
+      <thead><tr><th scope="col">Bulan</th><th scope="col">Uang masuk</th><th scope="col">Uang keluar</th><th scope="col">Sisa</th></tr></thead>
+      <tbody></tbody>
+    </table>`;
+}
+
+const signedRupiah = (amount) => `${amount < 0 ? '−' : ''}${rupiah(Math.abs(amount))}`;
+
+function updateTrend(top) {
+  const height = (value) => (value > 0 ? `max(2px, ${(value / top) * 100}%)` : '0');
+  const viewed = monthKey(month);
+  trendChart.querySelector('[data-tick="top"]').textContent = compactAmount(top);
+  trendChart.querySelector('[data-tick="half"]').textContent = compactAmount(top / 2);
+  for (const m of trend) {
+    const button = trendChart.querySelector(`[data-trend="${m.key}"]`);
+    button.querySelector('[data-bar="masuk"]').style.height = height(m.masuk);
+    button.querySelector('[data-bar="keluar"]').style.height = height(m.keluar);
+    button.setAttribute('aria-pressed', String(m.key === viewed));
+    button.setAttribute('aria-label',
+      `${monthName(m.month)}: uang masuk ${rupiah(m.masuk)}, uang keluar ${rupiah(m.keluar)}. Buka bulan ini`);
+    const label = trendChart.querySelector(`[data-trend-label="${m.key}"]`);
+    label.classList.toggle('font-semibold', m.key === viewed);
+    label.classList.toggle('text-ink', m.key === viewed);
+  }
+  trendChart.querySelector('tbody').innerHTML = trend.map((m) => `
+    <tr><th scope="row">${monthName(m.month)}</th><td>${rupiah(m.masuk)}</td><td>${rupiah(m.keluar)}</td>
+    <td>${signedRupiah(m.masuk - m.keluar)}</td></tr>`).join('');
+  showTrendMonth(viewed);
+}
+
+/** Numbers of one month under the chart (values in text colours; the small line keys carry identity). */
+function showTrendMonth(key) {
+  const m = trend.find((x) => x.key === key);
+  if (!m) {
+    trendReadout.textContent = '';
+    return;
+  }
+  // Each part stays on one line, so a colour key never ends up apart from its value.
+  const part = (label, amount, keyClass = '') => `<span class="inline-flex items-center gap-1.5 whitespace-nowrap">${
+    keyClass ? `<span class="h-0.5 w-3 rounded-full ${keyClass}" aria-hidden="true"></span>` : ''}${label}
+    <strong class="font-semibold text-ink">${amount}</strong></span>`;
+  trendReadout.innerHTML = `<span class="font-semibold text-ink">${monthName(m.month)}</span>
+    ${part('masuk', rupiah(m.masuk), 'bg-chart-in')}
+    ${part('keluar', rupiah(m.keluar), 'bg-chart-out')}
+    ${part('sisa', signedRupiah(m.masuk - m.keluar))}`;
+}
+
+trendChart.addEventListener('click', (event) => {
+  const button = event.target.closest('[data-trend]');
+  if (!button) return;
+  const [year, monthNumber] = button.dataset.trend.split('-').map(Number);
+  month.setFullYear(year, monthNumber - 1, 1);
+  load();
+});
+const previewMonth = (event) => {
+  const button = event.target.closest('[data-trend]');
+  if (button) showTrendMonth(button.dataset.trend);
+};
+trendChart.addEventListener('pointerover', previewMonth);
+trendChart.addEventListener('focusin', previewMonth);
+trendChart.addEventListener('pointerleave', () => showTrendMonth(monthKey(month)));
+trendChart.addEventListener('focusout', () => showTrendMonth(monthKey(month)));
 
 document.getElementById('prev-month').addEventListener('click', () => { month.setMonth(month.getMonth() - 1); load(); });
 document.getElementById('next-month').addEventListener('click', () => { month.setMonth(month.getMonth() + 1); load(); });

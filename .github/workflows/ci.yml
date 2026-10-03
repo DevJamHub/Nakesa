@@ -27,3 +27,13 @@ jobs:
           node-version: 24
       - name: Cek src/href dan import lokal
         run: node .github/scripts/check-refs.mjs
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Jalankan unit test (node --test, tanpa dependensi tambahan)
+        run: node --test "tests/**/*.test.mjs"

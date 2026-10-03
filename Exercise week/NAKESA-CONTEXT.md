@@ -23,23 +23,25 @@ Satu akun = satu praktik. Pemilik praktik bisa mencatat pasien, menerima booking
 
 | Menu | Fungsi |
 |---|---|
-| 🏠 **Beranda** (dashboard) | Ringkasan hari ini + tombol bagikan link booking ke WhatsApp |
+| 🏠 **Beranda** (dashboard) | Ringkasan hari ini, sakelar buka/tutup praktik, dan tombol bagikan link booking ke WhatsApp |
 | 📅 **Booking** | Daftar janji temu dari pasien (online atau dicatat manual). Status: baru → dikonfirmasi → selesai / batal |
 | 👥 **Pasien** | Data pasien: nama, jenis kelamin, tanggal lahir, no. HP, alamat, catatan |
 | 💊 **Obat** | Stok obat: jumlah, satuan, stok minimum (peringatan kalau menipis), harga, tanggal kedaluwarsa |
-| 💰 **Keuangan** | Catatan uang masuk & keluar (rupiah), dengan kategori sesuai profesi |
+| 💰 **Keuangan** | Catatan uang masuk & keluar (rupiah) per bulan, dengan kategori sesuai profesi, pencarian, dan rincian per kategori |
 | 🏥 **Praktik** | Nama & alamat praktik, no. HP, jam praktik per hari, buka/tutup praktik, aktifkan booking online |
 
 **Halaman booking publik** (`book.html?p=<slug>`): pasien bisa membuat janji **tanpa login**. Mereka melihat nama praktik, profesi, alamat, jam praktik, lalu mengisi nama, no. WhatsApp, tanggal (hari ini s/d 60 hari ke depan), jam, layanan, dan keluhan.
 
-**Alur akun:** welcome → daftar / masuk (email + kata sandi, atau Google/Apple) → onboarding (nama → profesi → data praktik) → dashboard. Ada juga lupa kata sandi & reset kata sandi.
+**Alur akun:** welcome → daftar / masuk (email + kata sandi, atau Google) → onboarding (nama → profesi → data praktik) → dashboard. Ada juga lupa kata sandi & reset kata sandi, serta mode terang/gelap. Login Apple sudah disiapkan di kode tetapi masih dimatikan (`AUTH_PROVIDERS.apple = false` di `js/config.js`).
 
 ## Teknologi
 
 - **Frontend:** HTML + CSS + JavaScript murni (ES modules), **tanpa framework dan tanpa build step**.
   - `html/` — satu file per halaman
-  - `js/pages/` — logika per halaman; `js/` — modul bersama (`auth.js`, `db.js`, `shell.js` untuk navigasi, `professions.js`, `format.js`, `validation.js`, `errors.js`, `ui.js`)
-  - `css/app.css`, `css/auth.css`, `style.css`
+  - `js/pages/` — logika per halaman; `js/` — modul bersama (`auth.js`, `db.js`, `shell.js` untuk kerangka halaman & navigasi, `professions.js`, `format.js`, `validation.js`, `errors.js`, `ui.js`, `practice-utils.js`, `profile.js`, `config.js`, `supabase.js`)
+  - **Tampilan:** Tailwind CSS lewat Play CDN. Konfigurasi tema (warna sebagai variabel CSS, font, bayangan) dan komponen bersama (`btn`, `card`, `item`, `badge`, dll.) ada di `js/tailwind-setup.js`; tata letak tiap halaman memakai class Tailwind langsung di HTML.
+  - `css/index.css` — CSS tulisan tangan khusus halaman Beranda publik (`html/index.html`).
+  - `js/theme.js` — mode terang/gelap (mengikuti pengaturan HP, bisa diganti dan diingat); `js/tailwind-highlight.js` — alat bantu presentasi: buka halaman dengan `?tailwind` untuk menandai elemen yang memakai Tailwind.
 - **Backend:** **Supabase** (Auth + Postgres). Tidak ada server sendiri.
   - Project ref Supabase: `fmmudgdkyihbyxntutit`
   - Migrasi ada di `supabase/migrations/`

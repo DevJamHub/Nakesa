@@ -50,17 +50,17 @@
           <input class="input" id="phone" name="p_phone" type="tel" inputmode="tel" autocomplete="tel" maxlength="30" placeholder="0812xxxxxxx" required>
           <p class="field-hint">Praktik akan mengonfirmasi lewat nomor ini.</p>
         </div>
-        <div class="two-cols">
-          <div class="field">
-            <label for="date">Tanggal *</label>
-            <input class="input" id="date" name="p_date" type="date" required>
-          </div>
-          <div class="field">
-            <label for="time">Jam (opsional)</label>
-            <input class="input" id="time" name="p_time" type="time">
-          </div>
+        <div class="field">
+          <label for="date">Tanggal *</label>
+          <input class="input" id="date" name="p_date" type="date" required aria-describedby="date-hint">
+          <p class="field-hint" id="date-hint"></p>
         </div>
-        <p class="field-hint" id="date-hint"></p>
+        <!-- Time choices are built from the practice schedule in js/pages/book.js -->
+        <fieldset class="field" id="time-field">
+          <legend class="field-label mb-1.5">Jam datang</legend>
+          <div class="grid gap-3" id="time-slots"></div>
+          <p class="field-hint" id="time-hint"></p>
+        </fieldset>
         <div class="field">
           <span class="field-label">Layanan</span>
           <div class="choices" id="services"></div>

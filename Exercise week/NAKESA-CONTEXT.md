@@ -30,7 +30,7 @@ Satu akun = satu praktik. Pemilik praktik bisa mencatat pasien, menerima booking
 | 💰 **Keuangan** | Catatan uang masuk & keluar (rupiah), dengan kategori sesuai profesi |
 | 🏥 **Praktik** | Nama & alamat praktik, no. HP, jam praktik per hari, buka/tutup praktik, aktifkan booking online |
 
-**Halaman booking publik** (`book.html?p=<slug>`): pasien bisa membuat janji **tanpa login**. Mereka melihat nama praktik, profesi, alamat, jam praktik, lalu mengisi nama, no. WhatsApp, tanggal (hari ini s/d 60 hari ke depan), jam, layanan, dan keluhan.
+**Halaman booking publik** (`book.html?p=<slug>`): pasien bisa membuat janji **tanpa login**. Mereka melihat nama praktik, profesi, alamat, jam praktik, lalu mengisi nama, no. WhatsApp, tanggal (hari ini s/d 60 hari ke depan), jam (pilihan per 30 menit sesuai sesi praktik, atau "Kapan saja"), layanan, dan keluhan.
 
 **Alur akun:** welcome → daftar / masuk (email + kata sandi, atau Google/Apple) → onboarding (nama → profesi → data praktik) → dashboard. Ada juga lupa kata sandi & reset kata sandi.
 
@@ -58,7 +58,7 @@ Tabel di skema `public` (semua dengan **Row Level Security**: setiap pengguna ha
 
 Fungsi publik (bisa dipanggil tanpa login, `security definer`):
 - `get_public_practice(slug)` — info praktik untuk halaman booking (tanpa data pasien/keuangan)
-- `create_booking(...)` — membuat booking online dengan validasi (praktik ada, booking aktif, tanggal valid, praktik buka di hari itu). Pesan error dalam Bahasa Indonesia dan langsung ditampilkan ke pasien.
+- `create_booking(...)` — membuat booking online dengan validasi (praktik ada, booking aktif, tanggal valid, praktik buka di hari itu, jam berada di dalam sesi praktik dan belum lewat). Pesan error dalam Bahasa Indonesia dan langsung ditampilkan ke pasien.
 
 Zona waktu yang dipakai: **Asia/Jakarta (WIB)**.
 

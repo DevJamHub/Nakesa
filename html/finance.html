@@ -30,10 +30,11 @@
       <button type="button" class="btn btn-ghost btn-small" id="next-month" aria-label="Bulan berikutnya">▶</button>
     </div>
 
+    <!-- Amounts shrink a little on narrow phones instead of running past the card edge. -->
     <div class="grid grid-cols-[repeat(auto-fit,minmax(160px,1fr))] gap-3">
-      <div class="stat"><span class="stat-label">Uang masuk</span><span class="stat-value whitespace-nowrap !text-green" id="sum-in">–</span></div>
-      <div class="stat"><span class="stat-label">Uang keluar</span><span class="stat-value whitespace-nowrap !text-red" id="sum-out">–</span></div>
-      <div class="stat"><span class="stat-label">Sisa (untung)</span><span class="stat-value" id="sum-balance">–</span></div>
+      <div class="stat"><span class="stat-label">Uang masuk</span><span class="stat-value text-[clamp(1.2rem,5.2vw,1.65rem)] !text-green" id="sum-in">–</span></div>
+      <div class="stat"><span class="stat-label">Uang keluar</span><span class="stat-value text-[clamp(1.2rem,5.2vw,1.65rem)] !text-red" id="sum-out">–</span></div>
+      <div class="stat"><span class="stat-label">Sisa (untung)</span><span class="stat-value text-[clamp(1.2rem,5.2vw,1.65rem)]" id="sum-balance">–</span></div>
     </div>
 
     <button type="button" class="btn btn-ghost btn-block mt-3" id="toggle-breakdown"

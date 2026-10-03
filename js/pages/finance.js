@@ -121,7 +121,7 @@ function render() {
   document.getElementById('sum-out').textContent = rupiah(expense);
   const balance = document.getElementById('sum-balance');
   balance.textContent = `${income - expense < 0 ? '−' : ''}${rupiah(Math.abs(income - expense))}`;
-  balance.className = `stat-value whitespace-nowrap ${income - expense < 0 ? '!text-red' : ''}`;
+  balance.classList.toggle('!text-red', income - expense < 0);
   renderBreakdown(); // keep an open breakdown in sync when the month or data changes
 
   // Totals always cover the whole month; the search only narrows the list below.

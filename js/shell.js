@@ -5,17 +5,21 @@ import { onAuthChange, signOut } from './auth.js';
 import { run, supabase } from './db.js';
 import { IS_DEV } from './errors.js';
 import { escapeHtml, todayISO } from './format.js';
+import { bookingLink } from './practice-utils.js';
 import { professionOf, titledName } from './professions.js';
 import { fetchProfile } from './profile.js';
 import { requireSession } from './ui.js';
 
+// tone: the item's colour (tone-* classes in js/tailwind-setup.js).
 const NAV = [
-  { key: 'dashboard', label: 'Beranda', icon: '🏠' },
-  { key: 'bookings', label: 'Booking', icon: '📅' },
-  { key: 'patients', label: 'Pasien', icon: '👥' },
-  { key: 'medicines', label: 'Obat', icon: '💊' },
-  { key: 'finance', label: 'Keuangan', icon: '💰' },
-  { key: 'practice', label: 'Praktik', icon: '🏥' },
+  { key: 'dashboard', label: 'Beranda', icon: '🏠', tone: 'accent' },
+  { key: 'bookings', label: 'Booking', icon: '📅', tone: 'blue' },
+  { key: 'patients', label: 'Pasien', icon: '👥', tone: 'purple' },
+  { key: 'prescriptions', label: 'Resep', icon: '📝', tone: 'teal' },
+  { key: 'medicines', label: 'Obat', icon: '💊', tone: 'yellow' },
+  { key: 'finance', label: 'Keuangan', icon: '💰', tone: 'green' },
+  { key: 'practice', label: 'Praktik', icon: '🏥', tone: 'red', settings: true },
+  { key: 'services', label: 'Layanan & Harga', icon: '🩺', tone: 'teal', settings: true },
 ];
 
 const never = () => new Promise(() => {}); // used while the browser navigates away
@@ -55,7 +59,7 @@ export async function startPage(activeKey) {
   const profession = professionOf(profile.profession);
 
   renderHeader(profile, practice, profession);
-  renderNav(activeKey);
+  renderNav(activeKey, profile, practice, profession);
   refreshNavBadges();
 
   onAuthChange((event) => {
@@ -93,25 +97,44 @@ function renderHeader(profile, practice, profession) {
 const wideScreen = window.matchMedia('(min-width: 900px)');
 const COLLAPSED_KEY = 'nakesa-nav-collapsed';
 
-function renderNav(activeKey) {
+function renderNav(activeKey, profile, practice, profession) {
   const nav = document.getElementById('app-nav');
+  const link = (item) => `
+    <a href="${PAGES[item.key]}" class="nav-link tone-${item.tone}${item.key === activeKey ? ' is-active' : ''}" title="${item.label}"
+       data-nav="${item.key}" ${item.key === activeKey ? 'aria-current="page"' : ''}>
+      <span class="nav-icon" aria-hidden="true">${item.icon}</span><span class="nav-label">${item.label}</span>
+    </a>`;
+  const booking = bookingLink(practice);
   nav.innerHTML = `
     <div class="side-head">
-      <span class="side-logo"><span class="side-logo-mark" aria-hidden="true">✚</span><span class="nav-label">NAKESA</span></span>
+      <a class="side-logo" href="${PAGES.dashboard}" title="Beranda">
+        <span class="side-logo-mark" aria-hidden="true">✚</span>
+        <span class="side-logo-text nav-label"><strong>NAKESA</strong><small>Praktik jadi mudah</small></span>
+      </a>
       <button type="button" class="side-close" data-nav-close aria-label="Tutup menu">✕</button>
     </div>
     <p class="side-label">Menu</p>
-    <div class="side-links">
-      ${NAV.map((item) => `
-        <a href="${PAGES[item.key]}" class="${item.key === activeKey ? 'is-active' : ''}" title="${item.label}"
-           data-nav="${item.key}" ${item.key === activeKey ? 'aria-current="page"' : ''}>
-          <span class="nav-icon" aria-hidden="true">${item.icon}</span><span class="nav-label">${item.label}</span>
-        </a>`).join('')}
-    </div>
+    <div class="side-links">${NAV.filter((item) => !item.settings).map(link).join('')}</div>
+    <p class="side-label">Pengaturan</p>
+    <div class="side-links">${NAV.filter((item) => item.settings).map(link).join('')}</div>
     <div class="side-foot">
-      <button type="button" class="side-signout" id="sign-out" title="Keluar">
-        <span class="nav-icon" aria-hidden="true">🚪</span><span class="nav-label">Keluar</span>
-      </button>
+      ${practice.booking_enabled ? `
+        <div class="side-share">
+          <p class="side-share-title">Link booking online</p>
+          <p class="side-share-text">Pasien scan QR atau buka link untuk booking sendiri.</p>
+          <div class="side-share-actions">
+            <button type="button" class="side-share-btn is-main" id="side-copy">📋 Salin link</button>
+            <button type="button" class="side-share-btn" id="side-qr" title="Tampilkan QR code" aria-haspopup="dialog">▦ QR</button>
+          </div>
+        </div>` : ''}
+      <div class="side-profile">
+        <span class="side-avatar" style="--profession-color: ${profession.color}" aria-hidden="true">${profession.icon}</span>
+        <span class="side-profile-text nav-label">
+          <strong>${escapeHtml(titledName(profile.full_name, profile.profession))}</strong>
+          <small>${escapeHtml(practice.specialty ? `${profession.label} · ${practice.specialty}` : profession.label)}</small>
+        </span>
+        <button type="button" class="side-signout" id="sign-out" title="Keluar" aria-label="Keluar">🚪</button>
+      </div>
     </div>`;
   nav.hidden = false;
 
@@ -141,6 +164,34 @@ function renderNav(activeKey) {
   wideScreen.addEventListener('change', () => setDrawer(false));
   setDrawer(false);
   requestAnimationFrame(() => requestAnimationFrame(() => document.body.classList.add('nav-ready')));
+
+  document.getElementById('side-copy')?.addEventListener('click', async () => {
+    try {
+      await navigator.clipboard.writeText(booking);
+      toast('Link booking disalin');
+    } catch {
+      toast('Tidak bisa menyalin otomatis. Buka menu Praktik untuk melihat link.', 'error');
+    }
+  });
+  // QR code in a pop-up, to show to a patient or download for printing.
+  document.getElementById('side-qr')?.addEventListener('click', async () => {
+    let qr;
+    try {
+      qr = await import('./qr.js');
+    } catch {
+      toast('QR code belum bisa dimuat. Periksa internet lalu coba lagi.', 'error');
+      return;
+    }
+    setDrawer(false);
+    const popup = openPopup({
+      title: 'Scan untuk booking',
+      body: `<div class="qr-big">${qr.qrSvg(booking, `QR code booking ${practice.name}`)}</div>
+        <p class="text-center text-muted">Tunjukkan layar ini ke pasien, atau unduh untuk dicetak.</p>`,
+      footer: '<button type="button" class="btn btn-ghost" id="popup-download-qr">⬇️ Unduh QR untuk dicetak</button>',
+    });
+    popup.querySelector('#popup-download-qr').addEventListener('click', () =>
+      qr.downloadQrPoster(booking, { title: practice.name, fileName: `QR booking ${practice.name}.png` }));
+  });
 
   document.getElementById('sign-out').addEventListener('click', async () => {
     const ok = await confirmDialog({
@@ -184,18 +235,29 @@ function syncMenuButton() {
   }
 }
 
-/** Number of new bookings waiting for confirmation, shown next to "Booking" in the menu. */
+/**
+ * Small counters in the menu: new bookings waiting for confirmation (Booking) and
+ * medicines that need a look because of low stock or expiry (Obat).
+ */
 export async function refreshNavBadges() {
-  const link = document.querySelector('[data-nav="bookings"]');
+  await Promise.all([
+    setNavBadge('bookings', 'perlu konfirmasi', supabase.from('bookings').select('id', { count: 'exact', head: true })
+      .eq('status', 'baru').gte('booking_date', todayISO())),
+    setNavBadge('medicines', 'obat perlu dicek', supabase.from('medicine_inventory').select('id', { count: 'exact', head: true })
+      .eq('is_active', true).or('stock_status.neq.aman,expiry_status.neq.aman')),
+  ]);
+}
+
+async function setNavBadge(key, label, query) {
+  const link = document.querySelector(`[data-nav="${key}"]`);
   if (!link) return;
   try {
-    const { count, error } = await supabase.from('bookings').select('id', { count: 'exact', head: true })
-      .eq('status', 'baru').gte('booking_date', todayISO());
+    const { count, error } = await query;
     if (error) throw error;
     link.querySelector('.nav-badge')?.remove();
     if (count) {
       link.insertAdjacentHTML('beforeend',
-        `<span class="nav-badge" aria-label="${count} perlu konfirmasi">${count > 99 ? '99+' : count}</span>`);
+        `<span class="nav-badge" aria-label="${count} ${label}">${count > 99 ? '99+' : count}</span>`);
     }
   } catch { /* the badge is only a hint */ }
 }
@@ -220,7 +282,7 @@ function showFatal(message) {
 /* ---------- Press feedback ---------- */
 // A soft ripple spreads from where a button is pressed (style: .ripple in js/tailwind-setup.js).
 document.addEventListener('pointerdown', (event) => {
-  const target = event.target.closest('.btn, .chip, .stat, .item-clickable, .menu-btn, .icon-btn');
+  const target = event.target.closest('.btn, .chip, .stat, .dash-stat, .dash-quick, .item-clickable, .menu-btn, .icon-btn');
   if (!target || target.disabled || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
   const box = target.getBoundingClientRect();
   const size = Math.max(box.width, box.height) * 2;
@@ -243,6 +305,8 @@ export function appError(error) {
   if (error?.code === 'P0001') return error.message; // our own messages from the database
   if (error?.code === '23514') return 'Ada isian yang tidak sesuai. Periksa kembali.';
   if (error?.code === '23505') return 'Data yang sama sudah ada.';
+  if (error?.code === '23503') return 'Data ini masih dipakai di catatan lain, jadi tidak bisa dihapus.';
+  if (error?.code === '42501') return 'Anda tidak punya izin untuk melakukan ini.';
   return 'Terjadi kesalahan. Silakan coba lagi.';
 }
 

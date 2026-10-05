@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="description" content="Layanan dan harga praktik NAKESA yang dilihat pasien di Nakesa Patient.">
+  <meta name="theme-color" content="#faf9f5">
+  <title>Layanan &amp; Harga — NAKESA</title>
+  <script src="../js/theme.js"></script> <!-- light/dark before the page is drawn -->
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="../js/tailwind-setup.js"></script> <!-- shared Tailwind config + components -->
+  <script type="module" src="../js/pages/services.js"></script>
+</head>
+<body class="app">
+  <div class="app-loader" id="loader" role="status" aria-label="Memuat"><span class="spinner"></span></div>
+  <header class="app-header" id="app-header" hidden></header>
+  <nav class="app-nav" id="app-nav" aria-label="Menu utama" hidden></nav>
+
+  <main class="app-main" id="app-main" hidden>
+    <div class="mb-6 flex flex-wrap items-end justify-between gap-4">
+      <div>
+        <div class="mb-3 text-5xl leading-none" aria-hidden="true">🩺</div>
+        <h1>Layanan &amp; Harga</h1>
+        <p class="mt-1 max-w-[560px] text-muted" id="summary">
+          Layanan yang bisa dipilih pasien saat membuat janji temu di aplikasi Nakesa Patient.
+        </p>
+      </div>
+      <button type="button" class="btn btn-primary" id="add" hidden>＋ Tambah Layanan</button>
+    </div>
+
+    <!-- Is the practice visible in the patient app? -->
+    <a class="np-strip" id="listing" href="practice.html#nakesa-patient"></a>
+
+    <div class="mt-6" id="content"></div>
+  </main>
+
+  <div class="toast" id="toast" role="status" hidden></div>
+</body>
+</html>

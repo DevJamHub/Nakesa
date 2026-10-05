@@ -33,6 +33,7 @@
           yellow: pair('yellow'),
           blue: pair('blue'),
           purple: pair('purple'),
+          teal: pair('teal'),
         },
         fontFamily: {
           sans: ['Inter', 'ui-sans-serif', 'system-ui', '-apple-system', 'Segoe UI', 'sans-serif'],
@@ -65,10 +66,12 @@
   --yellow: 164 112 26;   --yellow-soft: 251 243 219; --yellow-solid: 203 145 47;
   --blue: 51 126 169;     --blue-soft: 231 243 248;  --blue-solid: 51 126 169;
   --purple: 144 101 176;  --purple-soft: 246 243 249; --purple-solid: 144 101 176;
+  --teal: 30 128 136;     --teal-soft: 228 244 244;  --teal-solid: 30 128 136;
   --side-width: 260px;
   color-scheme: light;
 }
-:root[data-theme='dark'] {
+/* Screen only: printed pages always use the light colours (dark text on white paper). */
+@media screen { :root[data-theme='dark'] {
   --canvas: 38 38 36;     --sidebar: 31 30 29;    --surface: 48 48 46;   --raised: 58 57 54;
   --line: 64 63 58;       --line-strong: 84 83 76;
   --ink: 250 249 245;     --body: 222 220 209;    --muted: 166 163 154;
@@ -78,8 +81,9 @@
   --yellow: 226 183 92;   --yellow-soft: 66 54 30;
   --blue: 110 174 220;    --blue-soft: 30 52 68;
   --purple: 180 145 220;  --purple-soft: 54 42 66;
+  --teal: 96 196 196;     --teal-soft: 28 58 60;
   color-scheme: dark;
-}
+} }
 
 @keyframes rise-in { from { opacity: 0; transform: translateY(10px); } }
 @keyframes popup-in { from { opacity: 0; transform: translateY(14px) scale(0.97); } }
@@ -95,6 +99,11 @@
 @keyframes shake { 25% { transform: translateX(-4px); } 75% { transform: translateX(4px); } }
 @keyframes toast-in { from { opacity: 0; transform: translate(-50%, 16px); } }
 @keyframes theme-spin { from { transform: rotate(-180deg) scale(0.4); opacity: 0; } }
+@keyframes float { 50% { transform: translateY(-8px) rotate(4deg); } }
+@keyframes twinkle { to { opacity: 0.35; } }
+@keyframes wave { 15%, 45% { transform: rotate(16deg); } 30%, 60% { transform: rotate(-8deg); } 75% { transform: rotate(0); } }
+@keyframes nudge { 0% { box-shadow: 0 0 0 0 rgb(255 255 255 / 0.55); } 70%, 100% { box-shadow: 0 0 0 10px rgb(255 255 255 / 0); } }
+@keyframes shimmer { to { background-position: -200% 0; } }
 
 @layer base {
   html { -webkit-text-size-adjust: 100%; }
@@ -135,31 +144,61 @@
   .live-dot { @apply relative h-2 w-2 shrink-0 rounded-full bg-current; }
   .is-open .live-dot::after { content: ''; @apply absolute inset-0 rounded-full bg-current; animation: pulse-ring 1.8s ease-out infinite; }
 
-  /* ---------- Side menu (Notion-like sidebar) ---------- */
+  /* ---------- Side menu ---------- */
+  /* Every menu item has its own colour (tone-*), shown on its icon tile and when it is the current page. */
   .app-nav {
-    @apply fixed inset-y-0 left-0 z-40 flex w-[min(280px,84vw)] -translate-x-full flex-col gap-1 overflow-y-auto border-r border-line bg-sidebar px-2.5 pb-3 pt-3;
+    @apply fixed inset-y-0 left-0 z-40 flex w-[min(280px,84vw)] -translate-x-full flex-col overflow-y-auto overflow-x-hidden border-r border-line px-3 pb-3 pt-3;
+    background: radial-gradient(130% 240px at 0% 0%, rgb(var(--accent) / 0.1), transparent 70%), rgb(var(--sidebar));
     transition: transform 0.28s cubic-bezier(0.2, 0.8, 0.2, 1), width 0.2s ease;
   }
   body.nav-open .app-nav { @apply translate-x-0 shadow-pop; }
   .nav-backdrop { @apply pointer-events-none fixed inset-0 z-[35] bg-black/40 opacity-0 transition-opacity duration-300; }
   body.nav-open .nav-backdrop { @apply pointer-events-auto opacity-100; }
   body.nav-open { @apply overflow-hidden; }
-  .side-head { @apply mb-1 flex items-center justify-between gap-2 px-2 pb-2; }
-  .side-logo { @apply flex min-w-0 items-center gap-2.5 font-serif text-lg font-semibold text-ink; }
-  .side-logo-mark { @apply grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-accent text-base text-white; }
-  .side-close { @apply grid h-9 w-9 cursor-pointer place-items-center rounded-lg border-0 bg-transparent text-lg text-muted hover:bg-ink/5; }
-  .side-label { @apply px-3 pb-1 pt-3 text-xs font-semibold text-muted; }
-  .side-links { @apply grid gap-0.5; }
-  .app-nav a, .side-signout {
-    @apply relative flex min-h-[42px] items-center gap-3 rounded-lg px-3 text-[15px] font-medium text-body no-underline transition-colors hover:bg-ink/5 hover:text-ink;
+  .side-head { @apply mb-2 flex items-center justify-between gap-2 px-1 pb-2 pt-1; }
+  .side-logo { @apply flex min-w-0 items-center gap-3 text-inherit no-underline; }
+  .side-logo-mark {
+    @apply grid h-10 w-10 shrink-0 place-items-center rounded-xl text-lg font-bold text-white transition-transform duration-300;
+    background: linear-gradient(140deg, #e48a5f, rgb(var(--accent)) 55%, #a3442a);
+    box-shadow: 0 8px 18px -8px rgb(var(--accent) / 0.9);
   }
-  .app-nav a.is-active { @apply bg-ink/[0.07] font-semibold text-ink; }
-  .app-nav a.is-active .nav-icon { transform: scale(1.1); }
-  .nav-icon { @apply w-6 shrink-0 text-center text-lg leading-none transition-transform; }
+  .side-logo:hover .side-logo-mark { transform: rotate(-8deg) scale(1.06); }
+  .side-logo-text { @apply grid leading-tight; }
+  .side-logo-text strong { @apply font-serif text-lg font-semibold tracking-wide text-ink; }
+  .side-logo-text small { @apply text-xs text-muted; }
+  .side-close { @apply grid h-9 w-9 cursor-pointer place-items-center rounded-lg border-0 bg-transparent text-lg text-muted hover:bg-ink/5; }
+  .side-label { @apply px-3 pb-1.5 pt-4 text-[11px] font-bold uppercase tracking-[0.08em] text-muted; }
+  .side-links { @apply grid gap-1; }
+  .nav-link {
+    @apply relative flex min-h-[46px] items-center gap-3 rounded-xl px-2 text-[15px] font-medium text-body no-underline transition-colors duration-200 hover:bg-ink/5 hover:text-ink;
+  }
+  .nav-icon { @apply grid h-8 w-8 shrink-0 place-items-center rounded-lg text-[1.05rem] leading-none transition duration-300; background: rgb(var(--tone) / 0.14); }
+  .nav-link:hover .nav-icon { transform: scale(1.08) rotate(-6deg); }
+  .nav-link.is-active { @apply font-semibold text-ink; background: rgb(var(--tone) / 0.13); }
+  .nav-link.is-active::before { content: ''; @apply absolute -left-3 top-1/2 h-6 w-1 -translate-y-1/2 rounded-r-full; background: rgb(var(--tone)); }
+  .nav-link.is-active .nav-icon { background: linear-gradient(140deg, rgb(var(--tone)), rgb(var(--tone) / 0.7)); box-shadow: 0 6px 14px -6px rgb(var(--tone) / 0.9); }
   .nav-label { @apply truncate; }
-  .nav-badge { @apply ml-auto grid h-[22px] min-w-[22px] place-items-center rounded-full bg-accent px-1.5 text-xs font-semibold text-white; animation: pop 0.35s ease; }
-  .side-foot { @apply mt-auto border-t border-line pt-2; }
-  .side-signout { @apply w-full cursor-pointer border-0 bg-transparent font-sans text-red hover:bg-red-soft hover:text-red; }
+  .nav-badge { @apply ml-auto grid h-[22px] min-w-[22px] place-items-center rounded-full bg-accent px-1.5 text-xs font-semibold text-white shadow-sm; animation: pop 0.35s ease; }
+  .side-foot { @apply mt-auto grid gap-3 pt-5; }
+  .side-share {
+    @apply relative isolate overflow-hidden rounded-2xl p-4 text-white;
+    background: radial-gradient(circle at 100% 0%, rgb(255 255 255 / 0.2), transparent 45%), linear-gradient(140deg, #b8552f, #8a361d);
+    box-shadow: 0 14px 26px -16px rgb(138 54 29 / 0.9);
+  }
+  .side-share::after { content: '🔗'; @apply pointer-events-none absolute -right-1 -top-1 -z-10 rotate-12 text-5xl opacity-25; }
+  .side-share-title { @apply font-semibold; }
+  .side-share-text { @apply mt-0.5 text-[13px] leading-snug text-white/80; }
+  .side-share-actions { @apply mt-3 flex gap-2; }
+  .side-share-btn {
+    @apply inline-flex min-h-[36px] cursor-pointer items-center justify-center gap-1.5 rounded-lg border-0 bg-white/20 px-3 font-sans text-[13.5px] font-semibold text-white no-underline transition hover:bg-white/30 active:scale-95;
+  }
+  .side-share-btn.is-main { @apply flex-1 bg-white text-[#8a361d] hover:bg-white/90; }
+  .side-profile { @apply flex items-center gap-2.5 rounded-xl border border-line bg-surface p-2 shadow-soft; }
+  .side-avatar { @apply grid h-10 w-10 shrink-0 place-items-center rounded-xl text-xl; background: var(--profession-color); }
+  .side-profile-text { @apply grid min-w-0 flex-1 leading-tight; }
+  .side-profile-text strong { @apply truncate text-sm font-semibold text-ink; }
+  .side-profile-text small { @apply truncate text-xs text-muted; }
+  .side-signout { @apply grid h-10 w-10 shrink-0 cursor-pointer place-items-center rounded-lg border-0 bg-transparent text-lg transition hover:bg-red-soft active:scale-90; }
 
   .app-main { @apply mx-auto max-w-[1120px] px-4 pb-16 pt-6 nav:px-10 nav:pt-10; }
   .app-main:not([hidden]) > *, .public:not([hidden]) > *, .onboard:not([hidden]) > * { animation: rise-in 0.45s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
@@ -209,6 +248,7 @@
   .badge-orange { @apply bg-yellow-soft text-yellow; }
   .badge-blue { @apply bg-blue-soft text-blue; }
   .badge-gray { @apply bg-ink/[0.07] text-muted; }
+  .badge-purple { @apply bg-purple-soft text-purple; }
 
   /* ---------- Buttons ---------- */
   .btn {
@@ -228,19 +268,9 @@
   .btn-spinner { @apply hidden h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent; }
   .is-loading .btn-spinner { @apply inline-block; }
   .is-loading .btn-icon { @apply hidden; }
-  .quick-actions { @apply grid grid-cols-2 gap-2.5 md:grid-cols-4; }
-  .quick-actions .btn { @apply min-h-[76px] flex-col gap-1 rounded-xl px-2 py-2.5 text-sm; }
-  .quick-actions .btn span { @apply grid h-9 w-9 place-items-center rounded-lg bg-raised text-lg transition-transform; }
-  .quick-actions .btn:hover span { transform: scale(1.12) rotate(-6deg); }
   .ripple { @apply pointer-events-none absolute rounded-full bg-current opacity-20; transform: scale(0); animation: ripple 0.55s ease-out forwards; }
 
-  /* ---------- Open / closed (Notion callout) ---------- */
-  .status-card { @apply grid gap-3.5 border-transparent shadow-none transition-colors; }
-  .status-card.is-open { @apply bg-green-soft; }
-  .status-card.is-closed { @apply bg-red-soft; }
-  .status-title { @apply text-lg font-semibold; }
-  .status-card.is-open .status-title { @apply text-green; }
-  .status-card.is-closed .status-title { @apply text-red; }
+  /* ---------- Open / closed switch ---------- */
   .switch { @apply flex cursor-pointer items-center justify-between gap-3.5; }
   .switch input { @apply pointer-events-none absolute opacity-0; }
   .switch-track { @apply relative h-7 w-12 shrink-0 rounded-full bg-line-strong transition-colors; }
@@ -361,6 +391,367 @@
   .stepper button { @apply h-10 w-11 cursor-pointer border-0 bg-raised font-sans text-xl font-semibold text-ink transition-colors hover:bg-accent/10 hover:text-accent-ink disabled:cursor-default disabled:opacity-40; }
   .stepper strong { @apply inline-block min-w-[64px] text-center text-base text-ink; font-variant-numeric: tabular-nums; }
 
+  /* ---------- Beranda (dashboard) ---------- */
+  /* Hero: the sky follows the time of day (data-time is set by js/pages/dashboard.js).
+     Every sky is dark enough for white text. --px / --py move the decoration with the mouse. */
+  .dash-hero {
+    --sky: 30 37 80; --sky-deep: 17 21 48; --glow: 90 110 224;
+    @apply relative isolate overflow-hidden rounded-2xl px-5 pb-5 pt-4 text-white shadow-pop sm:px-8 sm:pb-7 sm:pt-6;
+    background:
+      radial-gradient(circle at 88% 6%, rgb(var(--glow) / 0.6), transparent 40%),
+      radial-gradient(circle at 0% 100%, rgb(var(--glow) / 0.2), transparent 55%),
+      linear-gradient(135deg, rgb(var(--sky)), rgb(var(--sky-deep)));
+  }
+  .dash-hero[data-time='pagi'] { --sky: 180 83 42; --sky-deep: 120 46 26; --glow: 246 178 90; }
+  .dash-hero[data-time='siang'] { --sky: 31 99 145; --sky-deep: 18 58 98; --glow: 108 195 240; }
+  .dash-hero[data-time='sore'] { --sky: 155 59 78; --sky-deep: 92 34 64; --glow: 243 154 82; }
+  .dash-sky-emoji {
+    @apply pointer-events-none absolute right-4 top-3 -z-10 select-none text-5xl leading-none sm:right-10 sm:top-6 sm:text-7xl;
+    translate: calc(var(--px, 0) * -18px) calc(var(--py, 0) * -14px);
+    filter: drop-shadow(0 8px 20px rgb(0 0 0 / 0.3));
+    animation: float 6s ease-in-out infinite;
+    transition: translate 0.3s ease-out;
+  }
+  .dash-stars {
+    @apply pointer-events-none absolute inset-0 -z-10 hidden;
+    background-image:
+      radial-gradient(circle at 8% 18%, #fff 0 1px, transparent 1.6px), radial-gradient(circle at 22% 72%, #fff 0 1px, transparent 1.6px),
+      radial-gradient(circle at 38% 12%, #fff 0 1.2px, transparent 1.8px), radial-gradient(circle at 55% 40%, #fff 0 0.8px, transparent 1.4px),
+      radial-gradient(circle at 68% 82%, #fff 0 1px, transparent 1.6px), radial-gradient(circle at 74% 28%, #fff 0 0.8px, transparent 1.4px),
+      radial-gradient(circle at 92% 60%, #fff 0 1.2px, transparent 1.8px), radial-gradient(circle at 46% 90%, #fff 0 0.8px, transparent 1.4px);
+    translate: calc(var(--px, 0) * 8px) calc(var(--py, 0) * 6px);
+    animation: twinkle 3s ease-in-out infinite alternate;
+  }
+  .dash-hero[data-time='malam'] .dash-stars { @apply block; }
+  .dash-hero-top { @apply flex flex-wrap items-center gap-2 pr-14 sm:pr-28; }
+  .dash-pill { @apply inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1 text-[13px] font-medium text-white backdrop-blur-sm; font-variant-numeric: tabular-nums; }
+  .dash-title { @apply mt-4 font-serif text-[1.8rem] font-semibold leading-tight text-white sm:text-[2.5rem]; }
+  .dash-hello { @apply block font-sans text-base font-medium text-white/80 sm:text-lg; }
+  .dash-wave { @apply inline-block; transform-origin: 70% 75%; animation: wave 2.2s ease-in-out 0.6s 2; }
+  .dash-summary { @apply mt-2 max-w-2xl text-[15px] leading-relaxed text-white/85 sm:text-base; }
+  .dash-hero-grid { @apply mt-5 grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto]; }
+  .dash-glass { @apply rounded-xl border border-white/20 bg-white/10 backdrop-blur-sm; }
+  .dash-switch { @apply min-h-[68px] px-4 py-3 transition-colors duration-300 hover:bg-white/15; }
+  .dash-switch.is-open { background: rgb(52 199 120 / 0.24); border-color: rgb(140 240 180 / 0.5); }
+  .dash-switch-title { @apply flex items-center gap-2 text-[1.05rem] font-bold text-white; }
+  .dash-switch-hint { @apply mt-0.5 block text-[13.5px] leading-snug text-white/75; }
+  .dash-switch .live-dot { color: #ffa197; }
+  .dash-switch.is-open .live-dot { color: #7af0ae; }
+  .dash-switch .switch-track { @apply bg-white/30; }
+  .dash-switch input:focus-visible + .switch-track { --tw-ring-offset-color: rgb(var(--sky-deep)); }
+  .dash-switch.is-nudge .switch-track { animation: nudge 1.8s ease-out infinite; }
+  .dash-switch.bump { animation: bump 0.35s ease; }
+  .dash-ring { @apply flex items-center gap-3 px-4 py-3; }
+  .dash-ring-chart { @apply relative grid h-14 w-14 shrink-0 place-items-center; }
+  .dash-ring-chart svg { @apply absolute inset-0 h-full w-full -rotate-90; }
+  .dash-ring-chart circle { fill: none; stroke-width: 5; }
+  .dash-ring-track { stroke: rgb(255 255 255 / 0.22); }
+  .dash-ring-fill { stroke: #7af0ae; stroke-linecap: round; transition: stroke-dashoffset 1s cubic-bezier(0.2, 0.8, 0.2, 1); }
+  .dash-ring-chart strong { @apply text-sm font-bold text-white; font-variant-numeric: tabular-nums; }
+  .dash-chips { @apply mt-3 flex flex-wrap gap-2; }
+  .dash-chip { @apply inline-flex min-h-[38px] items-center gap-1.5 rounded-full border border-white/20 bg-white/10 px-3.5 font-sans text-[13.5px] font-semibold text-white no-underline backdrop-blur-sm transition; animation: pop 0.35s ease both; }
+  a.dash-chip, button.dash-chip { @apply cursor-pointer hover:-translate-y-0.5 hover:bg-white/20 active:scale-95; }
+  .dash-chip.is-alert { @apply border-transparent bg-white shadow-soft hover:bg-white; color: rgb(var(--sky-deep)); }
+  .dash-chip-count { @apply grid h-5 min-w-[20px] place-items-center rounded-full bg-accent px-1.5 text-xs text-white; }
+
+  .dash-section-head { @apply mb-3 flex items-end justify-between gap-3; }
+  .dash-link { @apply shrink-0 rounded-lg px-2 py-1 text-sm font-semibold no-underline transition hover:bg-accent/10; }
+
+  /* Summary tiles and quick actions: each one has its own colour (--tone). */
+  .tone-accent { --tone: var(--accent); }
+  .tone-green { --tone: var(--green); }
+  .tone-blue { --tone: var(--blue); }
+  .tone-yellow { --tone: var(--yellow); }
+  .tone-red { --tone: var(--red); }
+  .tone-purple { --tone: var(--purple); }
+  .tone-teal { --tone: var(--teal); }
+  .dash-stats { @apply grid grid-cols-2 gap-3 lg:grid-cols-4; }
+  .dash-stat {
+    @apply relative isolate flex min-h-[150px] cursor-pointer flex-col overflow-hidden rounded-2xl border border-line p-4 text-left font-sans text-inherit no-underline shadow-soft transition duration-200 hover:-translate-y-1 hover:shadow-pop sm:p-5;
+    background: linear-gradient(155deg, rgb(var(--tone) / 0.16), rgb(var(--tone) / 0.03) 60%), rgb(var(--surface));
+  }
+  .dash-stat:hover { border-color: rgb(var(--tone) / 0.45); }
+  .dash-stat-icon { @apply grid h-11 w-11 place-items-center rounded-xl text-[1.35rem] transition-transform duration-300; background: rgb(var(--tone) / 0.18); }
+  .dash-stat:hover .dash-stat-icon { transform: scale(1.1) rotate(-8deg); }
+  .dash-stat-arrow { @apply absolute right-4 top-4 text-lg font-semibold opacity-0 transition duration-200; color: rgb(var(--tone)); }
+  .dash-stat:hover .dash-stat-arrow { @apply translate-x-1 opacity-100; }
+  .dash-stat-mark { @apply pointer-events-none absolute -bottom-4 -right-3 -z-10 rotate-[-14deg] select-none text-[5rem] leading-none opacity-[0.08]; }
+  .dash-stat-label { @apply mt-auto pt-3 text-sm font-medium text-muted; }
+  .dash-stat-value { @apply break-words font-bold leading-tight tracking-tight text-ink; font-size: clamp(1.25rem, 5vw, 1.9rem); }
+  .dash-stat-note { @apply mt-1 min-h-[1.2em] text-[12.5px] font-semibold leading-snug text-muted; }
+  .dash-stat-note.is-up { @apply text-green; }
+  .dash-stat-note.is-down { @apply text-red; }
+
+  .dash-quick-grid { @apply grid grid-cols-2 gap-3 lg:grid-cols-4; }
+  .dash-quick {
+    @apply relative flex min-h-[88px] flex-col items-start gap-2.5 overflow-hidden rounded-2xl border border-line bg-surface p-3.5 text-inherit no-underline shadow-soft transition duration-200 hover:-translate-y-0.5 hover:shadow-pop active:scale-[0.98] sm:flex-row sm:items-center sm:gap-3.5;
+  }
+  .dash-quick:hover { border-color: rgb(var(--tone) / 0.5); }
+  .dash-quick-icon {
+    @apply grid h-12 w-12 shrink-0 place-items-center rounded-xl text-2xl font-bold text-white transition-transform duration-300;
+    background: linear-gradient(140deg, rgb(var(--tone)), rgb(var(--tone) / 0.72));
+    box-shadow: 0 8px 18px -8px rgb(var(--tone) / 0.9);
+  }
+  .dash-quick:hover .dash-quick-icon { transform: scale(1.08) rotate(-8deg); }
+  .dash-quick strong { @apply block text-[15px] font-semibold leading-snug text-ink; }
+  .dash-quick small { @apply block text-[13px] leading-snug text-muted; }
+
+  .dash-panel { @apply rounded-2xl p-5 sm:p-6; }
+
+  /* Today's patients as a timeline, with a "Sekarang" line at the current time. */
+  .timeline { @apply relative m-0 grid list-none gap-3 p-0; }
+  .timeline::before { content: ''; @apply absolute bottom-4 left-[57px] top-4 w-0.5 rounded-full bg-line; }
+  .timeline:not(:has(.tl-item))::before { display: none; }
+  .tl-item { --tone: var(--muted); @apply relative grid grid-cols-[44px_minmax(0,1fr)] items-start gap-6; }
+  .tl-item[data-status='baru'] { --tone: var(--yellow); }
+  .tl-item[data-status='dikonfirmasi'] { --tone: var(--green); }
+  .tl-item[data-status='selesai'] { --tone: var(--blue); }
+  .tl-enter { animation: rise-in 0.45s cubic-bezier(0.2, 0.8, 0.2, 1) both; animation-delay: calc(var(--i, 0) * 70ms); }
+  .tl-flash .tl-card { animation: bump 0.4s ease; }
+  .tl-item::before { content: ''; @apply absolute left-[52px] top-[18px] z-[1] h-3 w-3 rounded-full ring-4 ring-surface; background: rgb(var(--tone)); }
+  .tl-time { @apply pt-3 text-right text-sm font-bold text-ink; font-variant-numeric: tabular-nums; }
+  .tl-card {
+    @apply flex flex-wrap items-center justify-between gap-x-3 gap-y-2.5 rounded-xl border border-line px-3.5 py-3 transition duration-200 hover:shadow-soft;
+    border-left: 3px solid rgb(var(--tone));
+    background: linear-gradient(90deg, rgb(var(--tone) / 0.08), transparent 70%), rgb(var(--surface));
+  }
+  .tl-item[data-status='selesai'] .tl-card { @apply opacity-70; }
+  .tl-open { @apply min-w-[150px] flex-1 cursor-pointer border-0 bg-transparent p-0 text-left font-sans text-inherit; }
+  .tl-name { @apply block break-words font-semibold text-ink; }
+  .tl-open:hover .tl-name { @apply text-accent-ink; }
+  .tl-sub { @apply block break-words text-sm text-muted; }
+  .tl-side { @apply flex flex-wrap items-center gap-2; }
+  .tl-now { @apply relative grid grid-cols-[44px_minmax(0,1fr)] items-center gap-6 text-xs font-bold uppercase tracking-wider text-accent-ink; }
+  .tl-now::before { content: ''; @apply absolute left-[51px] top-1/2 z-[1] h-3.5 w-3.5 -translate-y-1/2 rounded-full bg-accent ring-4 ring-surface; }
+  .tl-now::after { content: ''; @apply absolute left-[51px] top-1/2 h-3.5 w-3.5 -translate-y-1/2 rounded-full bg-accent; animation: pulse-ring 1.8s ease-out infinite; }
+  .tl-now-line { @apply flex items-center gap-2; }
+  .tl-now-line::after { content: ''; @apply h-0.5 flex-1 rounded-full bg-accent/40; }
+  .skeleton { @apply rounded-xl; background: linear-gradient(90deg, rgb(var(--raised)) 0%, rgb(var(--line)) 50%, rgb(var(--raised)) 100%) 0 0 / 200% 100%; animation: shimmer 1.4s linear infinite; }
+
+  /* Income of the last 7 days: one column per day, tap a column to read its numbers. */
+  .week-readout { @apply min-h-[52px]; }
+  .week-readout strong { @apply block text-[1.45rem] font-bold leading-tight text-ink; }
+  .week-readout span { @apply text-sm text-muted; }
+  .week-chart { @apply relative mt-3 h-48; }
+  .week-lines { @apply pointer-events-none absolute inset-x-0 bottom-[1.625rem] top-5 flex flex-col justify-between; }
+  .week-lines span { @apply relative block border-t border-line; }
+  .week-lines span:last-child { @apply border-line-strong; }
+  .week-lines span::before { content: attr(data-label); @apply absolute -top-2 left-0 bg-surface pr-1 text-[11px] leading-none text-muted; font-variant-numeric: tabular-nums; }
+  .week-bars { @apply relative ml-10 grid h-full grid-cols-7; }
+  .week-col { @apply flex h-full cursor-pointer flex-col rounded-lg border-0 bg-transparent p-0 font-sans transition-colors hover:bg-ink/[0.04]; }
+  .week-plot { --h: 0; @apply relative mt-5 flex-1; }
+  .week-bar {
+    @apply absolute bottom-0 left-1/2 w-[min(24px,62%)] -translate-x-1/2 rounded-t-[4px];
+    height: max(3px, calc(100% * var(--h)));
+    background: rgb(var(--accent) / 0.3);
+    transition: height 0.8s cubic-bezier(0.2, 0.8, 0.2, 1), background-color 0.2s ease;
+  }
+  .week-col:hover .week-bar { background: rgb(var(--accent) / 0.55); }
+  .week-col.is-selected .week-bar { background: rgb(var(--accent)); }
+  .week-cap {
+    @apply invisible absolute left-1/2 -translate-x-1/2 whitespace-nowrap text-[11px] font-bold text-ink opacity-0;
+    bottom: calc(max(3px, 100% * var(--h)) + 4px);
+    transition: bottom 0.8s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.2s ease;
+  }
+  .week-col.is-selected .week-cap { @apply visible opacity-100; }
+  .week-day { @apply mt-1.5 h-5 text-center text-xs font-medium text-muted; }
+  .week-col.is-today .week-day { @apply font-bold text-accent-ink; }
+  .week-totals { @apply mt-4 grid gap-2 border-t border-line pt-4 sm:grid-cols-3; }
+  .week-totals div { @apply flex items-baseline justify-between gap-3 sm:block; }
+  .week-totals dt { @apply text-[13px] font-medium text-muted sm:text-xs; }
+  .week-totals dd { @apply m-0 break-words text-[15px] font-bold text-ink; }
+
+  /* Booking link */
+  .share-card {
+    @apply relative grid gap-5 overflow-hidden rounded-2xl border border-line p-5 shadow-soft sm:grid-cols-[auto_minmax(0,1fr)] sm:items-center sm:gap-7 sm:p-6;
+    background:
+      radial-gradient(circle at 100% 0%, rgb(var(--green) / 0.16), transparent 42%),
+      radial-gradient(circle at 0% 100%, rgb(var(--accent) / 0.1), transparent 45%),
+      rgb(var(--surface));
+  }
+  /* QR code: always dark on white (also in dark mode) so every phone camera can read it. */
+  .qr-box {
+    @apply mx-auto grid h-44 w-44 cursor-zoom-in place-items-center rounded-2xl border border-line bg-white p-2 shadow-soft transition duration-200 hover:-translate-y-1 hover:shadow-pop sm:h-48 sm:w-48;
+  }
+  .qr-box svg, .qr-big svg { @apply block h-full w-full; }
+  .qr-big { @apply mx-auto w-full max-w-[340px] rounded-2xl bg-white p-2; }
+  .link-field { @apply flex items-center gap-2 rounded-xl border border-line-strong bg-raised py-1.5 pl-3.5 pr-1.5; }
+  .link-field-text { @apply min-w-0 flex-1 truncate font-mono text-[13px] text-ink sm:text-sm; }
+  .btn.is-copied { @apply border-green bg-green-soft text-green; }
+
+  /* ---------- Buku kas (Keuangan): rows and columns like a paper cash book ---------- */
+  .ledger { @apply overflow-hidden rounded-2xl border border-line bg-surface shadow-soft; }
+  .ledger-head { @apply flex flex-wrap items-center justify-between gap-3 border-b-[3px] border-double border-line-strong px-4 py-4 sm:px-5; }
+  .ledger-scroll { @apply overflow-x-auto; }
+  .ledger-table { @apply w-full border-collapse text-[13.5px] sm:text-[15px]; font-variant-numeric: tabular-nums; }
+  .ledger-table th {
+    @apply whitespace-nowrap border-b-2 border-line-strong bg-raised px-2 py-2.5 text-left text-[11px] font-bold uppercase tracking-wider text-muted sm:px-3 sm:text-xs;
+  }
+  .ledger-table td { @apply border-b border-line px-2 py-2.5 align-top sm:px-3; }
+  .ledger-table th + th, .ledger-table td + td { border-left: 1px solid rgb(var(--line)); }
+  .ledger-table .ledger-num { @apply w-[1%] whitespace-nowrap text-right; }
+  .ledger-date { @apply w-[1%] whitespace-nowrap text-muted; }
+  .ledger-no { @apply w-[1%] text-center text-muted; }
+  .ledger-row { @apply cursor-pointer transition-colors hover:bg-accent/[0.06]; }
+  .ledger-row.is-even-day { background: rgb(var(--raised) / 0.45); }
+  .ledger-row.is-even-day:hover { @apply bg-accent/[0.06]; }
+  .ledger-edit { @apply block w-full cursor-pointer border-0 bg-transparent p-0 text-left font-sans text-inherit; }
+  .ledger-edit strong { @apply block break-words font-semibold text-ink; }
+  .ledger-edit small { @apply block break-words text-[12.5px] text-muted sm:text-[13px]; }
+  .ledger-saldo { @apply font-semibold text-ink; }
+  .ledger-saldo.is-minus { @apply text-red; }
+  .ledger-opening td { @apply bg-yellow-soft/50 text-body; }
+  /* Phones: one "Jumlah" column (+ / −) instead of separate Masuk and Keluar, so Saldo still fits. */
+  .ledger-wide { @apply hidden sm:table-cell; }
+  .ledger-narrow { @apply sm:hidden; }
+  .ledger-wide-row { @apply hidden sm:table-row; }
+  .ledger-narrow-row { @apply sm:hidden; }
+  .ledger-table tfoot { @apply border-t-2 border-line-strong; }
+  .ledger-foot td { @apply border-b-0 bg-raised font-bold text-ink; }
+  .ledger-final td { @apply text-[1.02rem]; }
+  .ledger-final .ledger-num:last-child { border-bottom: 3px double rgb(var(--ink)); }
+
+  /* ---------- Data tables (Database Obat, batches, stock history) ---------- */
+  /* Phones: each row becomes a small card and every cell shows its column name (data-label). */
+  .table-card { @apply overflow-hidden rounded-2xl border border-line bg-surface shadow-soft; }
+  .data-table { @apply w-full border-collapse text-[14.5px]; }
+  .data-table th {
+    @apply whitespace-nowrap border-b border-line-strong bg-raised px-3 py-2.5 text-left text-[11px] font-bold uppercase tracking-wider text-muted;
+  }
+  .data-table td { @apply border-b border-line px-3 py-3 align-top; }
+  .data-table tbody tr { @apply transition-colors hover:bg-accent/[0.04]; }
+  .data-table tbody tr:last-child td { @apply border-b-0; }
+  .data-table .num { @apply whitespace-nowrap text-right max-md:whitespace-normal max-md:text-left; font-variant-numeric: tabular-nums; }
+  .data-table .cell-main { @apply md:min-w-[210px]; }
+  .data-table tr.is-muted { @apply opacity-60; }
+  .data-table thead { @apply max-md:hidden; }
+  .data-table tbody tr { @apply max-md:grid max-md:gap-1.5 max-md:border-b max-md:border-line max-md:px-4 max-md:py-3.5; }
+  .data-table tbody tr:last-child { @apply max-md:border-b-0; }
+  .data-table td { @apply max-md:border-0 max-md:p-0 max-md:text-left; }
+  .data-table td[data-label]::before { content: attr(data-label) ': '; @apply hidden text-[12.5px] font-semibold text-muted max-md:inline; }
+  .data-table td.cell-actions { @apply max-md:pt-1.5; }
+  .cell-title { @apply block break-words font-semibold text-ink no-underline hover:text-accent-ink; }
+  .cell-sub { @apply block break-words text-[13px] text-muted; }
+  .row-actions { @apply flex flex-wrap gap-1.5 md:justify-end; }
+
+  /* Warning tiles above the medicine list; they double as filters. */
+  .alert-tiles { @apply grid gap-3 sm:grid-cols-3; }
+  .alert-tile {
+    @apply flex cursor-pointer items-center gap-3 rounded-2xl border border-line p-3.5 text-left font-sans text-inherit shadow-soft transition hover:-translate-y-0.5 hover:shadow-pop;
+    background: linear-gradient(150deg, rgb(var(--tone) / 0.14), rgb(var(--tone) / 0.03) 65%), rgb(var(--surface));
+  }
+  .alert-tile[aria-pressed='true'] { box-shadow: 0 0 0 2px rgb(var(--tone)); }
+  .alert-tile-icon { @apply grid h-11 w-11 shrink-0 place-items-center rounded-xl text-xl; background: rgb(var(--tone) / 0.16); }
+  .alert-tile strong { @apply block text-2xl font-bold leading-none text-ink; }
+  .alert-tile small { @apply mt-1 block text-[13px] leading-snug text-muted; }
+
+  .toolbar { @apply grid gap-2.5 sm:grid-cols-2 lg:grid-cols-[minmax(0,2fr)_repeat(3,minmax(0,1fr))]; }
+  .toolbar .search { @apply sm:col-span-2 lg:col-span-1; }
+  select.input { @apply cursor-pointer; }
+
+  /* Wider pop-up for long forms, split into titled sections. */
+  dialog.dialog-wide { @apply w-[min(760px,100%)]; }
+  .form-section { @apply grid gap-3 border-t border-line pt-4; }
+  .form-section-title { @apply text-xs font-bold uppercase tracking-wider text-muted; }
+  .check-row { @apply flex cursor-pointer items-start gap-3 rounded-xl border border-line-strong p-3.5; }
+  .check-row input { @apply mt-1 h-5 w-5 shrink-0 accent-[rgb(var(--green-solid))]; }
+
+  /* Medicine picker in the prescription form. */
+  .picker { @apply grid max-h-72 gap-1 overflow-y-auto rounded-xl border border-line bg-surface p-1.5 shadow-soft; }
+  .picker-item {
+    @apply flex w-full cursor-pointer items-center justify-between gap-3 rounded-lg border-0 bg-transparent px-3 py-2.5 text-left font-sans text-inherit hover:bg-accent/[0.07] disabled:cursor-not-allowed disabled:opacity-55 disabled:hover:bg-transparent;
+  }
+  .rx-item { @apply grid gap-3 rounded-xl border border-line bg-raised/40 p-3.5; }
+  .rx-item-head { @apply flex items-start justify-between gap-3; }
+
+  /* ---------- Nakesa Patient (the patient app) inside Nakesa Pro ---------- */
+  /* Strip that links to the "Tampil di Nakesa Patient" switch. */
+  .np-strip {
+    @apply flex items-center gap-3.5 rounded-2xl border border-line p-4 text-inherit no-underline shadow-soft transition hover:-translate-y-0.5 hover:shadow-pop;
+    background: linear-gradient(120deg, rgb(var(--yellow) / 0.16), rgb(var(--yellow) / 0.02) 60%), rgb(var(--surface));
+  }
+  .np-strip.is-on { background: linear-gradient(120deg, rgb(var(--teal) / 0.18), rgb(var(--teal) / 0.02) 60%), rgb(var(--surface)); }
+  .np-strip-icon { @apply grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-surface text-xl shadow-soft; }
+  .np-strip strong { @apply block font-semibold text-ink; }
+  .np-strip small { @apply block text-[13px] leading-snug text-muted; }
+  .np-strip-go { @apply shrink-0 text-sm font-semibold text-accent-ink; }
+
+  /* Layanan & Harga */
+  .svc-index { @apply grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-teal-soft text-sm font-bold text-teal; }
+  .svc-item.is-hidden { @apply opacity-70; }
+  .svc-item.is-hidden .item-title { @apply line-through decoration-muted/60; }
+  .svc-pill { @apply rounded-full border border-line-strong bg-raised px-3 py-1 text-sm font-medium text-ink; }
+  .svc-starter { background: radial-gradient(circle at 50% 0%, rgb(var(--teal) / 0.1), transparent 55%), rgb(var(--surface)); }
+
+  /* Praktik page: the Nakesa Patient panel */
+  .np-panel {
+    @apply relative isolate scroll-mt-24 overflow-hidden rounded-2xl border border-line p-5 shadow-soft sm:p-7;
+    background:
+      radial-gradient(circle at 100% 0%, rgb(var(--teal) / 0.18), transparent 40%),
+      radial-gradient(circle at 0% 100%, rgb(var(--accent) / 0.08), transparent 45%),
+      rgb(var(--surface));
+  }
+  .np-eyebrow { @apply inline-flex items-center gap-1.5 rounded-full bg-teal-soft px-2.5 py-1 text-xs font-bold uppercase tracking-wider text-teal; }
+  .np-head { @apply flex flex-wrap items-start justify-between gap-4; }
+  .np-listed { @apply min-w-[250px] rounded-2xl border border-line-strong bg-surface px-4 py-3 shadow-soft; }
+  .np-grid { @apply mt-6 grid items-start gap-7 lg:grid-cols-[minmax(0,1fr)_320px]; }
+  .np-ready { @apply grid gap-4 rounded-2xl border border-line bg-surface p-4 shadow-soft sm:grid-cols-[auto_minmax(0,1fr)] sm:items-center sm:p-5; }
+  .np-ring { @apply relative mx-auto grid h-[92px] w-[92px] place-items-center; }
+  .np-ring svg { @apply absolute inset-0 h-full w-full -rotate-90; }
+  .np-ring circle { fill: none; stroke-width: 8; }
+  .np-ring .ring-track { stroke: rgb(var(--line)); }
+  .np-ring .ring-fill { stroke: rgb(var(--teal)); stroke-linecap: round; transition: stroke-dashoffset 0.8s cubic-bezier(0.2, 0.8, 0.2, 1), stroke 0.3s; }
+  .np-ring.is-full .ring-fill { stroke: rgb(var(--green)); }
+  .np-ring strong { @apply font-serif text-[1.35rem] font-semibold text-ink; }
+  .np-checks { @apply grid gap-1 sm:grid-cols-2; }
+  .np-check { @apply flex min-h-[38px] w-full cursor-pointer items-center gap-2 rounded-lg border-0 bg-transparent px-2 text-left font-sans text-sm font-medium text-ink transition hover:bg-ink/5; }
+  .np-check-mark { @apply grid h-5 w-5 shrink-0 place-items-center rounded-full border-2 border-line-strong text-[11px] font-bold text-transparent transition; }
+  .np-check.is-done { @apply font-normal text-muted; }
+  .np-check.is-done .np-check-mark { @apply border-green-solid bg-green-solid text-white; animation: pop 0.3s ease; }
+  .np-check-go { @apply ml-auto shrink-0 text-xs font-semibold text-accent-ink; }
+  .np-check.is-done .np-check-go { @apply hidden; }
+  .np-counter { @apply text-right text-xs text-muted; }
+  .np-location { @apply flex flex-wrap items-center gap-2 rounded-xl border border-dashed border-line-strong bg-raised/50 px-3.5 py-3 text-sm; }
+
+  /* Phone mock-up in the patient app's own look (light + teal), also in dark mode. */
+  .pp-phone {
+    @apply relative mx-auto w-full max-w-[320px] rounded-[42px] p-3;
+    background: linear-gradient(160deg, #2e2e2c, #111110);
+    box-shadow: 0 30px 60px -28px rgb(0 0 0 / 0.6), inset 0 0 0 2px #3c3c3a;
+  }
+  .pp-notch { @apply absolute left-1/2 top-3 z-[2] h-6 w-28 -translate-x-1/2 rounded-b-2xl bg-[#111110]; }
+  .pp-screen { @apply grid min-h-[540px] content-start gap-2.5 overflow-hidden rounded-[32px] bg-[#F4F7F6] px-3.5 pb-4 pt-10 font-sans text-[#10201D]; }
+  .pp-status { @apply absolute left-9 right-9 top-[19px] z-[3] flex justify-between text-[11px] font-semibold text-[#10201D]; }
+  .pp-search { @apply flex items-center gap-2 rounded-2xl border border-[#E0E8E6] bg-white px-3 py-2.5 text-[12.5px] text-[#8C9B98]; }
+  .pp-card { @apply flex gap-2.5 rounded-2xl border border-[#E0E8E6] bg-white p-3; box-shadow: 0 4px 12px rgb(11 43 39 / 0.06); }
+  .pp-avatar { @apply grid h-11 w-11 shrink-0 place-items-center rounded-full text-xl; background: color-mix(in srgb, var(--pc) 14%, white); }
+  .pp-card-body { @apply grid min-w-0 gap-0.5; }
+  .pp-card-body strong { @apply break-words text-[14.5px] font-bold leading-snug; }
+  .pp-card-body em { @apply text-[12px] font-semibold not-italic; }
+  .pp-card-body small { @apply break-words text-[11.5px] leading-snug text-[#5B6C69]; }
+  .pp-card-body small.pp-missing { @apply text-[#B45309]; }
+  .pp-badge { @apply mt-1 justify-self-start rounded-full bg-[#EEF2F1] px-2 py-0.5 text-[10.5px] font-semibold text-[#5B6C69]; }
+  .pp-badge.is-open { @apply bg-[#E8F6EC] text-[#15803D]; }
+  .pp-section { @apply mt-1 text-[13px] font-bold; }
+  .pp-service { @apply flex items-center gap-2 rounded-xl border border-[#E0E8E6] bg-white px-3 py-2.5 font-sans text-[#10201D]; }
+  .pp-service strong { @apply block break-words text-[12.5px] font-semibold; }
+  .pp-service small { @apply block break-words text-[11px] leading-snug text-[#5B6C69]; }
+  .pp-meta { @apply mt-0.5 flex flex-wrap gap-1 text-[11px] text-[#5B6C69]; }
+  .pp-price { @apply font-semibold text-[#0F766E]; }
+  .pp-price.is-ask { @apply font-medium text-[#5B6C69]; }
+  .pp-radio { @apply ml-auto h-4 w-4 shrink-0 rounded-full border-2 border-[#C5D0CE]; }
+  .pp-more, .pp-empty { @apply text-center text-[11.5px] text-[#5B6C69]; }
+  .pp-cta { @apply mt-1 rounded-xl bg-[#0F766E] py-3 text-center text-[13px] font-bold text-white; }
+  .pp-off {
+    @apply absolute inset-3 grid content-center justify-items-center gap-1 rounded-[32px] px-6 text-center text-white;
+    background: rgb(16 32 29 / 0.62);
+    backdrop-filter: blur(3px) grayscale(0.6);
+  }
+  .pp-off span { @apply text-3xl; animation: pop 0.35s ease; }
+  .pp-off small { @apply text-[12.5px] text-white/80; }
+  .pp-mini { @apply grid gap-2 rounded-2xl bg-[#F4F7F6] p-3; }
+  .pp-hidden-note { @apply text-center text-xs font-semibold text-[#B45309]; }
+
   /* ---------- Small text helpers still used by JS templates ---------- */
   .muted { @apply text-muted; }
   .small { @apply text-sm; }
@@ -374,9 +765,11 @@
   .nav-backdrop, .side-close { display: none; }
   body.nav-open { overflow: auto; }
   body.nav-collapsed { --side-width: 72px; }
-  body.nav-collapsed .app-nav .nav-label, body.nav-collapsed .side-label { display: none; }
-  body.nav-collapsed .app-nav a, body.nav-collapsed .side-signout { justify-content: center; padding: 0; }
+  body.nav-collapsed .app-nav .nav-label, body.nav-collapsed .side-share { display: none; }
+  body.nav-collapsed .side-label { height: 1px; margin: 10px 8px; padding: 0; font-size: 0; background: rgb(var(--line)); }
+  body.nav-collapsed .nav-link { justify-content: center; padding: 0; }
   body.nav-collapsed .side-head { justify-content: center; }
+  body.nav-collapsed .side-profile { flex-direction: column; padding: 6px 0; }
   body.nav-collapsed .nav-badge { position: absolute; top: 2px; right: 4px; height: 18px; min-width: 18px; font-size: 0.68rem; }
   .toast { bottom: 24px; }
   body.has-nav .toast { left: calc(50% + var(--side-width) / 2); }
@@ -391,12 +784,11 @@
   .btn-small { min-height: 34px; font-size: 13.5px; }
   .btn-big { min-height: 46px; font-size: 15px; }
   .input { min-height: 40px; padding-top: 8px; padding-bottom: 8px; font-size: 15px; }
-  .app-nav a, .side-signout { min-height: 38px; font-size: 14.5px; }
+  .nav-link { min-height: 42px; font-size: 14.5px; }
   .tabs button { min-height: 40px; font-size: 14.5px; }
   .chip { min-height: 34px; }
   .choice span { min-height: 36px; }
   .segmented .choice span { min-height: 44px; font-size: 15px; }
-  .quick-actions .btn { min-height: 68px; }
   .stepper button { height: 36px; width: 40px; }
   .item-title { font-size: 1rem; }
 }
@@ -420,6 +812,17 @@
 /* Smooth colour change while switching theme (class set briefly by theme.js). */
 .theme-switching, .theme-switching *, .theme-switching *::before, .theme-switching *::after {
   transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease !important;
+}
+
+/* Printing (e.g. the cash book): only the page content, no menu, header or buttons. */
+@media print {
+  body.app.has-nav { padding-left: 0 !important; }
+  .app-header, .app-nav, .nav-backdrop, .toast, dialog { display: none !important; }
+  .app-main { max-width: none; padding: 0; }
+  .app-main > * { animation: none !important; }
+  .card, .stat, .ledger { box-shadow: none !important; }
+  .ledger-scroll { overflow: visible; }
+  .ledger-table tr { break-inside: avoid; }
 }
 
 @media (prefers-reduced-motion: reduce) {

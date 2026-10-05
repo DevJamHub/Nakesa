@@ -17,69 +17,161 @@
   <nav class="app-nav" id="app-nav" aria-label="Menu utama" hidden></nav>
 
   <main class="app-main" id="app-main" hidden>
-    <!-- Greeting -->
-    <div class="pb-2 pt-4 text-center nav:pt-8">
-      <p class="text-sm text-muted" id="today"></p>
-      <h1 class="mt-2 text-[2rem] sm:text-[2.6rem]">
-        <span class="text-accent" aria-hidden="true">✻</span> <span id="greeting">Selamat datang</span>
+    <!-- Hero: greeting, clock, open/closed switch and what needs attention -->
+    <section class="dash-hero" id="hero" data-time="malam" aria-labelledby="greeting">
+      <span class="dash-stars" aria-hidden="true"></span>
+      <span class="dash-sky-emoji" id="sky-emoji" aria-hidden="true">🌙</span>
+
+      <div class="dash-hero-top">
+        <span class="dash-pill"><span aria-hidden="true">📆</span><span id="today"></span></span>
+        <span class="dash-pill"><span aria-hidden="true">🕒</span><span id="clock"></span></span>
+      </div>
+      <h1 class="dash-title" id="greeting">
+        <span class="dash-hello" id="hello">Selamat datang,</span>
+        <span id="name"></span> <span class="dash-wave" aria-hidden="true">👋</span>
       </h1>
+      <p class="dash-summary" id="hero-summary">Sedang menyiapkan ringkasan hari ini…</p>
+
+      <div class="dash-hero-grid">
+        <label class="switch dash-glass dash-switch" id="status-card">
+          <span class="min-w-0 flex-1">
+            <span class="dash-switch-title"><span class="live-dot" aria-hidden="true"></span><span id="status-title"></span></span>
+            <span class="dash-switch-hint" id="status-hint"></span>
+          </span>
+          <input type="checkbox" id="open-toggle">
+          <span class="switch-track" aria-hidden="true"></span>
+        </label>
+
+        <div class="dash-glass dash-ring" id="progress" hidden>
+          <span class="dash-ring-chart">
+            <svg viewBox="0 0 56 56" aria-hidden="true">
+              <circle class="dash-ring-track" cx="28" cy="28" r="24"></circle>
+              <circle class="dash-ring-fill" id="progress-ring" cx="28" cy="28" r="24" stroke-dasharray="150.8" stroke-dashoffset="150.8"></circle>
+            </svg>
+            <strong id="progress-count"></strong>
+          </span>
+          <span class="text-sm leading-snug text-white/85">pasien hari ini<br><strong class="text-white">sudah dilayani</strong></span>
+        </div>
+      </div>
+
+      <div class="dash-chips" id="hero-chips"></div>
+    </section>
+
+    <!-- Today's numbers -->
+    <section class="mt-8" aria-labelledby="summary-title">
+      <div class="dash-section-head"><h2 id="summary-title">Ringkasan hari ini</h2></div>
+      <div class="dash-stats">
+        <a class="dash-stat tone-accent" href="bookings.html">
+          <span class="dash-stat-icon" aria-hidden="true">📅</span><span class="dash-stat-arrow" aria-hidden="true">→</span>
+          <span class="dash-stat-mark" aria-hidden="true">📅</span>
+          <span class="dash-stat-label">Booking hari ini</span>
+          <span class="dash-stat-value" id="stat-bookings">–</span>
+          <span class="dash-stat-note" id="note-bookings"></span>
+        </a>
+        <a class="dash-stat tone-green" href="finance.html">
+          <span class="dash-stat-icon" aria-hidden="true">💰</span><span class="dash-stat-arrow" aria-hidden="true">→</span>
+          <span class="dash-stat-mark" aria-hidden="true">💰</span>
+          <span class="dash-stat-label">Pemasukan hari ini</span>
+          <span class="dash-stat-value" id="stat-income">–</span>
+          <span class="dash-stat-note" id="note-income"></span>
+        </a>
+        <a class="dash-stat tone-blue" href="patients.html">
+          <span class="dash-stat-icon" aria-hidden="true">👥</span><span class="dash-stat-arrow" aria-hidden="true">→</span>
+          <span class="dash-stat-mark" aria-hidden="true">👥</span>
+          <span class="dash-stat-label">Total pasien</span>
+          <span class="dash-stat-value" id="stat-patients">–</span>
+          <span class="dash-stat-note" id="note-patients"></span>
+        </a>
+        <a class="dash-stat tone-yellow" href="medicines.html" id="medicine-card" aria-haspopup="dialog">
+          <span class="dash-stat-icon" aria-hidden="true">💊</span><span class="dash-stat-arrow" aria-hidden="true">→</span>
+          <span class="dash-stat-mark" aria-hidden="true">💊</span>
+          <span class="dash-stat-label">Obat perlu dicek</span>
+          <span class="dash-stat-value" id="stat-medicines">–</span>
+          <span class="dash-stat-note" id="note-medicines"></span>
+        </a>
+      </div>
+    </section>
+
+    <!-- Quick actions -->
+    <section class="mt-8" aria-labelledby="quick-title">
+      <div class="dash-section-head"><h2 id="quick-title">Catat cepat</h2></div>
+      <div class="dash-quick-grid">
+        <a class="dash-quick tone-accent" href="bookings.html?new=1">
+          <span class="dash-quick-icon" aria-hidden="true">📅</span>
+          <span><strong>Tambah Booking</strong><small>Catat janji pasien</small></span>
+        </a>
+        <a class="dash-quick tone-blue" href="patients.html?new=1">
+          <span class="dash-quick-icon" aria-hidden="true">👤</span>
+          <span><strong>Tambah Pasien</strong><small>Simpan data pasien</small></span>
+        </a>
+        <a class="dash-quick tone-green" href="finance.html?new=masuk">
+          <span class="dash-quick-icon" aria-hidden="true">+</span>
+          <span><strong>Uang Masuk</strong><small>Bayaran pasien</small></span>
+        </a>
+        <a class="dash-quick tone-red" href="finance.html?new=keluar">
+          <span class="dash-quick-icon" aria-hidden="true">−</span>
+          <span><strong>Uang Keluar</strong><small>Belanja &amp; biaya</small></span>
+        </a>
+      </div>
+    </section>
+
+    <div class="mt-8 grid items-start gap-6 lg:grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)]">
+      <!-- Today's patients -->
+      <section class="card dash-panel" aria-labelledby="today-title">
+        <div class="dash-section-head">
+          <div>
+            <h2 id="today-title">Pasien hari ini</h2>
+            <p class="text-sm text-muted" id="today-sub">Urut sesuai jam booking</p>
+          </div>
+          <a href="bookings.html" class="dash-link">Lihat semua →</a>
+        </div>
+        <ol class="timeline" id="today-list" aria-busy="true">
+          <li class="skeleton h-16"></li>
+          <li class="skeleton h-16"></li>
+        </ol>
+      </section>
+
+      <!-- Income of the last 7 days -->
+      <section class="card dash-panel" aria-labelledby="week-title">
+        <div class="dash-section-head">
+          <div>
+            <h2 id="week-title">Pemasukan 7 hari</h2>
+            <p class="text-sm text-muted">Ketuk batang untuk melihat tiap hari</p>
+          </div>
+          <a href="finance.html" class="dash-link">Keuangan →</a>
+        </div>
+        <div class="week-readout" id="week-readout" aria-live="polite"></div>
+        <div class="week-chart">
+          <div class="week-lines" id="week-lines" aria-hidden="true"><span></span><span></span><span data-label="0"></span></div>
+          <div class="week-bars" id="week-bars" role="group" aria-label="Pemasukan per hari"></div>
+        </div>
+        <dl class="week-totals">
+          <div><dt>↑ Masuk 7 hari</dt><dd id="week-in">–</dd></div>
+          <div><dt>↓ Keluar 7 hari</dt><dd id="week-out">–</dd></div>
+          <div><dt>Sisa</dt><dd id="week-balance">–</dd></div>
+        </dl>
+      </section>
     </div>
 
-    <!-- Open / closed -->
-    <section class="card status-card mt-7" id="status-card" aria-labelledby="status-title">
-      <label class="switch">
-        <span>
-          <span class="status-title" id="status-title"></span>
-          <span class="mt-0.5 block text-sm text-muted" id="status-hint"></span>
-        </span>
-        <input type="checkbox" id="open-toggle">
-        <span class="switch-track" aria-hidden="true"></span>
-      </label>
-    </section>
-
-    <!-- Tip when no schedule yet -->
-    <a class="card mt-3 flex items-center gap-3 text-inherit no-underline transition hover:-translate-y-0.5 hover:shadow-pop" id="hours-tip" href="practice.html" hidden>
-      <span class="grid h-10 w-10 place-items-center rounded-lg bg-yellow-soft text-xl" aria-hidden="true">🕒</span>
-      <span><strong class="text-ink">Atur jadwal praktik</strong><br><span class="text-sm text-muted">Supaya pasien tahu kapan bisa datang.</span></span>
-    </a>
-
-    <section class="mt-10" aria-labelledby="summary-title">
-      <h2 class="mb-3" id="summary-title">Ringkasan hari ini</h2>
-      <div class="stats">
-        <a class="stat" href="bookings.html"><span class="stat-icon" aria-hidden="true">📅</span><span class="stat-label">Booking hari ini</span><span class="stat-value" id="stat-bookings">–</span></a>
-        <a class="stat" href="finance.html"><span class="stat-icon" aria-hidden="true">💰</span><span class="stat-label">Pemasukan hari ini</span><span class="stat-value" id="stat-income">–</span></a>
-        <a class="stat" href="patients.html"><span class="stat-icon" aria-hidden="true">👥</span><span class="stat-label">Total pasien</span><span class="stat-value" id="stat-patients">–</span></a>
-        <a class="stat" href="medicines.html" id="medicine-card" aria-haspopup="dialog"><span class="stat-icon" aria-hidden="true">💊</span><span class="stat-label">Obat perlu dicek</span><span class="stat-value" id="stat-medicines">–</span></a>
-      </div>
-    </section>
-
-    <section class="mt-10" aria-labelledby="quick-title">
-      <h2 class="mb-3" id="quick-title">Catat cepat</h2>
-      <div class="quick-actions">
-        <a class="btn btn-ghost" href="bookings.html?new=1"><span aria-hidden="true">📅</span>Tambah Booking</a>
-        <a class="btn btn-ghost" href="patients.html?new=1"><span aria-hidden="true">👤</span>Tambah Pasien</a>
-        <a class="btn btn-ghost" href="finance.html?new=masuk"><span aria-hidden="true">➕</span>Uang Masuk</a>
-        <a class="btn btn-ghost" href="finance.html?new=keluar"><span aria-hidden="true">➖</span>Uang Keluar</a>
-      </div>
-    </section>
-
-    <section class="mt-10" aria-labelledby="today-title">
-      <div class="mb-3 flex items-center justify-between gap-2.5">
-        <h2 id="today-title">Pasien booking hari ini</h2>
-        <a href="bookings.html" class="text-sm font-medium no-underline hover:underline">Lihat semua →</a>
-      </div>
-      <div class="list lg:grid-cols-2" id="today-list"></div>
-    </section>
-
-    <section class="card mt-10 grid gap-4" aria-labelledby="share-title">
-      <div>
+    <!-- Booking link: a QR code to scan and a link to copy -->
+    <section class="share-card mt-8" id="share" aria-labelledby="share-title">
+      <button type="button" class="qr-box" id="booking-qr" aria-label="Perbesar QR code booking" title="Ketuk untuk memperbesar">
+        <span class="spinner" aria-hidden="true"></span>
+      </button>
+      <div class="min-w-0">
         <h2 id="share-title">Link booking online</h2>
-        <p class="mt-1 text-muted">Bagikan ke pasien lewat WhatsApp, Instagram, atau status.</p>
-      </div>
-      <code class="link-box" id="booking-link"></code>
-      <div class="two-cols">
-        <button type="button" class="btn btn-ghost" id="copy-link">📋 Salin link</button>
-        <a class="btn btn-wa" id="share-wa" target="_blank" rel="noopener">💬 Bagikan</a>
+        <p class="mt-1 text-muted">Pasien cukup scan QR code atau buka link ini untuk booking sendiri. Setelah booking, pasien langsung diarahkan ke WhatsApp Anda.</p>
+        <p class="alert alert-info mt-3" id="booking-off" hidden>Booking online sedang dimatikan. <a href="practice.html">Aktifkan di menu Praktik →</a></p>
+        <p class="alert alert-info mt-3" id="phone-missing" hidden>Isi <strong>No. WhatsApp praktik</strong> supaya pasien diarahkan ke WhatsApp Anda setelah booking. <a href="practice.html">Isi di menu Praktik →</a></p>
+        <div class="link-field mt-4">
+          <span class="link-field-text" id="booking-link"></span>
+          <button type="button" class="btn btn-primary btn-small shrink-0" id="copy-link">📋 Salin link</button>
+        </div>
+        <div class="mt-3 flex flex-wrap gap-2">
+          <button type="button" class="btn btn-ghost btn-small" id="download-qr">⬇️ Unduh QR untuk dicetak</button>
+          <a class="btn btn-ghost btn-small" id="share-wa" target="_blank" rel="noopener">💬 Bagikan ke WhatsApp</a>
+          <a class="btn btn-ghost btn-small" id="open-link" target="_blank" rel="noopener">🌐 Buka halaman</a>
+        </div>
       </div>
     </section>
   </main>

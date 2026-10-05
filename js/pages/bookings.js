@@ -118,8 +118,9 @@ function card(b) {
       <div class="item-main">
         <div>
           <div class="item-title">${escapeHtml(b.patient_name)}</div>
-          <div class="item-sub">${b.booking_time ? `🕒 ${shortTime(b.booking_time)} · ` : ''}${escapeHtml(b.service ?? 'Layanan')}
-            ${b.source === 'online' ? ' · 🌐 online' : ''}</div>
+          ${b.patient_user_id ? '<span class="badge badge-purple my-1">📱 Dari aplikasi Nakesa Patient</span>' : ''}
+          <div class="item-sub">${b.booking_time ? `🕒 ${shortTime(b.booking_time)}${b.end_time ? `–${shortTime(b.end_time)}` : ''} · ` : ''}${escapeHtml(b.service ?? 'Layanan')}
+            ${b.source === 'online' && !b.patient_user_id ? ' · 🌐 online' : ''}</div>
           <div class="item-sub">📱 ${escapeHtml(b.patient_phone)}</div>
           ${b.complaint ? `<div class="item-sub">📝 ${escapeHtml(b.complaint)}</div>` : ''}
         </div>

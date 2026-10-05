@@ -60,10 +60,18 @@
         <input type="checkbox" id="booking-toggle">
         <span class="switch-track" aria-hidden="true"></span>
       </label>
-      <code class="link-box" id="booking-link"></code>
-      <div class="two-cols">
-        <button type="button" class="btn btn-ghost" id="copy-link">📋 Salin link</button>
-        <a class="btn btn-ghost" id="open-link" target="_blank" rel="noopener">👀 Lihat halaman</a>
+      <div class="grid items-center gap-4 sm:grid-cols-[auto_minmax(0,1fr)]">
+        <div class="qr-box !h-36 !w-36 cursor-default hover:translate-y-0" id="booking-qr"><span class="spinner" aria-hidden="true"></span></div>
+        <div class="grid min-w-0 gap-2.5">
+          <div class="link-field">
+            <span class="link-field-text" id="booking-link"></span>
+            <button type="button" class="btn btn-primary btn-small shrink-0" id="copy-link">📋 Salin link</button>
+          </div>
+          <div class="flex flex-wrap gap-2">
+            <button type="button" class="btn btn-ghost btn-small" id="download-qr">⬇️ Unduh QR untuk dicetak</button>
+            <a class="btn btn-ghost btn-small" id="open-link" target="_blank" rel="noopener">👀 Lihat halaman</a>
+          </div>
+        </div>
       </div>
     </section>
 
@@ -87,6 +95,7 @@
         <div class="field">
           <label for="phone">No. WhatsApp praktik</label>
           <input class="input" id="phone" name="phone" type="tel" inputmode="tel" maxlength="30">
+          <p class="field-hint">Setelah booking online, pasien langsung diarahkan ke WhatsApp nomor ini.</p>
         </div>
         <div class="field">
           <label for="address">Alamat</label>
@@ -97,6 +106,84 @@
     </section>
     </div>
     </div>
+
+    <!-- Nakesa Patient: the practice's page in the patient app -->
+    <section class="np-panel mt-8" id="nakesa-patient" aria-labelledby="np-title">
+      <div class="np-head">
+        <div class="max-w-[580px]">
+          <span class="np-eyebrow">📱 Nakesa Patient</span>
+          <h2 class="mt-2" id="np-title">Tampil di aplikasi pasien</h2>
+          <p class="mt-1 text-muted">Pasien bisa menemukan praktik Anda, melihat layanan dan jadwal, lalu membuat janji temu
+            sendiri dari HP. Janji temunya langsung masuk ke menu Booking.</p>
+        </div>
+        <label class="switch np-listed">
+          <span>
+            <strong class="block font-semibold text-ink" id="listed-title"></strong>
+            <span class="block text-sm text-muted" id="listed-hint"></span>
+          </span>
+          <input type="checkbox" id="listed-toggle">
+          <span class="switch-track" aria-hidden="true"></span>
+        </label>
+      </div>
+
+      <div class="np-grid">
+        <div class="grid gap-5">
+          <!-- How complete the public profile is -->
+          <div class="np-ready">
+            <div class="np-ring" id="ready-ring" role="img">
+              <svg viewBox="0 0 92 92" aria-hidden="true">
+                <circle class="ring-track" cx="46" cy="46" r="38"></circle>
+                <circle class="ring-fill" cx="46" cy="46" r="38" id="ready-fill"></circle>
+              </svg>
+              <strong id="ready-percent">0%</strong>
+            </div>
+            <div class="grid gap-2">
+              <div>
+                <h3>Kelengkapan profil</h3>
+                <p class="text-sm text-muted" id="ready-text"></p>
+              </div>
+              <div class="np-checks" id="ready-checks"></div>
+            </div>
+          </div>
+
+          <!-- Public profile -->
+          <form id="np-form" class="card grid gap-4" novalidate>
+            <h3>Profil publik</h3>
+            <div id="np-error" class="form-error" role="alert" hidden></div>
+            <div class="grid items-start gap-4 sm:grid-cols-2">
+              <div class="field">
+                <label for="np-city">Kota/Kabupaten</label>
+                <input class="input" id="np-city" name="city" maxlength="80" placeholder="Contoh: Surabaya" autocomplete="address-level2">
+                <p class="field-hint">Pasien di kota yang sama melihat praktik Anda lebih dulu.</p>
+              </div>
+              <div class="field">
+                <label for="np-province">Provinsi</label>
+                <select class="input" id="np-province" name="province"></select>
+              </div>
+            </div>
+            <div class="field">
+              <label for="np-description">Tentang praktik</label>
+              <textarea class="input" id="np-description" name="description" maxlength="1000" rows="4"
+                placeholder="Contoh: Praktik bidan mandiri sejak 2010. Melayani periksa kehamilan, KB, dan imunisasi anak. Ruang tunggu nyaman dan ramah anak."></textarea>
+              <p class="np-counter" id="np-counter">0/1000</p>
+            </div>
+            <div class="field">
+              <span class="field-label">Lokasi di peta</span>
+              <div class="np-location" id="np-location"></div>
+              <p class="field-hint">Untuk fitur “praktik terdekat” nanti. Tekan saat Anda sedang berada di tempat praktik.</p>
+            </div>
+            <button type="submit" class="btn btn-primary" id="np-save">Simpan Profil Publik</button>
+          </form>
+        </div>
+
+        <!-- Live preview -->
+        <div class="grid gap-3 lg:sticky lg:top-24">
+          <p class="text-center text-sm font-semibold text-muted">👀 Pratinjau di HP pasien</p>
+          <div id="np-preview"></div>
+          <a class="btn btn-ghost btn-small justify-self-center" href="services.html">🩺 Atur layanan &amp; harga</a>
+        </div>
+      </div>
+    </section>
   </main>
 
   <div class="toast" id="toast" role="status" hidden></div>

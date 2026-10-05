@@ -1,11 +1,15 @@
-// Praktik: open/closed, weekly hours, online booking and practice details.
+// Praktik: open/closed, weekly hours, online booking, practice details and the
+// practice's page in the Nakesa Patient app.
+import { PAGES } from '../config.js';
 import { run, supabase, updateRow } from '../db.js';
 import { DAYS, escapeHtml } from '../format.js';
+import { loadServices, offeredServices, phonePreviewHtml } from '../patient-preview.js';
 import { bookingLink } from '../practice-utils.js';
 import { PROFESSIONS, professionOf } from '../professions.js';
 import { updateProfile } from '../profile.js';
+import { PROVINCES } from '../regions.js';
 import {
-  appError, closeDialog, formValues, openPopup, setOpenBadge, startPage, toast, whileSaving,
+  appError, closeDialog, confirmDialog, formValues, openPopup, setOpenBadge, startPage, toast, whileSaving,
 } from '../shell.js';
 
 let { user, profile, practice } = await startPage('practice');
@@ -28,7 +32,24 @@ const bookingToggle = document.getElementById('booking-toggle');
 const link = bookingLink(practice);
 bookingToggle.checked = practice.booking_enabled;
 document.getElementById('booking-link').textContent = link;
+document.getElementById('booking-link').title = link;
 document.getElementById('open-link').href = link;
+
+// QR code to print or show to patients (library from a CDN, so the page works without it).
+const qr = import('../qr.js');
+qr.then(({ qrSvg }) => {
+  document.getElementById('booking-qr').innerHTML = qrSvg(link, `QR code booking ${practice.name}`);
+}).catch(() => {
+  document.getElementById('booking-qr').innerHTML = '<span class="p-3 text-center text-xs text-muted">QR belum bisa dimuat.</span>';
+});
+document.getElementById('download-qr').addEventListener('click', async () => {
+  try {
+    await (await qr).downloadQrPoster(link, { title: practice.name, fileName: `QR booking ${practice.name}.png` });
+    toast('QR code diunduh. Cetak dan tempel di ruang praktik.');
+  } catch {
+    toast('QR code belum bisa diunduh. Periksa internet lalu coba lagi.', 'error');
+  }
+});
 bookingToggle.addEventListener('change', () => saveSwitch(bookingToggle, 'booking_enabled',
   (on) => (on ? 'Booking online dibuka' : 'Booking online ditutup')));
 document.getElementById('copy-link').addEventListener('click', async () => {
@@ -248,3 +269,226 @@ infoForm.addEventListener('submit', async (event) => {
     infoError.hidden = false;
   }
 });
+
+/* ---------- Nakesa Patient: the practice in the patient app ---------- */
+// A switch to be found in the app, a checklist of what patients look at, the public
+// profile (city, about, map point) and a live phone preview of what patients see.
+const npForm = document.getElementById('np-form');
+const npError = document.getElementById('np-error');
+const listedToggle = document.getElementById('listed-toggle');
+const RING = 2 * Math.PI * 38; // circumference of the progress ring (r = 38)
+
+let ownServices = [];
+try {
+  ownServices = await loadServices(practice.id);
+} catch { /* the preview then shows the profession's standard services */ }
+
+npForm.province.innerHTML = `<option value="">Pilih provinsi</option>${
+  PROVINCES.map((p) => `<option value="${escapeHtml(p)}">${escapeHtml(p)}</option>`).join('')}`;
+npForm.city.value = practice.city ?? '';
+npForm.province.value = practice.province ?? '';
+npForm.description.value = practice.description ?? '';
+
+const focusField = (field) => {
+  field.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  field.focus({ preventScroll: true });
+};
+
+// What patients look at before booking. `go` takes the user to the place to fill it in.
+const CHECKS = [
+  { label: 'Alamat', done: () => !!infoForm.address.value.trim(), go: () => focusField(infoForm.address) },
+  { label: 'Kota/Kabupaten', done: () => !!npForm.city.value.trim(), go: () => focusField(npForm.city) },
+  { label: 'No. WhatsApp', done: () => !!infoForm.phone.value.trim(), go: () => focusField(infoForm.phone) },
+  {
+    label: 'Jam praktik',
+    done: () => !!days.querySelector('.session'),
+    go: () => document.getElementById('hours-title').scrollIntoView({ behavior: 'smooth', block: 'start' }),
+  },
+  { label: 'Layanan & harga', done: () => ownServices.some((s) => s.is_active), go: () => { window.location.href = PAGES.services; } },
+  { label: 'Tentang praktik', done: () => !!npForm.description.value.trim(), go: () => focusField(npForm.description) },
+  { label: 'Booking online aktif', done: () => bookingToggle.checked, go: () => focusField(bookingToggle) },
+];
+
+const readyChecks = document.getElementById('ready-checks');
+readyChecks.addEventListener('click', (event) => {
+  const item = event.target.closest('[data-check]');
+  if (item) CHECKS[Number(item.dataset.check)].go();
+});
+
+function renderReady() {
+  const results = CHECKS.map((check) => check.done());
+  const done = results.filter(Boolean).length;
+  const percent = Math.round((done / CHECKS.length) * 100);
+  document.getElementById('ready-fill').style.strokeDasharray = `${RING}`;
+  document.getElementById('ready-fill').style.strokeDashoffset = `${RING * (1 - done / CHECKS.length)}`;
+  document.getElementById('ready-percent').textContent = `${percent}%`;
+  const ring = document.getElementById('ready-ring');
+  ring.classList.toggle('is-full', done === CHECKS.length);
+  ring.setAttribute('aria-label', `Profil ${percent}% lengkap`);
+  document.getElementById('ready-text').textContent = done === CHECKS.length
+    ? 'Siap tampil! Pasien bisa menemukan dan booking praktik Anda dengan mudah.'
+    : `${done} dari ${CHECKS.length} sudah lengkap. Ketuk yang belum untuk mengisinya.`;
+  readyChecks.innerHTML = CHECKS.map((check, i) => `
+    <button type="button" class="np-check${results[i] ? ' is-done' : ''}" data-check="${i}">
+      <span class="np-check-mark" aria-hidden="true">✓</span>
+      <span>${check.label}<span class="sr-only">${results[i] ? ' (sudah)' : ' (belum)'}</span></span>
+      <span class="np-check-go" aria-hidden="true">Isi →</span>
+    </button>`).join('');
+}
+
+function renderPreview() {
+  const professionKey = professionSelect.value;
+  document.getElementById('np-preview').innerHTML = phonePreviewHtml({
+    practice: {
+      name: infoForm.elements.name.value.trim(),
+      address: infoForm.address.value.trim(),
+      city: npForm.city.value.trim(),
+      specialty: professionOf(professionKey).specialtyLabel ? infoForm.specialty.value.trim() : null,
+      is_open: openToggle.checked,
+    },
+    professionKey,
+    practitioner: profile.full_name,
+    services: offeredServices(ownServices, professionKey),
+    listed: listedToggle.checked,
+  });
+}
+
+function refreshNakesaPatient() {
+  renderReady();
+  renderPreview();
+  document.getElementById('np-counter').textContent = `${npForm.description.value.length}/1000`;
+}
+
+// Everything on this page that patients see updates the checklist and the preview while typing.
+infoForm.addEventListener('input', refreshNakesaPatient);
+infoForm.addEventListener('change', refreshNakesaPatient);
+npForm.addEventListener('input', refreshNakesaPatient);
+openToggle.addEventListener('change', renderPreview);
+bookingToggle.addEventListener('change', renderReady);
+new MutationObserver(renderReady).observe(days, { childList: true, subtree: true });
+
+/* Listed in the app */
+function showListed(on) {
+  document.getElementById('listed-title').textContent = on ? '🟢 Tampil di aplikasi' : '⚪ Belum tampil';
+  document.getElementById('listed-hint').textContent = on
+    ? 'Pasien bisa menemukan praktik Anda'
+    : 'Nyalakan saat profil sudah siap';
+}
+listedToggle.checked = practice.is_listed;
+showListed(practice.is_listed);
+
+listedToggle.addEventListener('change', async () => {
+  if (listedToggle.checked) {
+    const missing = CHECKS.filter((check) => !check.done()).map((check) => check.label);
+    const noHours = !days.querySelector('.session');
+    if (missing.length) {
+      const ok = await confirmDialog({
+        icon: '📱',
+        tone: 'primary',
+        title: 'Tampilkan sekarang?',
+        message: `Masih belum lengkap: ${missing.join(', ')}.${noHours
+          ? ' Tanpa jam praktik, pasien bisa melihat praktik Anda tetapi belum bisa memilih jam.' : ''} Anda bisa melengkapinya nanti.`,
+        confirmLabel: 'Ya, tampilkan',
+      });
+      if (!ok) {
+        listedToggle.checked = false;
+        return;
+      }
+    }
+  }
+  await saveSwitch(listedToggle, 'is_listed', (on) => (on
+    ? 'Praktik Anda sekarang tampil di Nakesa Patient 🎉'
+    : 'Praktik disembunyikan dari Nakesa Patient'));
+  showListed(listedToggle.checked);
+  renderPreview();
+});
+
+/* Map point: saved right away, from the device's location */
+const locationBox = document.getElementById('np-location');
+let mapPoint = practice.latitude === null || practice.latitude === undefined
+  ? null
+  : { lat: Number(practice.latitude), lng: Number(practice.longitude) };
+
+function renderLocation() {
+  locationBox.innerHTML = mapPoint
+    ? `<span>📍 <strong class="text-ink">${mapPoint.lat.toFixed(5)}, ${mapPoint.lng.toFixed(5)}</strong></span>
+       <a class="btn btn-ghost btn-small" href="https://www.google.com/maps?q=${mapPoint.lat},${mapPoint.lng}" target="_blank" rel="noopener">🗺️ Lihat di peta</a>
+       <button type="button" class="btn btn-ghost btn-small" data-location="here">🔄 Perbarui</button>
+       <button type="button" class="btn btn-danger-ghost btn-small" data-location="clear">Hapus</button>`
+    : `<span class="text-muted">Belum disimpan.</span>
+       <button type="button" class="btn btn-ghost btn-small" data-location="here">📍 Pakai lokasi saya sekarang</button>`;
+}
+renderLocation();
+
+async function saveMapPoint(point) {
+  practice = await updateRow('practices', practice.id, {
+    latitude: point?.lat ?? null,
+    longitude: point?.lng ?? null,
+  });
+  mapPoint = point;
+  renderLocation();
+}
+
+locationBox.addEventListener('click', async (event) => {
+  const button = event.target.closest('[data-location]');
+  if (!button) return;
+  if (button.dataset.location === 'clear') {
+    try {
+      await saveMapPoint(null);
+      toast('Lokasi dihapus');
+    } catch (error) {
+      toast(appError(error), 'error');
+    }
+    return;
+  }
+  if (!navigator.geolocation) {
+    toast('Perangkat ini tidak bisa membaca lokasi.', 'error');
+    return;
+  }
+  button.disabled = true;
+  button.textContent = 'Mencari lokasi…';
+  navigator.geolocation.getCurrentPosition(async (position) => {
+    try {
+      await saveMapPoint({
+        lat: Number(position.coords.latitude.toFixed(6)),
+        lng: Number(position.coords.longitude.toFixed(6)),
+      });
+      toast('Lokasi praktik disimpan');
+    } catch (error) {
+      toast(appError(error), 'error');
+      renderLocation();
+    }
+  }, (error) => {
+    toast(error.code === error.PERMISSION_DENIED
+      ? 'Izin lokasi ditolak. Izinkan lokasi untuk situs ini di pengaturan browser.'
+      : 'Lokasi belum bisa ditemukan. Coba lagi di tempat terbuka.', 'error');
+    renderLocation();
+  }, { enableHighAccuracy: true, timeout: 15000 });
+});
+
+/* Save the public profile */
+npForm.addEventListener('submit', async (event) => {
+  event.preventDefault();
+  npError.hidden = true;
+  const values = formValues(npForm);
+  try {
+    await whileSaving(document.getElementById('np-save'), async () => {
+      practice = await updateRow('practices', practice.id, {
+        city: values.city,
+        province: values.province,
+        description: values.description,
+      });
+    });
+    toast('Profil publik disimpan');
+  } catch (error) {
+    npError.textContent = appError(error);
+    npError.hidden = false;
+  }
+});
+
+refreshNakesaPatient();
+
+// Links like practice.html#nakesa-patient: the page is shown only after loading, so scroll now.
+if (window.location.hash === '#nakesa-patient') {
+  requestAnimationFrame(() => document.getElementById('nakesa-patient').scrollIntoView({ behavior: 'smooth' }));
+}

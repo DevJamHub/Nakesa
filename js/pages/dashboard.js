@@ -1,8 +1,11 @@
 // Beranda: greeting that follows the time of day, open/closed switch, today's summary,
-// today's patients (confirm right here), income of the last 7 days and the booking link.
+// today's patients (confirm right here), income of the last 7 days, upcoming national
+// holidays (from a public API) and the booking link.
 import { PAGES } from '../config.js';
 import { countRows, run, supabase, updateRow } from '../db.js';
+import { IS_DEV } from '../errors.js';
 import { DAYS, escapeHtml, formatDate, rupiah, shortTime, todayISO, waLink } from '../format.js';
+import { fetchHolidays } from '../holidays.js';
 import { titledName } from '../professions.js';
 import {
   appError, countUp, openPopup, refreshNavBadges, setOpenBadge, startPage, toast,
@@ -148,6 +151,7 @@ async function load() {
     renderHero();
     renderToday();
     showStatus();
+    if (holidays) renderHolidays(); // practice hours may have changed the "Ada jadwal praktik" notes
     firstLoad = false;
   } catch (error) {
     toast(appError(error), 'error');
@@ -481,6 +485,118 @@ $('hero-chips').addEventListener('click', (event) => {
   if (event.target.closest('[data-show-medicines]')) showMedicines();
 });
 
+/* ---------- Libur nasional terdekat (Week 4: data dari API) ---------- */
+// Task 01 (Connect to API) ada di ../holidays.js: fetch → cek response.ok → response.json() → olah data.
+// Gaya Single Page Application: data diambil di belakang layar lalu hanya kartu ini yang diperbarui,
+// halaman tidak pernah di-refresh (juga saat menekan "Muat ulang" atau "Coba Lagi").
+const holidayList = $('holiday-list');
+const holidayStatus = $('holiday-status');
+const holidayReload = $('holiday-reload');
+let holidays = null; // all national holidays from the API; null while loading or after an error
+
+/** Status pill under the title: 'loading' | 'ok' | 'error'. */
+function setHolidayStatus(state, text) {
+  holidayStatus.dataset.state = state;
+  holidayStatus.textContent = text;
+}
+
+/* ---------- Week 4 · Task 03: Handle API State (loading, berhasil, gagal) ---------- */
+async function loadHolidays() {
+  // LOADING: spinner + teks selama request berjalan.
+  holidays = null;
+  holidayReload.disabled = true;
+  holidayList.setAttribute('aria-busy', 'true');
+  setHolidayStatus('loading', 'Memuat…');
+  holidayList.innerHTML = `
+    <li class="empty-state">
+      <span class="spinner" aria-hidden="true"></span>
+      <p class="muted">Mengambil data libur nasional…</p>
+    </li>`;
+
+  try {
+    holidays = await fetchHolidays();
+    // BERHASIL: tanda hijau + jam dimuat, lalu data ditampilkan.
+    const time = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+    setHolidayStatus('ok', `Data berhasil dimuat · ${time}`);
+    renderHolidays();
+  } catch (error) {
+    // GAGAL: pesan yang mudah dipahami + tombol untuk mencoba lagi.
+    if (IS_DEV) console.error('[holidays]', error);
+    setHolidayStatus('error', 'Gagal dimuat');
+    holidayList.innerHTML = `
+      <li class="empty-state">
+        <p class="empty-icon" aria-hidden="true">⚠️</p>
+        <p class="font-semibold text-ink">Gagal mengambil data libur nasional</p>
+        <p class="muted">Periksa koneksi internet Anda, lalu coba lagi.</p>
+        <button type="button" class="btn btn-primary btn-small" data-retry>↻ Coba Lagi</button>
+      </li>`;
+  } finally {
+    holidayList.removeAttribute('aria-busy');
+    holidayReload.disabled = false;
+  }
+}
+
+/* ---------- Week 4 · Task 02: Display API Data ---------- */
+const HOLIDAYS_SHOWN = 4;
+
+/** Days from today to an ISO date: 0 = today. */
+const daysUntil = (iso) => Math.round((new Date(`${iso}T00:00:00`) - new Date(`${todayISO()}T00:00:00`)) / 86_400_000);
+
+function countdown(iso) {
+  const days = daysUntil(iso);
+  if (days === 0) return 'Hari ini';
+  if (days === 1) return 'Besok';
+  return `${days} hari lagi`;
+}
+
+function renderHolidays() {
+  // Saring di sini (bukan saat fetch) supaya tetap benar kalau halaman terbuka melewati tengah malam.
+  const upcoming = holidays.filter((h) => h.date >= todayISO()).slice(0, HOLIDAYS_SHOWN);
+  if (!upcoming.length) {
+    holidayList.innerHTML = `
+      <li class="empty-state">
+        <p class="empty-icon" aria-hidden="true">📅</p>
+        <p class="muted">Belum ada data libur nasional berikutnya.</p>
+      </li>`;
+    return;
+  }
+
+  // Array of objects → forEach → template literal → HTML → DOM.
+  let html = '';
+  upcoming.forEach((holiday) => {
+    const date = new Date(`${holiday.date}T00:00:00`);
+    // Gabungkan dengan data praktik dari Supabase: apakah hari itu ada jadwal praktik?
+    const sessions = hours.filter((h) => h.day_of_week === date.getDay());
+    const badges = [
+      holiday.jointLeave ? '<span class="badge badge-blue">Cuti bersama</span>' : '',
+      holiday.tentative ? '<span class="badge badge-gray">Tanggal belum pasti</span>' : '',
+    ].join('');
+    const practiceNote = sessions.length
+      ? `<p class="holiday-note">🩺 Ada jadwal praktik ${sessions.map((s) => `${shortTime(s.opens_at)}–${shortTime(s.closes_at)}`).join(' & ')}. Kabari pasien kalau praktik tutup.</p>`
+      : '';
+
+    html += `
+      <li class="holiday-item">
+        <span class="holiday-date" aria-hidden="true">
+          <strong>${date.getDate()}</strong>
+          <small>${date.toLocaleDateString('id-ID', { month: 'short' })}</small>
+        </span>
+        <div class="min-w-0 flex-1">
+          <p class="item-title">${escapeHtml(holiday.name)}</p>
+          <p class="item-sub">${formatDate(holiday.date, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })} · <strong class="whitespace-nowrap text-ink">${countdown(holiday.date)}</strong></p>
+          ${badges ? `<div class="mt-1.5 flex flex-wrap gap-1.5">${badges}</div>` : ''}
+          ${practiceNote}
+        </div>
+      </li>`;
+  });
+  holidayList.innerHTML = html;
+}
+
+holidayReload.addEventListener('click', loadHolidays);
+holidayList.addEventListener('click', (event) => {
+  if (event.target.closest('[data-retry]')) loadHolidays();
+});
+
 /* ---------- Booking link: QR code + copy ---------- */
 const link = bookingLink(practice);
 $('booking-link').textContent = link;
@@ -550,6 +666,7 @@ tick();
 (function everyMinute() {
   setTimeout(() => { tick(); everyMinute(); }, 60_000 - (Date.now() % 60_000) + 50);
 })();
+loadHolidays(); // runs alongside load(): the holiday API and Supabase are fetched at the same time
 await load();
 
 // Coming back to the app later (e.g. after replying on WhatsApp) shows fresh numbers.

@@ -561,6 +561,19 @@
   .week-totals dt { @apply text-[13px] font-medium text-muted sm:text-xs; }
   .week-totals dd { @apply m-0 break-words text-[15px] font-bold text-ink; }
 
+  /* National holidays (from the API): a red date tile, like "tanggal merah" on a calendar. */
+  .holiday-status { @apply mt-1 inline-flex items-center gap-1.5 rounded-full bg-ink/[0.06] px-2.5 py-0.5 text-[13px] font-semibold text-muted; }
+  .holiday-status::before { content: ''; @apply h-2 w-2 shrink-0 rounded-full bg-current; }
+  .holiday-status[data-state='loading']::before { animation: twinkle 0.7s ease-in-out infinite alternate; }
+  .holiday-status[data-state='ok'] { @apply bg-green-soft text-green; }
+  .holiday-status[data-state='error'] { @apply bg-red-soft text-red; }
+  .holiday-list { @apply m-0 list-none p-0; }
+  .holiday-item { @apply flex items-start gap-3.5 border-t border-line py-3 first:border-t-0; }
+  .holiday-date { @apply grid h-14 w-14 shrink-0 place-content-center rounded-xl bg-red-soft text-center leading-none text-red; }
+  .holiday-date strong { @apply block text-xl font-bold; font-variant-numeric: tabular-nums; }
+  .holiday-date small { @apply mt-1 block text-[11px] font-semibold uppercase tracking-wider; }
+  .holiday-note { @apply mt-1.5 rounded-lg bg-yellow-soft px-2.5 py-1.5 text-[13px] font-medium leading-snug text-yellow; }
+
   /* Booking link */
   .share-card {
     @apply relative grid gap-5 overflow-hidden rounded-2xl border border-line p-5 shadow-soft sm:grid-cols-[auto_minmax(0,1fr)] sm:items-center sm:gap-7 sm:p-6;

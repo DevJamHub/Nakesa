@@ -153,6 +153,18 @@
       </section>
     </div>
 
+    <!-- Upcoming national holidays, from a public API (Week 4) -->
+    <section class="card dash-panel mt-8" aria-labelledby="holiday-title">
+      <div class="dash-section-head">
+        <div>
+          <h2 id="holiday-title">Libur nasional terdekat</h2>
+          <p class="holiday-status" id="holiday-status" role="status" data-state="loading">Memuat…</p>
+        </div>
+        <button type="button" class="btn btn-ghost btn-small shrink-0" id="holiday-reload" aria-label="Muat ulang data libur nasional" title="Muat ulang">↻<span class="hidden sm:inline">&nbsp;Muat ulang</span></button>
+      </div>
+      <ul class="holiday-list" id="holiday-list"></ul>
+    </section>
+
     <!-- Booking link: a QR code to scan and a link to copy -->
     <section class="share-card mt-8" id="share" aria-labelledby="share-title">
       <button type="button" class="qr-box" id="booking-qr" aria-label="Perbesar QR code booking" title="Ketuk untuk memperbesar">

@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="description" content="Resep dan pemberian obat pasien di NAKESA.">
+  <meta name="theme-color" content="#faf9f5">
+  <title>Resep — NAKESA</title>
+  <script src="../js/theme.js"></script> <!-- light/dark before the page is drawn -->
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="../js/tailwind-setup.js"></script> <!-- shared Tailwind config + components -->
+  <script type="module" src="../js/pages/prescriptions.js"></script>
+</head>
+<body class="app">
+  <div class="app-loader" id="loader" role="status" aria-label="Memuat"><span class="spinner"></span></div>
+  <header class="app-header" id="app-header" hidden></header>
+  <nav class="app-nav" id="app-nav" aria-label="Menu utama" hidden></nav>
+
+  <main class="app-main" id="app-main" hidden>
+    <div class="mb-6 flex flex-wrap items-end justify-between gap-4">
+      <div>
+        <div class="mb-3 text-5xl leading-none" aria-hidden="true">📝</div>
+        <h1>Resep</h1>
+        <p class="mt-1 text-muted">Catat obat yang diberikan ke pasien. Stok berkurang otomatis saat resep diselesaikan.</p>
+      </div>
+      <button type="button" class="btn btn-primary" id="add" hidden>＋ Buat Resep</button>
+    </div>
+
+    <p class="alert alert-info mb-5">Pemberian obat harus sesuai <strong>kewenangan tenaga kesehatan, SOP fasilitas, indikasi
+      klinis, dan regulasi</strong> yang berlaku. Hanya obat aktif yang sudah diizinkan admin di Database Obat yang bisa dipilih.</p>
+
+    <div class="search mb-3">
+      <input class="input" type="search" id="search" placeholder="Cari nama pasien…" aria-label="Cari resep">
+    </div>
+    <div class="filter-chips" id="status-filter" role="group" aria-label="Saring status"></div>
+    <div class="table-card" id="list"></div>
+  </main>
+
+  <dialog id="rx-dialog" class="dialog-wide" aria-labelledby="rx-title">
+    <form class="dialog-form" id="rx-form" novalidate>
+      <div class="dialog-head">
+        <h2 id="rx-title">Buat Resep</h2>
+        <button type="button" class="dialog-close" data-close aria-label="Tutup">✕</button>
+      </div>
+      <div class="form-error" id="rx-error" role="alert" hidden></div>
+
+      <div class="grid items-start gap-3 sm:grid-cols-2">
+        <div class="field">
+          <label for="rx-patient">Nama pasien *</label>
+          <input class="input" id="rx-patient" name="patient_name" list="rx-patients" maxlength="120" autocomplete="off" required>
+          <p class="field-hint">Pilih dari daftar pasien, atau ketik nama baru.</p>
+        </div>
+        <div class="field">
+          <label for="rx-notes">Catatan (keluhan / diagnosis)</label>
+          <input class="input" id="rx-notes" name="notes" maxlength="1000">
+        </div>
+      </div>
+
+      <div class="form-section">
+        <p class="form-section-title">Obat</p>
+        <div class="relative">
+          <div class="search">
+            <input class="input" type="search" id="rx-search" placeholder="Cari obat untuk ditambahkan…" autocomplete="off"
+              aria-label="Cari obat" aria-controls="rx-picker">
+          </div>
+          <div class="picker mt-1.5" id="rx-picker" hidden></div>
+        </div>
+        <div class="grid gap-3" id="rx-items"></div>
+        <p class="text-sm text-muted" id="rx-empty">Belum ada obat. Cari lalu pilih obat di atas.</p>
+      </div>
+
+      <div class="dialog-actions sm:grid-cols-2">
+        <button type="button" class="btn btn-ghost" id="rx-draft">💾 Simpan draf</button>
+        <button type="submit" class="btn btn-success btn-big" id="rx-complete">✓ Selesaikan &amp; kurangi stok</button>
+      </div>
+      <datalist id="rx-patients"></datalist>
+      <datalist id="rx-frequencies">
+        <option value="1x sehari"></option><option value="2x sehari"></option><option value="3x sehari"></option>
+        <option value="4x sehari"></option><option value="Bila perlu"></option><option value="Sekali pemberian"></option>
+      </datalist>
+      <datalist id="rx-durations">
+        <option value="1 hari"></option><option value="3 hari"></option><option value="5 hari"></option>
+        <option value="7 hari"></option><option value="14 hari"></option><option value="30 hari"></option>
+      </datalist>
+    </form>
+  </dialog>
+
+  <div class="toast" id="toast" role="status" hidden></div>
+</body>
+</html>

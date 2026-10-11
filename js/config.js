@@ -31,6 +31,9 @@ export const PAGES = {
   patients: 'patients.html',
   medicines: 'medicines.html',
   finance: 'finance.html',
-  practice: 'practice.html', // hours, open/closed, booking link, practice info
+  practice: 'practice.html', // hours, open/closed, booking link, practice info, Nakesa Patient profile
+  services: 'services.html', // services, prices and durations patients choose in Nakesa Patient
+  medicine: 'medicine.html', // one medicine: batches, stock history, use (medicine.html?id=…)
+  prescriptions: 'prescriptions.html',
   book: 'book.html', // public booking page for patients (no login)
 };

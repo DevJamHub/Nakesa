@@ -56,10 +56,11 @@ describe('dates', () => {
 
   it('age counts whole years and waits for the birthday', () => {
     const now = new Date();
-    const birthdayPassed = toISODate(new Date(now.getFullYear() - 30, now.getMonth(), now.getDate()));
-    const birthdayTomorrow = toISODate(new Date(now.getFullYear() - 30, now.getMonth(), now.getDate() + 1));
-    assert.equal(age(birthdayPassed), 30);
-    assert.equal(age(birthdayTomorrow), 29);
+    // 32 years back (a multiple of 4), so the test also works on 29 February
+    const birthdayPassed = toISODate(new Date(now.getFullYear() - 32, now.getMonth(), now.getDate()));
+    const birthdayTomorrow = toISODate(new Date(now.getFullYear() - 32, now.getMonth(), now.getDate() + 1));
+    assert.equal(age(birthdayPassed), 32);
+    assert.equal(age(birthdayTomorrow), 31);
     assert.equal(age(null), null);
   });
 });

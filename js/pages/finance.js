@@ -81,11 +81,13 @@ async function balanceBefore(date) {
 // Each month is a button: hover/focus shows its numbers below the chart, a tap opens that month.
 const trendChart = document.getElementById('trend-chart');
 const trendReadout = document.getElementById('trend-readout');
-const monthName = (date) => date.toLocaleDateString('id-ID', { month: 'long', year: 'numeric' });
+const longMonth = (date) => date.toLocaleDateString('id-ID', { month: 'long', year: 'numeric' });
+let trendRequest = 0; // only the newest answer is drawn when months are clicked quickly
 let trend = []; // [{ month, key, masuk, keluar }], oldest first
 let trendShape = ''; // months currently drawn; same months → bars move, others → redraw
 
 async function loadTrend() {
+  const request = ++trendRequest;
   const months = trendWindow(month);
   const end = months.at(-1);
   trendChart.classList.add('opacity-60'); // keep the old chart visible while loading
@@ -94,9 +96,11 @@ async function loadTrend() {
       .gte('occurred_on', toISODate(months[0]))
       .lte('occurred_on', toISODate(new Date(end.getFullYear(), end.getMonth() + 1, 0)))
       .order('id'));
+    if (request !== trendRequest) return; // a newer month was opened meanwhile
     trend = monthlyTotals(rows, months);
     renderTrend();
   } catch (error) {
+    if (request !== trendRequest) return;
     trend = [];
     trendShape = '';
     trendChart.innerHTML = `<p class="py-6 text-center text-sm text-muted">${escapeHtml(appError(error))}</p>`;
@@ -170,13 +174,13 @@ function updateTrend(top) {
     button.querySelector('[data-bar="keluar"]').style.height = height(m.keluar);
     button.setAttribute('aria-pressed', String(m.key === viewed));
     button.setAttribute('aria-label',
-      `${monthName(m.month)}: uang masuk ${rupiah(m.masuk)}, uang keluar ${rupiah(m.keluar)}. Buka bulan ini`);
+      `${longMonth(m.month)}: uang masuk ${rupiah(m.masuk)}, uang keluar ${rupiah(m.keluar)}. Buka bulan ini`);
     const label = trendChart.querySelector(`[data-trend-label="${m.key}"]`);
     label.classList.toggle('font-semibold', m.key === viewed);
     label.classList.toggle('text-ink', m.key === viewed);
   }
   trendChart.querySelector('tbody').innerHTML = trend.map((m) => `
-    <tr><th scope="row">${monthName(m.month)}</th><td>${rupiah(m.masuk)}</td><td>${rupiah(m.keluar)}</td>
+    <tr><th scope="row">${longMonth(m.month)}</th><td>${rupiah(m.masuk)}</td><td>${rupiah(m.keluar)}</td>
     <td>${signedRupiah(m.masuk - m.keluar)}</td></tr>`).join('');
   showTrendMonth(viewed);
 }
@@ -192,7 +196,7 @@ function showTrendMonth(key) {
   const part = (label, amount, keyClass = '') => `<span class="inline-flex items-center gap-1.5 whitespace-nowrap">${
     keyClass ? `<span class="h-0.5 w-3 rounded-full ${keyClass}" aria-hidden="true"></span>` : ''}${label}
     <strong class="font-semibold text-ink">${amount}</strong></span>`;
-  trendReadout.innerHTML = `<span class="font-semibold text-ink">${monthName(m.month)}</span>
+  trendReadout.innerHTML = `<span class="font-semibold text-ink">${longMonth(m.month)}</span>
     ${part('masuk', rupiah(m.masuk), 'bg-chart-in')}
     ${part('keluar', rupiah(m.keluar), 'bg-chart-out')}
     ${part('sisa', signedRupiah(m.masuk - m.keluar))}`;

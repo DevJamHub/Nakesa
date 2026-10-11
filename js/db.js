@@ -18,9 +18,9 @@ export const updateRow = (table, id, changes) =>
 
 export const deleteRow = (table, id) => run(supabase.from(table).delete().eq('id', id));
 
-/** Number of rows in a table (for the signed-in user). */
-export async function countRows(table) {
-  const { count, error } = await supabase.from(table).select('id', { count: 'exact', head: true });
+/** Number of rows in a table (for the signed-in user); `where` can add filters to the query. */
+export async function countRows(table, where = (query) => query) {
+  const { count, error } = await where(supabase.from(table).select('id', { count: 'exact', head: true }));
   if (error) throw error;
   return count ?? 0;
 }

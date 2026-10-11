@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="description" content="Detail obat: batch, stok, riwayat transaksi, dan penggunaan.">
+  <meta name="theme-color" content="#faf9f5">
+  <title>Detail Obat — NAKESA</title>
+  <script src="../js/theme.js"></script> <!-- light/dark before the page is drawn -->
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="../js/tailwind-setup.js"></script> <!-- shared Tailwind config + components -->
+  <script type="module" src="../js/pages/medicine.js"></script>
+</head>
+<body class="app">
+  <div class="app-loader" id="loader" role="status" aria-label="Memuat"><span class="spinner"></span></div>
+  <header class="app-header" id="app-header" hidden></header>
+  <nav class="app-nav" id="app-nav" aria-label="Menu utama" hidden></nav>
+
+  <main class="app-main" id="app-main" hidden>
+    <a href="medicines.html" class="text-sm font-semibold no-underline hover:underline">← Database Obat</a>
+
+    <div class="mb-6 mt-3 flex flex-wrap items-start justify-between gap-4">
+      <div class="min-w-0">
+        <h1 id="name">Obat</h1>
+        <p class="mt-1 text-muted" id="detail"></p>
+        <div class="mt-2.5 flex flex-wrap gap-1.5" id="tags"></div>
+      </div>
+      <div class="flex flex-wrap gap-2" id="actions" hidden>
+        <button type="button" class="btn btn-success" id="stock-in">📥 Stok masuk</button>
+        <button type="button" class="btn btn-ghost" id="edit">✏️ Edit</button>
+        <button type="button" class="btn btn-ghost" id="toggle"></button>
+        <button type="button" class="btn btn-danger-ghost" id="delete" hidden>🗑️ Hapus</button>
+      </div>
+    </div>
+
+    <div class="stats">
+      <div class="stat"><span class="stat-icon" aria-hidden="true">📦</span><span class="stat-label">Stok bisa dipakai</span>
+        <span class="stat-value" id="stat-stock">–</span><span class="text-sm" id="stat-stock-note"></span></div>
+      <div class="stat"><span class="stat-icon" aria-hidden="true">🏷️</span><span class="stat-label">Batch berisi stok</span>
+        <span class="stat-value" id="stat-batches">–</span><span class="text-sm text-muted" id="stat-batches-note"></span></div>
+      <div class="stat"><span class="stat-icon" aria-hidden="true">⏳</span><span class="stat-label">Kedaluwarsa terdekat</span>
+        <span class="stat-value !text-[1.25rem]" id="stat-expiry">–</span><span class="text-sm" id="stat-expiry-note"></span></div>
+      <div class="stat"><span class="stat-icon" aria-hidden="true">📝</span><span class="stat-label">Terpakai 30 hari</span>
+        <span class="stat-value" id="stat-used">–</span><span class="text-sm text-muted">resep + stok keluar</span></div>
+    </div>
+
+    <div class="mt-8 grid items-start gap-6 lg:grid-cols-2">
+      <section class="card" aria-labelledby="info-title">
+        <h2 class="mb-2" id="info-title">Data obat</h2>
+        <dl class="detail-list" id="info"></dl>
+      </section>
+      <section class="card grid gap-4" aria-labelledby="clinical-title">
+        <h2 id="clinical-title">Informasi klinis</h2>
+        <p class="alert alert-info">Penggunaan obat harus mengikuti kewenangan tenaga kesehatan, SOP fasilitas, indikasi klinis,
+          dan regulasi yang berlaku. Informasi di bawah diisi oleh praktik dan <strong>perlu divalidasi</strong>.</p>
+        <div class="grid gap-3" id="clinical"></div>
+      </section>
+    </div>
+
+    <section class="mt-8" aria-labelledby="batch-title">
+      <div class="dash-section-head">
+        <h2 id="batch-title">Batch &amp; stok</h2>
+        <label class="choice"><input type="checkbox" id="show-empty"><span>Tampilkan batch yang habis</span></label>
+      </div>
+      <div class="table-card" id="batches"></div>
+    </section>
+
+    <section class="mt-8" aria-labelledby="history-title">
+      <div class="dash-section-head">
+        <div>
+          <h2 id="history-title">Riwayat transaksi stok</h2>
+          <p class="text-sm text-muted">Setiap perubahan stok tercatat dan tidak bisa dihapus. Kesalahan diperbaiki dengan koreksi.</p>
+        </div>
+      </div>
+      <div class="table-card" id="history"></div>
+    </section>
+
+    <section class="mt-8" aria-labelledby="usage-title">
+      <div class="dash-section-head">
+        <h2 id="usage-title">Penggunaan di resep</h2>
+        <a class="dash-link" href="prescriptions.html">Semua resep →</a>
+      </div>
+      <div class="table-card" id="usage"></div>
+    </section>
+  </main>
+
+  <div class="toast" id="toast" role="status" hidden></div>
+</body>
+</html>

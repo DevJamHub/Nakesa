@@ -369,14 +369,15 @@ document.getElementById('delete').addEventListener('click', async () => {
 });
 
 /* ---------- US 6.5: Download the month as a spreadsheet (CSV) ---------- */
-// Built in the browser from the month that is already loaded, so it always matches the totals on screen.
+// Built in the browser from the month that is already loaded, so it always matches the cash book
+// on screen: same columns, same saldo awal, running saldo and saldo akhir.
 document.getElementById('download-report').addEventListener('click', () => {
   const label = month.toLocaleDateString('id-ID', { month: 'long', year: 'numeric' });
   if (!transactions.length) {
     toast(`Belum ada catatan di ${label}.`, 'error');
     return;
   }
-  const csv = monthlyReportCsv(transactions, { delimiter: csvDelimiter() });
+  const csv = monthlyReportCsv(transactions, { delimiter: csvDelimiter(), openingBalance, monthStart: toISODate(month) });
   const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
   const link = Object.assign(document.createElement('a'), { href: url, download: reportFileName(practice.name, month) });
   document.body.append(link);

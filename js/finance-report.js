@@ -30,21 +30,27 @@ export function reportFileName(practiceName, month) {
 }
 
 /**
- * The month's transactions, oldest first, with totals at the bottom.
+ * The month as a cash book (buku kas), the same columns as the table on the Keuangan page:
+ * No, Tanggal, Keterangan, Catatan, Masuk, Keluar and the running Saldo, starting from the
+ * Saldo awal (what was left from earlier months) and ending with the month's totals and Saldo akhir.
  * transactions: [{ occurred_on, created_at, kind: 'masuk'|'keluar', category, note, amount }]
  * Starts with a UTF-8 BOM and uses CRLF line endings, which Excel needs to read the file correctly.
  */
-export function monthlyReportCsv(transactions, { delimiter = ',' } = {}) {
+export function monthlyReportCsv(transactions, { delimiter = ',', openingBalance = 0, monthStart = '' } = {}) {
   const sorted = [...transactions].sort((a, b) => a.occurred_on.localeCompare(b.occurred_on)
     || String(a.created_at ?? '').localeCompare(String(b.created_at ?? '')));
   const total = (kind) => transactions.filter((t) => t.kind === kind).reduce((sum, t) => sum + t.amount, 0);
+  let saldo = openingBalance;
   const rows = [
-    ['Tanggal', 'Jenis', 'Kategori', 'Catatan', 'Jumlah (Rp)'],
-    ...sorted.map((t) => [t.occurred_on, t.kind === 'masuk' ? 'Masuk' : 'Keluar', t.category, t.note ?? '', t.amount]),
-    [],
-    ['Total uang masuk', '', '', '', total('masuk')],
-    ['Total uang keluar', '', '', '', total('keluar')],
-    ['Sisa (untung)', '', '', '', total('masuk') - total('keluar')],
+    ['No', 'Tanggal', 'Keterangan', 'Catatan', 'Masuk (Rp)', 'Keluar (Rp)', 'Saldo (Rp)'],
+    ['', monthStart, 'Saldo awal', 'Sisa uang dari bulan-bulan sebelumnya', '', '', openingBalance],
+    ...sorted.map((t, i) => {
+      saldo += t.kind === 'masuk' ? t.amount : -t.amount;
+      return [i + 1, t.occurred_on, t.category, t.note ?? '',
+        t.kind === 'masuk' ? t.amount : '', t.kind === 'keluar' ? t.amount : '', saldo];
+    }),
+    ['', '', 'Jumlah bulan ini', '', total('masuk'), total('keluar'), ''],
+    ['', '', 'Saldo akhir', '', '', '', saldo],
   ];
-  return `﻿${rows.map((row) => row.map((cell) => csvCell(cell, delimiter)).join(delimiter)).join('\r\n')}\r\n`;
+  return `\ufeff${rows.map((row) => row.map((cell) => csvCell(cell, delimiter)).join(delimiter)).join('\r\n')}\r\n`;
 }

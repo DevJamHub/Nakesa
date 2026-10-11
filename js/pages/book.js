@@ -2,9 +2,11 @@
 // Uses two database functions that expose only what patients need.
 import { supabase } from '../supabase.js';
 import { IS_DEV } from '../errors.js';
-import { DAYS, escapeHtml, formatDate, shortTime, todayISO, waLink } from '../format.js';
+import { DAYS, escapeHtml, formatDate, shortTime, waLink } from '../format.js';
 import { professionOf, titledName } from '../professions.js';
-import { isDayOver, isWithinHours, markTaken, minutesOfDay, slotsOn, toMinutes } from '../booking-slots.js';
+import {
+  addDaysISO, isDayOver, isWithinHours, markTaken, slotsOn, toMinutes, wibClock,
+} from '../booking-slots.js';
 
 const slug = new URLSearchParams(location.search).get('p');
 const main = document.getElementById('app-main');
@@ -81,8 +83,13 @@ function dayOf(iso) {
   return new Date(`${iso}T00:00:00`).getDay();
 }
 
+// Times follow WIB, like the database, whatever time zone the patient's phone uses.
 function nowMinutes() {
-  return minutesOfDay(new Date());
+  return wibClock().minutes;
+}
+
+function todayISO(offsetDays = 0) {
+  return addDaysISO(wibClock().iso, offsetDays);
 }
 
 /**
@@ -155,7 +162,7 @@ function setUpForm(p, profession, openDays) {
     const sessions = markTaken(local, freeSlotsCache.get(iso) ?? null);
     timeSlots.innerHTML = `
       <div class="choices">${timeChoice('', '🕒 Kapan saja (ikut antrean)')}</div>
-      ${sessions.map((s) => `
+      ${sessions.filter((s) => s.slots.length).map((s) => `
         <div class="grid gap-2" role="group" aria-label="${s.label}, ${shortTime(s.opens)} sampai ${shortTime(s.closes)}">
           <p class="text-sm font-semibold text-muted">${s.label} · ${shortTime(s.opens)}–${shortTime(s.closes)}</p>
           <div class="grid grid-cols-4 gap-2 sm:grid-cols-6">

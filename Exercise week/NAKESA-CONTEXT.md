@@ -80,5 +80,5 @@ Zona waktu yang dipakai: **Asia/Jakarta (WIB)**.
 
 - Tulis semua teks UI dan pesan error dalam Bahasa Indonesia yang mudah dipahami.
 - Utamakan kesederhanaan dan tampilan HP; jangan menambah framework atau build tool tanpa diminta.
-- Keamanan data pasien penting: setiap tabel baru harus pakai RLS berbasis `owner_id`.
+- Keamanan data pasien penting: setiap tabel baru harus pakai RLS (berbasis `owner_id` atau peran di `practice_members`).
 - Sebelum memberi saran konfigurasi Supabase, pastikan project ref-nya `fmmudgdkyihbyxntutit`.

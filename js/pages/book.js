@@ -139,14 +139,42 @@ function setUpForm(p, profession, openDays) {
     const when = `${formatDate(values.p_date)}${values.p_time ? `, jam ${values.p_time.replace(':', '.')}` : ''}`;
     document.getElementById('form-card').hidden = true;
     document.getElementById('success-card').hidden = false;
-    document.getElementById('success-text').textContent =
-      `Booking untuk ${name} pada ${when} sudah diterima. ${p.name} akan mengonfirmasi lewat WhatsApp.`;
-    if (p.phone) {
-      const wa = document.getElementById('success-wa');
-      wa.href = waLink(p.phone, `Halo, saya ${name}. Saya sudah booking ${values.p_service ?? ''} untuk ${when} lewat NAKESA.`);
-      wa.hidden = false;
-    }
     window.scrollTo({ top: 0, behavior: 'smooth' });
+    if (!p.phone) {
+      document.getElementById('success-text').textContent =
+        `Booking untuk ${name} pada ${when} sudah diterima. ${p.name} akan mengonfirmasi lewat WhatsApp.`;
+      return;
+    }
+
+    // Send the patient straight to the practice's WhatsApp with the booking details filled in,
+    // so the practitioner gets a chat they can confirm right away.
+    const complaint = values.p_complaint.trim();
+    const message = [
+      `Halo ${p.name}, saya sudah booking lewat NAKESA:`,
+      `Nama: ${name}`,
+      values.p_service ? `Layanan: ${values.p_service}` : '',
+      `Jadwal: ${when}`,
+      complaint ? `Keluhan: ${complaint}` : '',
+      'Mohon konfirmasinya. Terima kasih 🙏',
+    ].filter(Boolean).join('\n');
+    const chat = waLink(p.phone, message);
+    document.getElementById('success-text').textContent =
+      `Booking untuk ${name} pada ${when} sudah diterima. Kirim pesan WhatsApp yang sudah disiapkan supaya ${p.name} bisa langsung mengonfirmasi.`;
+    const button = document.getElementById('success-wa');
+    button.href = chat;
+    button.hidden = false;
+    const note = document.getElementById('redirect-note');
+    note.hidden = false;
+    let seconds = 3;
+    const countdown = () => { note.textContent = `Membuka WhatsApp ${p.name} dalam ${seconds} detik…`; };
+    countdown();
+    const timer = setInterval(() => {
+      seconds -= 1;
+      if (seconds > 0) return countdown();
+      clearInterval(timer);
+      note.textContent = 'Membuka WhatsApp… Kalau tidak terbuka, tekan tombol di bawah.';
+      window.location.href = chat;
+    }, 1000);
   });
 }
 

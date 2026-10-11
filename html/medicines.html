@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <meta name="description" content="Stok obat NAKESA.">
+  <meta name="description" content="Database obat praktik NAKESA: stok, batch, dan kedaluwarsa.">
   <meta name="theme-color" content="#faf9f5">
-  <title>Obat — NAKESA</title>
+  <title>Database Obat — NAKESA</title>
   <script src="../js/theme.js"></script> <!-- light/dark before the page is drawn -->
   <script src="https://cdn.tailwindcss.com/3.4.17"></script>
   <script src="../js/tailwind-setup.js"></script> <!-- shared Tailwind config + components -->
@@ -17,73 +17,63 @@
   <nav class="app-nav" id="app-nav" aria-label="Menu utama" hidden></nav>
 
   <main class="app-main" id="app-main" hidden>
-    <div class="mb-7 flex flex-wrap items-end justify-between gap-3">
+    <div class="mb-6 flex flex-wrap items-end justify-between gap-4">
       <div>
         <div class="mb-3 text-5xl leading-none" aria-hidden="true">💊</div>
-        <h1>Stok Obat</h1>
-        <p class="mt-1 text-muted" id="summary"></p>
+        <h1>Database Obat</h1>
+        <p class="mt-1 text-muted" id="summary">Stok, batch, dan tanggal kedaluwarsa semua obat praktik.</p>
       </div>
-      <button type="button" class="btn btn-primary" id="add">＋ Tambah Obat</button>
+      <div class="flex flex-wrap gap-2">
+        <a class="btn btn-ghost" href="prescriptions.html">📝 Resep</a>
+        <button type="button" class="btn btn-primary" id="add" hidden>＋ Tambah Obat</button>
+      </div>
     </div>
 
-    <div class="search mb-3">
-      <input class="input" type="search" id="search" placeholder="Cari nama obat…" aria-label="Cari obat">
-    </div>
-    <div class="tabs" role="tablist" aria-label="Filter obat">
-      <button type="button" role="tab" aria-selected="true" data-filter="all">Semua</button>
-      <button type="button" role="tab" aria-selected="false" data-filter="check">⚠️ Perlu dicek</button>
+    <!-- Warnings (tap one to show only those medicines) -->
+    <div class="alert-tiles mb-5" id="alerts">
+      <button type="button" class="alert-tile tone-red" data-alert="kedaluwarsa" aria-pressed="false">
+        <span class="alert-tile-icon" aria-hidden="true">🔴</span>
+        <span><strong id="count-expired">–</strong><small>obat ada yang sudah kedaluwarsa</small></span>
+      </button>
+      <button type="button" class="alert-tile tone-yellow" data-alert="akan_kedaluwarsa" aria-pressed="false">
+        <span class="alert-tile-icon" aria-hidden="true">🟡</span>
+        <span><strong id="count-soon">–</strong><small id="soon-label">obat akan kedaluwarsa</small></span>
+      </button>
+      <button type="button" class="alert-tile tone-accent" data-alert="stok" aria-pressed="false">
+        <span class="alert-tile-icon" aria-hidden="true">📉</span>
+        <span><strong id="count-low">–</strong><small>obat stoknya menipis / habis</small></span>
+      </button>
     </div>
 
-    <div class="list" id="list"></div>
+    <!-- Search & filters -->
+    <div class="toolbar">
+      <div class="search">
+        <input class="input" type="search" id="search" placeholder="Cari nama generik atau nama dagang…" aria-label="Cari obat">
+      </div>
+      <select class="input" id="filter-category" aria-label="Filter kategori"><option value="">Semua kategori</option></select>
+      <select class="input" id="filter-stock" aria-label="Filter status stok">
+        <option value="">Semua status stok</option>
+        <option value="aman">Stok aman</option>
+        <option value="menipis">Stok menipis</option>
+        <option value="habis">Stok habis</option>
+      </select>
+      <select class="input" id="filter-expiry" aria-label="Filter kedaluwarsa">
+        <option value="">Semua kedaluwarsa</option>
+        <option value="aman">🟢 Aman</option>
+        <option value="akan_kedaluwarsa">🟡 Akan kedaluwarsa</option>
+        <option value="kedaluwarsa">🔴 Kedaluwarsa</option>
+      </select>
+    </div>
+    <div class="mb-3 mt-3 flex flex-wrap items-center justify-between gap-2">
+      <p class="text-sm text-muted" id="result-count"></p>
+      <div class="flex flex-wrap items-center gap-2">
+        <label class="choice"><input type="checkbox" id="show-inactive"><span>Tampilkan obat nonaktif</span></label>
+        <button type="button" class="chip" id="settings" hidden>⚙️ Peringatan kedaluwarsa</button>
+      </div>
+    </div>
+
+    <div class="table-card" id="list"></div>
   </main>
-
-  <dialog id="medicine-dialog" aria-labelledby="dialog-title">
-    <form class="dialog-form" id="medicine-form" novalidate>
-      <div class="dialog-head">
-        <h2 id="dialog-title">Tambah Obat</h2>
-        <button type="button" class="dialog-close" data-close aria-label="Tutup">✕</button>
-      </div>
-      <div id="form-error" class="form-error" role="alert" hidden></div>
-
-      <div class="field">
-        <label for="name">Nama obat *</label>
-        <input class="input" id="name" name="name" maxlength="120" placeholder="Contoh: Paracetamol 500 mg" required>
-      </div>
-      <div class="field">
-        <label for="unit">Satuan</label>
-        <select class="input" id="unit" name="unit">
-          <option>tablet</option><option>kapsul</option><option>strip</option><option>botol</option>
-          <option>box</option><option>sachet</option><option>ampul</option><option>vial</option>
-          <option>tube</option><option>pcs</option>
-        </select>
-      </div>
-      <div class="two-cols">
-        <div class="field">
-          <label for="stock">Jumlah stok</label>
-          <input class="input" id="stock" name="stock" type="number" inputmode="numeric" min="0" step="1">
-        </div>
-        <div class="field">
-          <label for="min_stock">Ingatkan jika sisa</label>
-          <input class="input" id="min_stock" name="min_stock" type="number" inputmode="numeric" min="0" step="1">
-        </div>
-      </div>
-      <div class="two-cols">
-        <div class="field">
-          <label for="price">Harga jual</label>
-          <input class="input" id="price" name="price" inputmode="numeric" placeholder="Rp" autocomplete="off">
-        </div>
-        <div class="field">
-          <label for="expires_on">Kedaluwarsa</label>
-          <input class="input" id="expires_on" name="expires_on" type="date">
-        </div>
-      </div>
-
-      <div class="dialog-actions">
-        <button type="submit" class="btn btn-primary btn-big" id="save">Simpan</button>
-        <button type="button" class="btn btn-danger-ghost" id="delete" hidden>Hapus obat</button>
-      </div>
-    </form>
-  </dialog>
 
   <div class="toast" id="toast" role="status" hidden></div>
 </body>

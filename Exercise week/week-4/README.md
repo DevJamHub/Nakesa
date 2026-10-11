@@ -1,6 +1,6 @@
 # Week 4 — Sprint 03 — REST API & Fetch API
 
-**Periode:** 6–12 Okt 2026 · **Milestone:** [Week 4](https://github.com/DevJamHub/Nakesa/milestone/6?closed=1) · **Issue tugas:** [#32](https://github.com/DevJamHub/Nakesa/issues/32) · **Kode saat tugas selesai:** tag [`week-4`](https://github.com/DevJamHub/Nakesa/tree/week-4)
+**Periode:** 6–12 Okt 2026 · **Milestone:** [Week 4](https://github.com/DevJamHub/Nakesa/milestone/6) · **Issue tugas:** [#32](https://github.com/DevJamHub/Nakesa/issues/32) · **Kode saat tugas selesai:** tag [`week-4`](https://github.com/DevJamHub/Nakesa/tree/week-4)
 
 ## Materi
 

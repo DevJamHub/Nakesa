@@ -7,7 +7,7 @@ Pekerjaan NAKESA disusun mengikuti pertemuan kuliah **Pemrograman Web**. File ap
 | 1 | Kickoff — Ide Produk & Repository | [week-1](week-1/README.md) | [Week 1](https://github.com/DevJamHub/Nakesa/milestone/3?closed=1) | [`week-1`](https://github.com/DevJamHub/Nakesa/tree/week-1) |
 | 2 | Sprint 01 — HTML & CSS | [week-2](week-2/README.md) | [Week 2](https://github.com/DevJamHub/Nakesa/milestone/4?closed=1) | [`week-2`](https://github.com/DevJamHub/Nakesa/tree/week-2) |
 | 3 | Sprint 02 — JavaScript, DOM & Tailwind | [week-3](week-3/README.md) | [Week 3](https://github.com/DevJamHub/Nakesa/milestone/5?closed=1) | [`week-3`](https://github.com/DevJamHub/Nakesa/tree/week-3) |
-| 4 | Sprint 03 — REST API & Fetch API | [week-4](week-4/README.md) | [Week 4](https://github.com/DevJamHub/Nakesa/milestone/6?closed=1) | [`week-4`](https://github.com/DevJamHub/Nakesa/tree/week-4) |
+| 4 | Sprint 03 — REST API & Fetch API | [week-4](week-4/README.md) | [Week 4](https://github.com/DevJamHub/Nakesa/milestone/6) | [`week-4`](https://github.com/DevJamHub/Nakesa/tree/week-4) |
 
 Week berikutnya ditambahkan setiap pertemuan selesai: milestone `Week N`, label `week-N`, issue tugas `[Week N] …`, folder `week-N/`, dan tag `week-N`.
 

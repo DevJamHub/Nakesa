@@ -70,8 +70,8 @@ Diambil dari riwayat git: perubahan dari commit `c5f30b2` sampai tag `week-2`. K
 | [`js/supabase.js`](../../js/supabase.js) | Baru | Koneksi Supabase |
 | [`js/ui.js`](../../js/ui.js) | Baru | Komponen tampilan kecil |
 | [`js/validation.js`](../../js/validation.js) | Baru | Validasi form |
-| [`css/app.css`](../../css/app.css) | Baru | CSS halaman aplikasi |
-| [`css/auth.css`](../../css/auth.css) | Baru | CSS halaman masuk/daftar |
+| [`css/app.css`](https://github.com/DevJamHub/Nakesa/blob/week-2/css/app.css) (sudah dihapus di `main`) | Baru | CSS halaman aplikasi |
+| [`css/auth.css`](https://github.com/DevJamHub/Nakesa/blob/week-2/css/auth.css) (sudah dihapus di `main`) | Baru | CSS halaman masuk/daftar |
 | [`.gitignore`](../../.gitignore) | Baru | Daftar file yang tidak ikut di-commit |
 | [`index.html`](../../index.html) | Diubah | Halaman pembuka (mengarahkan ke `html/index.html`) |
 | [`supabase/migrations/20260926150710_create_profiles.sql`](../../supabase/migrations/20260926150710_create_profiles.sql) | Baru | Migrasi database (tabel, RLS, fungsi) |

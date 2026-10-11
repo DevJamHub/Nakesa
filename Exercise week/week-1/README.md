@@ -28,7 +28,7 @@ Diambil dari riwayat git: perubahan dari awal repo sampai tag `week-1`. Klik nam
 
 | File | Status | Isi |
 |---|---|---|
-| [`style.css`](../../style.css) | Baru | CSS halaman pembuka |
+| [`style.css`](https://github.com/DevJamHub/Nakesa/blob/week-1/style.css) (sudah dihapus di `main`) | Baru | CSS halaman pembuka |
 | [`README.md`](../../README.md) | Baru | Penjelasan proyek |
 | [`index.html`](../../index.html) | Baru | Halaman pembuka (mengarahkan ke `html/index.html`) |
 

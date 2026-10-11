@@ -122,6 +122,6 @@ Aturan singkat supaya kode semua anggota tim terlihat seperti ditulis satu orang
 
 - Hanya *publishable key* Supabase yang boleh ada di `js/config.js`, jangan pernah *service-role/secret key*.
 - `.env` dan file rahasia lain tidak boleh di-commit (sudah ada di `.gitignore`).
-- Setiap tabel baru wajib memakai Row Level Security berbasis `owner_id = auth.uid()`, dan perubahan skema ditulis sebagai migrasi baru di `supabase/migrations/`.
-- Fungsi yang bisa dipanggil tanpa login (seperti `get_public_practice` dan `create_booking`) memakai `security definer` dengan `set search_path = ''`, hanya mengembalikan data yang memang boleh dilihat pasien, dan memvalidasi ulang semua input di database.
+- Setiap tabel baru wajib memakai Row Level Security (berbasis `owner_id = auth.uid()` atau peran di `practice_members`), dan perubahan skema ditulis sebagai migrasi baru di `supabase/migrations/`.
+- Fungsi yang bisa dipanggil tanpa login (seperti `get_public_practice`, `get_public_slots`, dan `create_booking`) memakai `security definer` dengan `set search_path = ''`, hanya mengembalikan data yang memang boleh dilihat pasien, dan memvalidasi ulang semua input di database.
 - Data dari pengguna yang dimasukkan ke `innerHTML` wajib lewat `escapeHtml()` (`js/format.js`).

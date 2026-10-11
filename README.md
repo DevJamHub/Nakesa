@@ -14,11 +14,11 @@ Prinsip desainnya:
 | Menu | Fungsi |
 |---|---|
 | **Beranda** (dashboard) | Sapaan sesuai waktu, sakelar buka/tutup praktik, ringkasan dan pasien hari ini, grafik pemasukan 7 hari, hari libur nasional terdekat (API Hari Libur), dan link booking |
-| **Booking** | Janji temu dari link booking, Nakesa Patient, atau dicatat manual. Status: baru → dikonfirmasi → selesai / batal |
+| **Booking** | Janji temu dari link booking, Nakesa Patient, atau dicatat manual. Status: baru → dikonfirmasi → selesai / batal. Jam booking mengikuti slot 30 menit di dalam jam praktik |
 | **Pasien** | Data pasien, pencarian, riwayat kunjungan, dan tombol hubungi lewat WhatsApp |
 | **Resep** | Resep per pasien; saat diselesaikan, stok obat berkurang otomatis (kedaluwarsa paling awal dulu) |
 | **Obat** | Database obat dengan stok per batch, golongan obat, riwayat stok, peringatan menipis/habis dan akan kedaluwarsa |
-| **Keuangan** | Uang masuk & keluar per bulan, pencarian, rincian per kategori, dan Buku Kas (saldo berjalan) yang bisa dicetak / disimpan sebagai PDF |
+| **Keuangan** | Uang masuk & keluar per bulan, pencarian, rincian per kategori, grafik tren 6 bulan, dan Buku Kas (saldo berjalan) yang bisa dicetak / disimpan sebagai PDF atau diunduh sebagai CSV |
 | **Praktik** | Data praktik, jam praktik per hari, booking online, QR code link booking, dan profil praktik di Nakesa Patient |
 | **Layanan & Harga** | Layanan, harga, dan durasi yang dipilih pasien di Nakesa Patient |
 
@@ -82,7 +82,7 @@ Semua tabel di skema `public` memakai **Row Level Security**. Data praktik dasar
 | `transactions` | Keuangan (`kind`: masuk/keluar, `amount` dalam rupiah bulat) |
 | `audit_log` | Catatan perubahan data penting |
 
-Fungsi publik untuk halaman booking (bisa dipanggil tanpa login): `get_public_practice(slug)` dan `create_booking(...)`. Nakesa Patient memakai fungsi `patient_*` yang hanya bisa dipanggil akun pasien.
+Fungsi publik untuk halaman booking (bisa dipanggil tanpa login): `get_public_practice(slug)`, `get_public_slots(slug, tanggal)`, dan `create_booking(...)`. Nakesa Patient memakai fungsi `patient_*` yang hanya bisa dipanggil akun pasien.
 
 ## Alur kerja tim
 

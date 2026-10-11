@@ -32,6 +32,7 @@ const month = new Date();
 month.setDate(1);
 let transactions = []; // this month, oldest first (the order of the book)
 let openingBalance = 0; // saldo awal: what was left from all earlier months
+let loadedMonth = null; // the month `transactions` belongs to (first day, set by load())
 let editing = null;
 let kindFilter = 'all';
 
@@ -54,6 +55,7 @@ async function load() {
         .order('occurred_on').order('created_at')),
       balanceBefore(first),
     ]);
+    loadedMonth = first;
   } catch (error) {
     transactions = [];
     openingBalance = 0;
@@ -373,7 +375,11 @@ document.getElementById('delete').addEventListener('click', async () => {
 // on screen: same columns, same saldo awal, running saldo and saldo akhir.
 document.getElementById('download-report').addEventListener('click', () => {
   const label = month.toLocaleDateString('id-ID', { month: 'long', year: 'numeric' });
-  if (!transactions.length) {
+  if (loadedMonth !== toISODate(month)) {
+    toast(`Data ${label} masih dimuat. Coba lagi sebentar.`, 'error');
+    return;
+  }
+  if (!transactions.length && !openingBalance) {
     toast(`Belum ada catatan di ${label}.`, 'error');
     return;
   }

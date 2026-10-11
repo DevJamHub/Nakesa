@@ -74,3 +74,23 @@ export function isDayOver(hours, day, now) {
   const sessions = sessionsOn(hours, day);
   return sessions.length > 0 && sessions.every((s) => toMinutes(s.closes) <= now);
 }
+
+/**
+ * Today's date and the minutes since midnight in WIB (Asia/Jakarta), the clock the database uses.
+ * A patient whose phone is set to another time zone still sees the same free times as the server.
+ * → { iso: 'YYYY-MM-DD', minutes }
+ */
+export function wibClock(date = new Date()) {
+  const parts = Object.fromEntries(new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Jakarta', year: 'numeric', month: '2-digit', day: '2-digit',
+    hour: '2-digit', minute: '2-digit', hourCycle: 'h23',
+  }).formatToParts(date).map((p) => [p.type, p.value]));
+  return { iso: `${parts.year}-${parts.month}-${parts.day}`, minutes: Number(parts.hour) * 60 + Number(parts.minute) };
+}
+
+/** "2026-10-31" + 1 → "2026-11-01" (calendar dates, no time zone involved). */
+export function addDaysISO(iso, days) {
+  const date = new Date(`${iso}T00:00:00Z`);
+  date.setUTCDate(date.getUTCDate() + days);
+  return date.toISOString().slice(0, 10);
+}

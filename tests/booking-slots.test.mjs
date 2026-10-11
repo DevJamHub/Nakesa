@@ -2,7 +2,7 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import {
-  isDayOver, isWithinHours, markTaken, minutesOfDay, partOfDay, slotsOn, toMinutes, toTime,
+  addDaysISO, isDayOver, isWithinHours, markTaken, minutesOfDay, partOfDay, slotsOn, toMinutes, toTime, wibClock,
 } from '../js/booking-slots.js';
 
 // Monday: two sessions (listed out of order on purpose), Tuesday: mornings only.
@@ -113,5 +113,19 @@ describe('isDayOver', () => {
     assert.equal(isDayOver(HOURS, 1, toMinutes('20:00')), true);
     assert.equal(isDayOver(HOURS, 2, toMinutes('08:59')), false);
     assert.equal(isDayOver(HOURS, 0, toMinutes('23:00')), false); // closed day is handled elsewhere
+  });
+});
+
+describe('wibClock / addDaysISO', () => {
+  it('reads the date and time in WIB, whatever the device time zone', () => {
+    // 17:30 UTC = 00:30 WIB the next day
+    assert.deepEqual(wibClock(new Date('2026-10-11T17:30:00Z')), { iso: '2026-10-12', minutes: 30 });
+    assert.deepEqual(wibClock(new Date('2026-10-12T01:15:00Z')), { iso: '2026-10-12', minutes: 8 * 60 + 15 });
+  });
+
+  it('moves calendar dates across month and year ends', () => {
+    assert.equal(addDaysISO('2026-10-31', 1), '2026-11-01');
+    assert.equal(addDaysISO('2026-12-31', 1), '2027-01-01');
+    assert.equal(addDaysISO('2026-10-12', 60), '2026-12-11');
   });
 });

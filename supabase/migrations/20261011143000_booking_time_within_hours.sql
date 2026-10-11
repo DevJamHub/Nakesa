@@ -18,6 +18,8 @@
 --   * Bookings for one practice and day wait for each other (same advisory lock as
 --     patient_book_appointment()), so two patients can't take the same slot at the same moment.
 -- A practice without any practice hours accepts every day and time, as before.
+-- Slots from the booking link are always 30 minutes: the link has no service durations (the
+-- patient app uses the duration of the chosen service, 30 minutes by default).
 
 create or replace function public.create_booking(
   p_slug      text,

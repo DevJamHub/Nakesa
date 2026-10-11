@@ -2,7 +2,7 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import {
-  isDayOver, isWithinHours, minutesOfDay, partOfDay, slotsOn, toMinutes, toTime,
+  isDayOver, isWithinHours, markTaken, minutesOfDay, partOfDay, slotsOn, toMinutes, toTime,
 } from '../js/booking-slots.js';
 
 // Monday: two sessions (listed out of order on purpose), Tuesday: mornings only.
@@ -56,12 +56,51 @@ describe('slotsOn', () => {
     assert.equal(slotsOn(HOURS, 2, { step: 60 })[0].slots.length, 2);
     assert.deepEqual(slotsOn(HOURS, 0), []);
   });
+
+  it('only offers slots that end by closing time (same rule as private.practice_slots)', () => {
+    const odd = [{ day: 3, opens: '07:15', closes: '09:00' }];
+    assert.deepEqual(slotsOn(odd, 3)[0].slots.map((s) => s.time), ['07:15', '07:45', '08:15']);
+    assert.deepEqual(slotsOn([{ day: 3, opens: '07:00', closes: '07:20' }], 3)[0].slots, []);
+  });
+});
+
+describe('markTaken', () => {
+  // Tuesday 07:00-09:00, now 07:10: 07:00 has passed.
+  const tuesday = () => slotsOn(HOURS, 2, { now: toMinutes('07:10') });
+  const fromDatabase = [
+    { start: '07:00', end: '07:30', available: false }, // passed (the database marks it unavailable too)
+    { start: '07:30', end: '08:00', available: false }, // booked by another patient
+    { start: '08:00', end: '08:30', available: true },
+    { start: '08:30', end: '09:00', available: true },
+  ];
+
+  it('marks slots another patient already has, but keeps passed times as passed', () => {
+    const slots = markTaken(tuesday(), fromDatabase)[0].slots;
+    assert.deepEqual(slots.map((s) => [s.time, s.past, s.taken]), [
+      ['07:00', true, false], ['07:30', false, true], ['08:00', false, false], ['08:30', false, false],
+    ]);
+  });
+
+  it('leaves the slots as they are when the database list is not available', () => {
+    assert.deepEqual(markTaken(tuesday(), null), tuesday());
+  });
+
+  it('does not change the sessions it was given', () => {
+    const sessions = tuesday();
+    markTaken(sessions, fromDatabase);
+    assert.ok(sessions[0].slots.every((s) => !s.taken));
+  });
 });
 
 describe('isWithinHours', () => {
-  it('accepts times inside a session, not the closing time', () => {
+  it('accepts a 30-minute appointment that fits inside a session', () => {
     assert.equal(isWithinHours(HOURS, 1, '07:00'), true);
-    assert.equal(isWithinHours(HOURS, 1, '11:59'), true);
+    assert.equal(isWithinHours(HOURS, 1, '11:30'), true);
+    assert.equal(isWithinHours(HOURS, 1, '16:00'), true);
+  });
+
+  it('rejects times outside the sessions or too close to closing time', () => {
+    assert.equal(isWithinHours(HOURS, 1, '11:45'), false); // would end after 12:00
     assert.equal(isWithinHours(HOURS, 1, '12:00'), false);
     assert.equal(isWithinHours(HOURS, 1, '21:00'), false); // issue #17
     assert.equal(isWithinHours(HOURS, 0, '08:00'), false);

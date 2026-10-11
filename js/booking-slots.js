@@ -3,6 +3,8 @@
 //
 // `hours` is the list from get_public_practice(): [{ day, opens: 'HH:MM', closes: 'HH:MM' }],
 // day 0 = Minggu … 6 = Sabtu. A session runs from `opens` up to (not including) `closes`.
+// Slots follow the same rule as private.practice_slots() in the database (also used by the
+// Nakesa Patient app): blocks of 30 minutes from the opening time, each ending by closing time.
 
 export const SLOT_MINUTES = 30;
 
@@ -33,24 +35,38 @@ export function partOfDay(time) {
 }
 
 /**
- * Bookable start times per session of `day`, every `step` minutes.
+ * Bookable start times per session of `day`, every `step` minutes; a slot must end by closing time.
  * With `now` (minutes since midnight, only for today) earlier times are marked `past`.
- * → [{ label, opens, closes, slots: [{ time, past }] }]
+ * → [{ label, opens, closes, slots: [{ time, past, taken: false }] }]
  */
 export function slotsOn(hours, day, { now = null, step = SLOT_MINUTES } = {}) {
   return sessionsOn(hours, day).map((session) => {
     const slots = [];
-    for (let t = toMinutes(session.opens); t < toMinutes(session.closes); t += step) {
-      slots.push({ time: toTime(t), past: now !== null && t <= now });
+    for (let t = toMinutes(session.opens); t + step <= toMinutes(session.closes); t += step) {
+      slots.push({ time: toTime(t), past: now !== null && t <= now, taken: false });
     }
     return { label: partOfDay(session.opens), opens: session.opens, closes: session.closes, slots };
   });
 }
 
-/** True when `time` falls inside one of the sessions of `day`. */
-export function isWithinHours(hours, day, time) {
+/**
+ * Mark the slots another patient already has, using get_public_slots():
+ * [{ start: 'HH:MM', end: 'HH:MM', available }]. Times that have passed stay `past`, not `taken`.
+ * Without that list (null: the function is not available) the slots are returned unchanged.
+ */
+export function markTaken(sessions, freeSlots) {
+  if (!Array.isArray(freeSlots)) return sessions;
+  const unavailable = new Set(freeSlots.filter((s) => !s.available).map((s) => s.start));
+  return sessions.map((session) => ({
+    ...session,
+    slots: session.slots.map((slot) => ({ ...slot, taken: !slot.past && unavailable.has(slot.time) })),
+  }));
+}
+
+/** True when an appointment of `step` minutes starting at `time` fits inside one session of `day`. */
+export function isWithinHours(hours, day, time, step = SLOT_MINUTES) {
   const t = toMinutes(time);
-  return sessionsOn(hours, day).some((s) => t >= toMinutes(s.opens) && t < toMinutes(s.closes));
+  return sessionsOn(hours, day).some((s) => t >= toMinutes(s.opens) && t + step <= toMinutes(s.closes));
 }
 
 /** True when the practice works on `day` but every session has already ended at `now`. */

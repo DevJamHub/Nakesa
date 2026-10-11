@@ -4,10 +4,14 @@ import { supabase } from '../supabase.js';
 import { IS_DEV } from '../errors.js';
 import { DAYS, escapeHtml, formatDate, shortTime, todayISO, waLink } from '../format.js';
 import { professionOf, titledName } from '../professions.js';
-import { isDayOver, isWithinHours, minutesOfDay, slotsOn, toMinutes } from '../booking-slots.js';
+import { isDayOver, isWithinHours, markTaken, minutesOfDay, slotsOn, toMinutes } from '../booking-slots.js';
 
 const slug = new URLSearchParams(location.search).get('p');
 const main = document.getElementById('app-main');
+// Free slots per date from get_public_slots(): date → [{ start, end, available }].
+// Declared up here because render() runs (below) before the rest of the module.
+const freeSlotsCache = new Map();
+let slotsSupported = true; // false once get_public_slots turns out not to exist in the database
 
 function showPage() {
   document.getElementById('loader').hidden = true;
@@ -81,12 +85,31 @@ function nowMinutes() {
   return minutesOfDay(new Date());
 }
 
-/** One radio "chip" (same look as the service choices). Past times stay visible but can't be picked. */
-function timeChoice(value, label, { past = false, wide = false } = {}) {
+/**
+ * One radio "chip" (same look as the service choices). Times that have passed or that another
+ * patient already has stay visible, crossed out, but can't be picked.
+ */
+function timeChoice(value, label, { past = false, taken = false, wide = false } = {}) {
+  const off = past || taken;
   const look = [wide ? 'w-full justify-center px-2 tabular-nums' : '',
-    past ? 'cursor-not-allowed line-through opacity-40 hover:bg-surface' : ''].join(' ');
-  return `<label class="choice"><input type="radio" name="p_time" value="${value}" ${past ? 'disabled' : ''}>
-    <span class="${look}"${past ? ' title="Jam ini sudah lewat"' : ''}>${label}</span></label>`;
+    off ? 'cursor-not-allowed line-through opacity-40 hover:bg-surface' : ''].join(' ');
+  const why = past ? 'Jam ini sudah lewat' : 'Jam ini sudah dipesan pasien lain';
+  return `<label class="choice"><input type="radio" name="p_time" value="${value}" ${off ? 'disabled' : ''}
+    ${off ? `aria-label="${label}, ${why.toLowerCase()}"` : ''}>
+    <span class="${look}"${off ? ` title="${why}"` : ''}>${label}</span></label>`;
+}
+
+/** Which slots of a date are still free, from the database (see freeSlotsCache at the top). */
+async function loadFreeSlots(iso) {
+  if (!slotsSupported) return null;
+  const { data, error } = await supabase.rpc('get_public_slots', { p_slug: slug, p_date: iso });
+  if (error) {
+    if (IS_DEV) console.error('[book] get_public_slots', error);
+    if (error.code === 'PGRST202') slotsSupported = false; // migration not applied yet: times only
+    return null;
+  }
+  freeSlotsCache.set(iso, data);
+  return data;
 }
 
 function setUpForm(p, profession, openDays) {
@@ -128,22 +151,39 @@ function setUpForm(p, profession, openDays) {
       return;
     }
     const previous = form.querySelector('input[name="p_time"]:checked')?.value ?? '';
-    const sessions = slotsOn(p.hours, dayOf(iso), { now: iso === todayISO() ? nowMinutes() : null });
+    const local = slotsOn(p.hours, dayOf(iso), { now: iso === todayISO() ? nowMinutes() : null });
+    const sessions = markTaken(local, freeSlotsCache.get(iso) ?? null);
     timeSlots.innerHTML = `
       <div class="choices">${timeChoice('', '🕒 Kapan saja (ikut antrean)')}</div>
       ${sessions.map((s) => `
         <div class="grid gap-2" role="group" aria-label="${s.label}, ${shortTime(s.opens)} sampai ${shortTime(s.closes)}">
           <p class="text-sm font-semibold text-muted">${s.label} · ${shortTime(s.opens)}–${shortTime(s.closes)}</p>
           <div class="grid grid-cols-4 gap-2 sm:grid-cols-6">
-            ${s.slots.map((slot) => timeChoice(slot.time, shortTime(slot.time), { past: slot.past, wide: true })).join('')}
+            ${s.slots.map((slot) => timeChoice(slot.time, shortTime(slot.time),
+              { past: slot.past, taken: slot.taken, wide: true })).join('')}
           </div>
         </div>`).join('')}`;
-    // Keep the chosen time when it still exists on the new day, otherwise fall back to "Kapan saja".
+    // Keep the chosen time when it is still free on this day, otherwise fall back to "Kapan saja".
     const choices = [...form.querySelectorAll('input[name="p_time"]')];
-    (choices.find((c) => c.value === previous && !c.disabled) ?? choices[0]).checked = true;
-    timeHint.textContent = sessions.some((s) => s.slots.some((slot) => slot.past))
-      ? 'Jam yang sudah lewat tidak bisa dipilih.'
-      : '';
+    const kept = choices.find((c) => c.value === previous && !c.disabled);
+    (kept ?? choices[0]).checked = true;
+    const slots = sessions.flatMap((s) => s.slots);
+    const anyPast = slots.some((slot) => slot.past);
+    const anyTaken = slots.some((slot) => slot.taken);
+    const lost = previous && !kept && slots.some((slot) => slot.time === previous && slot.taken);
+    if (lost) timeHint.textContent = `Jam ${shortTime(previous)} baru saja dipesan pasien lain. Pilih jam lain.`;
+    else if (anyPast && anyTaken) timeHint.textContent = 'Jam yang dicoret sudah lewat atau sudah dipesan pasien lain.';
+    else if (anyTaken) timeHint.textContent = 'Jam yang dicoret sudah dipesan pasien lain.';
+    else if (anyPast) timeHint.textContent = 'Jam yang sudah lewat tidak bisa dipilih.';
+    else timeHint.textContent = '';
+  };
+
+  // Ask the database which times are already booked, then draw the times again.
+  // Answers for a date the patient has already left are ignored.
+  const refreshFreeSlots = async (iso) => {
+    if (!hasSchedule || !iso) return;
+    await loadFreeSlots(iso);
+    if (form.p_date.value === iso) renderTimes();
   };
 
   const checkDate = () => {
@@ -152,6 +192,7 @@ function setUpForm(p, profession, openDays) {
     else if (iso && dayIsOver(iso)) dateHint.textContent = '⚠️ Jam praktik hari ini sudah selesai. Pilih hari lain.';
     else dateHint.textContent = '';
     renderTimes();
+    if (iso && !dayIsClosed(iso) && !dayIsOver(iso)) refreshFreeSlots(iso);
   };
   form.p_date.addEventListener('change', checkDate);
   checkDate();
@@ -204,6 +245,8 @@ function setUpForm(p, profession, openDays) {
       errorBox.hidden = false;
       submit.disabled = false;
       submit.textContent = 'Kirim Booking';
+      // Someone else was quicker: show which times are still free.
+      if (error.code === 'P0001' && /sudah dipesan/.test(error.message)) refreshFreeSlots(values.p_date);
       return;
     }
 

@@ -34,7 +34,9 @@ Angka `x` pada user story adalah modul (epic), sesuai menu aplikasi:
 | 7 | Praktik |
 
 **Label:** `feature`, `bug`, `docs`, `refactor`, `ui`, `enhancement`, `accessibility`, `priority:high`.
-**Milestone:** `MVP`, lalu `Rilis 1`.
+**Milestone dan label week:** setiap issue dan PR masuk ke milestone pertemuan yang sedang berjalan (`Week 1`, `Week 2`, …) dan diberi label `week-N`. Tugas kelas tiap pertemuan dicatat sebagai issue `[Week N] …` berlabel `tugas-mingguan`.
+
+**Pembagian tugas:** issue setiap week dibagi rata antara anggota tim (assignee diisi sejak issue dibuat), supaya kontribusi masing-masing terlihat di milestone dan di peta `Exercise week/week-N/`.
 
 > Fitur yang dibuat sebelum alur ini dipakai sudah dicatat ulang sebagai user story yang ditutup, lengkap dengan commit buktinya.
 

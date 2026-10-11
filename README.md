@@ -92,7 +92,7 @@ Pekerjaan dicatat sebagai issue user story, dikerjakan di branch terpisah, lalu 
 |---|---|
 | Daftar user story | [Issue berlabel `feature`](https://github.com/DevJamHub/Nakesa/issues?q=is%3Aissue%20label%3Afeature) |
 | Semua pekerjaan (fitur, bug, dokumentasi, test) | [Issues](https://github.com/DevJamHub/Nakesa/issues?q=is%3Aissue) |
-| Target per tahap | [Milestones](https://github.com/DevJamHub/Nakesa/milestones): `MVP`, lalu `Rilis 1` |
+| Pekerjaan per pertemuan | [Milestones](https://github.com/DevJamHub/Nakesa/milestones?state=all) `Week 1`, `Week 2`, … dan peta per week di [`Exercise week/`](Exercise%20week/) |
 | Papan kerja (Todo → In Progress → Review → Done) | [Nakesa Board](https://github.com/users/baybayyy26/projects/1) |
 | Riwayat perubahan yang sudah masuk | [Pull request yang di-merge](https://github.com/DevJamHub/Nakesa/pulls?q=is%3Apr%20is%3Amerged) |
 

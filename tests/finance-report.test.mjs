@@ -42,7 +42,7 @@ describe('file name', () => {
 });
 
 describe('monthlyReportCsv', () => {
-  const csv = monthlyReportCsv(SAMPLE, { delimiter: ';' });
+  const csv = monthlyReportCsv(SAMPLE, { delimiter: ';', openingBalance: 200000, monthStart: '2026-10-01' });
   const lines = csv.replace(/^﻿/, '').trimEnd().split('\r\n');
 
   it('starts with a UTF-8 BOM and uses CRLF', () => {
@@ -50,26 +50,30 @@ describe('monthlyReportCsv', () => {
     assert.ok(csv.endsWith('\r\n'));
   });
 
-  it('lists transactions oldest first', () => {
-    assert.deepEqual(lines.slice(0, 4), [
-      'Tanggal;Jenis;Kategori;Catatan;Jumlah (Rp)',
-      '2026-10-01;Masuk;Persalinan;"Bu Sari; anak ke-2";1500000',
-      '2026-10-01;Masuk;Periksa Kehamilan;Bu Ani;75000',
-      '2026-10-02;Keluar;Beli Obat;;450000',
+  it('has the same columns as the cash book on screen, starting from the saldo awal', () => {
+    assert.deepEqual(lines.slice(0, 2), [
+      'No;Tanggal;Keterangan;Catatan;Masuk (Rp);Keluar (Rp);Saldo (Rp)',
+      ';2026-10-01;Saldo awal;Sisa uang dari bulan-bulan sebelumnya;;;200000',
     ]);
   });
 
-  it('ends with the totals', () => {
-    assert.deepEqual(lines.slice(4), [
-      '',
-      'Total uang masuk;;;;1575000',
-      'Total uang keluar;;;;450000',
-      'Sisa (untung);;;;1125000',
+  it('lists transactions oldest first with a running saldo', () => {
+    assert.deepEqual(lines.slice(2, 5), [
+      '1;2026-10-01;Persalinan;"Bu Sari; anak ke-2";1500000;;1700000',
+      '2;2026-10-01;Periksa Kehamilan;Bu Ani;75000;;1775000',
+      '3;2026-10-02;Beli Obat;;;450000;1325000',
     ]);
   });
 
-  it('shows a loss as a negative number', () => {
+  it('ends with the month totals and the saldo akhir', () => {
+    assert.deepEqual(lines.slice(5), [
+      ';;Jumlah bulan ini;;1575000;450000;',
+      ';;Saldo akhir;;;;1325000',
+    ]);
+  });
+
+  it('shows a negative saldo as a negative number', () => {
     const loss = monthlyReportCsv([{ ...SAMPLE[0] }], { delimiter: ',' });
-    assert.ok(loss.trimEnd().endsWith('Sisa (untung),,,,-450000'));
+    assert.ok(loss.trimEnd().endsWith(',,Saldo akhir,,,,-450000'));
   });
 });

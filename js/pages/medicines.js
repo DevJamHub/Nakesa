@@ -1,223 +1,278 @@
-// Stok obat: quick +/- stock, restock pop-up, add/edit/delete, warnings for low stock and expiry.
-import { deleteRow, insertRow, run, supabase, updateRow } from '../db.js';
-import { bindRupiahInput, escapeHtml, formatDate, parseRupiah, rupiah } from '../format.js';
-import { medicineStatus } from '../practice-utils.js';
-import {
-  appError, closeDialog, confirmDialog, fillForm, formValues, openPopup, startPage, toast, whileSaving,
-} from '../shell.js';
+// Database Obat: every medicine with its stock, batches and nearest expiry, warning tiles,
+// search and filters. One medicine in detail (batches, history, use) is medicine.html?id=….
+import { PAGES } from '../config.js';
+import { run, supabase, updateRow } from '../db.js';
+import { escapeHtml, formatDate } from '../format.js';
+import { loadCategories, loadSuppliers, openMedicineForm } from '../medicine-forms.js';
+import { DRUG_CLASS, STOCK_STATUS, medicineDetail, medicineExpiry, needsAttention } from '../practice-utils.js';
+import { canManage, isAdmin, practiceRole } from '../roles.js';
+import { appError, closeDialog, confirmDialog, openPopup, refreshNavBadges, startPage, toast } from '../shell.js';
 
-await startPage('medicines');
+const { user, practice } = await startPage('medicines');
+const role = await practiceRole(practice, user);
+const $ = (id) => document.getElementById(id);
+const list = $('list');
+let medicines = []; // rows of the medicine_inventory view
+let categories = [];
+// A warning tile that is switched on: 'kedaluwarsa', 'akan_kedaluwarsa', 'stok', or 'check'
+// (everything that needs a look — used by the link from Beranda).
+let alertFilter = new URLSearchParams(location.search).get('filter') === 'check' ? 'check' : null;
 
-const list = document.getElementById('list');
-const search = document.getElementById('search');
-const dialog = document.getElementById('medicine-dialog');
-const form = document.getElementById('medicine-form');
-const errorBox = document.getElementById('form-error');
-let medicines = [];
-// ?filter=check (from the Beranda pop-up) opens the "Perlu dicek" tab.
-let filter = new URLSearchParams(location.search).get('filter') === 'check' ? 'check' : 'all';
-document.querySelectorAll('[data-filter]').forEach((b) => b.setAttribute('aria-selected', String(b.dataset.filter === filter)));
-let editing = null;
+$('add').hidden = !canManage(role);
+$('settings').hidden = !isAdmin(role);
+if (!canManage(role)) $('summary').textContent = 'Anda masuk sebagai staf: bisa melihat obat dan stok, tetapi tidak bisa mengubahnya.';
 
-bindRupiahInput(form.price);
-
-try {
-  medicines = await run(supabase.from('medicines').select('*').order('name'));
-} catch (error) {
-  toast(appError(error), 'error');
+async function load() {
+  try {
+    [medicines, categories] = await Promise.all([
+      run(supabase.from('medicine_inventory').select('*').order('generic_name')),
+      categories.length ? categories : loadCategories(),
+    ]);
+  } catch (error) {
+    toast(appError(error), 'error');
+  }
+  fillCategoryFilter();
+  render();
 }
-render();
 
-search.addEventListener('input', render);
-document.querySelectorAll('[data-filter]').forEach((button) => {
-  button.addEventListener('click', () => {
-    filter = button.dataset.filter;
-    document.querySelectorAll('[data-filter]').forEach((b) => b.setAttribute('aria-selected', String(b === button)));
-    render();
-  });
+function fillCategoryFilter() {
+  const select = $('filter-category');
+  if (select.options.length > 1) return;
+  select.insertAdjacentHTML('beforeend',
+    categories.map((c) => `<option value="${c.id}">${escapeHtml(c.name)}</option>`).join(''));
+}
+
+/* ---------- Filters ---------- */
+['search', 'filter-category', 'filter-stock', 'filter-expiry', 'show-inactive'].forEach((id) => {
+  $(id).addEventListener(id === 'search' ? 'input' : 'change', render);
 });
-document.getElementById('add').addEventListener('click', () => openForm(null));
 
+$('alerts').addEventListener('click', (event) => {
+  const tile = event.target.closest('[data-alert]');
+  if (!tile) return;
+  alertFilter = alertFilter === tile.dataset.alert ? null : tile.dataset.alert;
+  render();
+});
+
+function matchesAlert(m) {
+  if (alertFilter === 'kedaluwarsa') return m.expiry_status === 'kedaluwarsa';
+  if (alertFilter === 'akan_kedaluwarsa') return m.expiry_status === 'akan_kedaluwarsa';
+  if (alertFilter === 'stok') return m.stock_status !== 'aman';
+  if (alertFilter === 'check') return needsAttention(m);
+  return true;
+}
+
+function filtered() {
+  const q = $('search').value.trim().toLowerCase();
+  const category = $('filter-category').value;
+  const stock = $('filter-stock').value;
+  const expiry = $('filter-expiry').value;
+  const showInactive = $('show-inactive').checked;
+  return medicines.filter((m) => (showInactive || m.is_active)
+    && (!q || m.generic_name.toLowerCase().includes(q) || (m.brand_name ?? '').toLowerCase().includes(q))
+    && (!category || m.category_id === category)
+    && (!stock || m.stock_status === stock)
+    && (!expiry || m.expiry_status === expiry)
+    && (!alertFilter || (m.is_active && matchesAlert(m))));
+}
+
+/* ---------- Render ---------- */
 function render() {
-  const needCheck = medicines.filter((m) => medicineStatus(m).tone !== 'green');
-  document.getElementById('summary').textContent =
-    `${medicines.length} jenis obat${needCheck.length ? ` · ${needCheck.length} perlu dicek` : ''}`;
+  const active = medicines.filter((m) => m.is_active);
+  $('count-expired').textContent = active.filter((m) => m.expiry_status === 'kedaluwarsa').length;
+  $('count-soon').textContent = active.filter((m) => m.expiry_status === 'akan_kedaluwarsa').length;
+  $('count-low').textContent = active.filter((m) => m.stock_status !== 'aman').length;
+  $('soon-label').textContent = `obat akan kedaluwarsa (≤ ${practice.expiry_warning_days} hari)`;
+  document.querySelectorAll('[data-alert]').forEach((tile) =>
+    tile.setAttribute('aria-pressed', String(tile.dataset.alert === alertFilter)));
 
-  const q = search.value.trim().toLowerCase();
-  const shown = (filter === 'check' ? needCheck : medicines).filter((m) => !q || m.name.toLowerCase().includes(q));
-
-  if (!shown.length) {
-    list.innerHTML = `<div class="card empty-state"><p class="empty-icon" aria-hidden="true">💊</p>
-      <p class="muted">${medicines.length ? 'Tidak ada obat yang cocok.' : 'Belum ada obat. Tekan “Tambah Obat” untuk mulai mencatat stok.'}</p></div>`;
+  if (!medicines.length) {
+    $('result-count').textContent = '';
+    list.innerHTML = emptyDatabase();
     return;
   }
 
-  list.innerHTML = shown.map((m) => {
-    const status = medicineStatus(m);
-    const details = [
-      m.price ? `${rupiah(m.price)} / ${m.unit}` : null,
-      m.expires_on ? `ED ${formatDate(m.expires_on, { day: 'numeric', month: 'short', year: 'numeric' })}` : null,
-    ].filter(Boolean).join(' · ');
-    return `
-      <div class="item">
-        <div class="item-main">
-          <button type="button" class="item-button" data-edit="${m.id}">
-            <div class="item-title">${escapeHtml(m.name)}</div>
-            <div class="item-sub">${escapeHtml(details || 'Tekan untuk mengubah')}</div>
-          </button>
-          <span class="badge badge-${status.tone}">${status.label}</span>
-        </div>
-        <div class="row-between">
-          <button type="button" class="btn btn-ghost btn-small" data-restock="${m.id}" aria-haspopup="dialog">📦 Stok masuk</button>
-          <div class="stepper" role="group" aria-label="Ubah stok ${escapeHtml(m.name)}">
-            <button type="button" data-step="-1" data-id="${m.id}" aria-label="Kurangi" ${m.stock <= 0 ? 'disabled' : ''}>−</button>
-            <strong data-stock="${m.id}">${m.stock} <span class="small muted">${escapeHtml(m.unit)}</span></strong>
-            <button type="button" data-step="1" data-id="${m.id}" aria-label="Tambah">＋</button>
-          </div>
-        </div>
-      </div>`;
-  }).join('');
+  const shown = filtered();
+  $('result-count').innerHTML = `${shown.length} dari ${medicines.length} obat${alertFilter
+    ? ' · <button type="button" class="font-semibold text-accent-ink underline" id="clear-alert">Tampilkan semua</button>' : ''}`;
+  if (!shown.length) {
+    list.innerHTML = `<div class="empty-state"><p class="empty-icon" aria-hidden="true">🔍</p>
+      <p class="muted">Tidak ada obat yang cocok dengan pencarian atau filter.</p></div>`;
+    return;
+  }
+  list.innerHTML = `
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th scope="col">Obat</th><th scope="col">Kategori</th><th scope="col" class="num">Stok</th>
+          <th scope="col">Batch</th><th scope="col">Kedaluwarsa terdekat</th><th scope="col">Status</th>
+          <th scope="col" class="num">Aksi</th>
+        </tr>
+      </thead>
+      <tbody>${shown.map(row).join('')}</tbody>
+    </table>`;
 }
+
+function row(m) {
+  const link = `${PAGES.medicine}?id=${m.id}`;
+  const stock = STOCK_STATUS[m.stock_status];
+  const expiry = medicineExpiry(m.expiry_status);
+  const drugClass = DRUG_CLASS[m.drug_class];
+  const tags = [
+    drugClass ? `<span class="badge badge-${drugClass.tone}">${drugClass.label}</span>` : '',
+    m.use_in_service ? '' : '<span class="badge badge-orange" title="Admin belum mengizinkan obat ini dipakai di resep">Perlu ditinjau</span>',
+  ].join('');
+  const hasStock = m.batch_count > 0 || m.expired_stock > 0;
+  const manage = canManage(role) ? `
+    <button type="button" class="btn btn-ghost btn-small" data-edit="${m.id}">Edit</button>
+    <button type="button" class="btn btn-ghost btn-small" data-toggle="${m.id}">${m.is_active ? 'Nonaktifkan' : 'Aktifkan'}</button>` : '';
+  return `
+    <tr class="${m.is_active ? '' : 'is-muted'}">
+      <td class="cell-main">
+        <a class="cell-title" href="${link}">${escapeHtml(m.generic_name)}</a>
+        <span class="cell-sub">${escapeHtml(medicineDetail(m) || m.unit)}</span>
+        ${tags ? `<span class="mt-1.5 flex flex-wrap gap-1">${tags}</span>` : ''}
+      </td>
+      <td data-label="Kategori">${escapeHtml(m.category_name ?? '—')}</td>
+      <td class="num" data-label="Stok">
+        <strong class="text-ink">${m.stock.toLocaleString('id-ID')}</strong> ${escapeHtml(m.unit)}
+        <span class="badge badge-${stock.tone} ml-1">${stock.label}</span>
+        ${m.expired_stock ? `<span class="cell-sub text-red">+${m.expired_stock} kedaluwarsa, perlu dikeluarkan</span>` : ''}
+      </td>
+      <td data-label="Batch">${m.batch_count ? `${m.batch_count} batch` : '<span class="text-muted">—</span>'}</td>
+      <td data-label="Kedaluwarsa">
+        ${hasStock
+          ? `${m.nearest_expiry ? formatDate(m.nearest_expiry, { day: 'numeric', month: 'short', year: 'numeric' }) : 'Tanpa tanggal'}
+             <span class="cell-sub">${expiry.icon} ${expiry.label}</span>`
+          : '<span class="text-muted">Belum ada stok</span>'}
+      </td>
+      <td data-label="Status"><span class="badge badge-${m.is_active ? 'green' : 'gray'}">${m.is_active ? 'Aktif' : 'Nonaktif'}</span></td>
+      <td class="cell-actions"><div class="row-actions">
+        <a class="btn btn-ghost btn-small" href="${link}">Detail</a>${manage}
+      </div></td>
+    </tr>`;
+}
+
+function emptyDatabase() {
+  if (!canManage(role)) {
+    return '<div class="empty-state"><p class="empty-icon" aria-hidden="true">💊</p><p class="muted">Belum ada obat di database.</p></div>';
+  }
+  return `
+    <div class="empty-state">
+      <p class="empty-icon" aria-hidden="true">💊</p>
+      <h2>Database obat masih kosong</h2>
+      <p class="max-w-md text-muted">Tambahkan obat satu per satu, atau mulai dari contoh daftar obat yang umum di praktik kebidanan.</p>
+      <div class="row justify-center">
+        <button type="button" class="btn btn-primary" data-add>＋ Tambah Obat</button>
+        <button type="button" class="btn btn-ghost" data-examples>📋 Isi contoh obat kebidanan</button>
+      </div>
+      <p class="max-w-md text-[13px] text-muted">Contoh berisi 22 obat dengan stok 0 dan belum diizinkan dipakai di resep.
+        Indikasi, kontraindikasi, dan aturan pakai sengaja dikosongkan: isi dan validasi sesuai regulasi, SOP, dan kewenangan Anda.</p>
+    </div>`;
+}
+
+/* ---------- Actions ---------- */
+async function addMedicine() {
+  const suppliers = await loadSuppliers().catch(() => []);
+  const saved = await openMedicineForm({ categories, suppliers, role });
+  if (!saved) return;
+  toast(`${saved.generic_name} ditambahkan`);
+  await load();
+}
+
+$('add').addEventListener('click', addMedicine);
 
 list.addEventListener('click', async (event) => {
-  const edit = event.target.closest('[data-edit]');
-  if (edit) return openForm(medicines.find((m) => m.id === edit.dataset.edit));
-  const restock = event.target.closest('[data-restock]');
-  if (restock) return openRestock(medicines.find((m) => m.id === restock.dataset.restock));
-
-  const step = event.target.closest('[data-step]');
-  if (!step) return;
-  const medicine = medicines.find((m) => m.id === step.dataset.id);
-  const stock = Math.max(0, medicine.stock + Number(step.dataset.step));
-  step.disabled = true;
-  try {
-    const saved = await updateRow('medicines', medicine.id, { stock });
-    medicines = medicines.map((m) => (m.id === saved.id ? saved : m));
-    render();
-    bumpStock(saved.id);
-  } catch (error) {
-    step.disabled = false;
-    toast(appError(error), 'error');
+  if (event.target.closest('[data-add]')) return addMedicine();
+  if (event.target.closest('#clear-alert')) {
+    alertFilter = null;
+    return render();
   }
-});
 
-/** Short "pop" on the stock number so the change is noticed. */
-function bumpStock(id) {
-  list.querySelector(`[data-stock="${id}"]`)?.classList.add('bump');
-}
-
-/* ---------- Restock pop-up: add many at once instead of tapping ＋ many times ---------- */
-function openRestock(m) {
-  const popup = openPopup({
-    title: `Stok masuk: ${m.name}`,
-    body: `
-      <p class="muted">Sisa sekarang: <strong>${m.stock} ${escapeHtml(m.unit)}</strong></p>
-      <div class="field">
-        <label for="restock-amount">Jumlah yang masuk (${escapeHtml(m.unit)})</label>
-        <input class="input input-money" id="restock-amount" type="number" inputmode="numeric" min="1" step="1" placeholder="0">
-      </div>
-      <div class="filter-chips !mb-0" id="restock-quick">
-        ${[10, 50, 100].map((n) => `<button type="button" class="chip" data-add="${n}">＋ ${n}</button>`).join('')}
-      </div>
-      <p class="preview-line" id="restock-preview" aria-live="polite"></p>
-      <div id="restock-error" class="form-error" role="alert" hidden></div>`,
-    footer: '<button type="button" class="btn btn-primary btn-big" id="restock-save">Simpan Stok</button>',
-  });
-  const input = popup.querySelector('#restock-amount');
-  const preview = popup.querySelector('#restock-preview');
-  const errorText = popup.querySelector('#restock-error');
-  const save = popup.querySelector('#restock-save');
-  const amount = () => Math.max(0, Math.floor(Number(input.value) || 0));
-  const update = () => {
-    preview.textContent = amount() ? `Stok baru: ${m.stock + amount()} ${m.unit}` : '';
-  };
-
-  input.addEventListener('input', update);
-  input.addEventListener('keydown', (event) => { if (event.key === 'Enter') save.click(); });
-  popup.querySelector('#restock-quick').addEventListener('click', (event) => {
-    const chip = event.target.closest('[data-add]');
-    if (!chip) return;
-    input.value = amount() + Number(chip.dataset.add);
-    update();
-  });
-  save.addEventListener('click', async () => {
-    if (!amount()) {
-      errorText.textContent = 'Isi jumlah obat yang masuk.';
-      errorText.hidden = false;
-      return input.focus();
-    }
+  const examples = event.target.closest('[data-examples]');
+  if (examples) {
+    examples.disabled = true;
     try {
-      const saved = await whileSaving(save, () => updateRow('medicines', m.id, { stock: m.stock + amount() }));
-      medicines = medicines.map((x) => (x.id === saved.id ? saved : x));
-      closeDialog(popup);
-      render();
-      bumpStock(saved.id);
-      toast(`Stok ${saved.name} sekarang ${saved.stock} ${saved.unit}`);
+      const added = await run(supabase.rpc('add_example_medicines'));
+      toast(`${added} contoh obat ditambahkan. Lengkapi dan tinjau satu per satu.`);
+      await load();
     } catch (error) {
-      errorText.textContent = appError(error);
-      errorText.hidden = false;
+      examples.disabled = false;
+      toast(appError(error), 'error');
     }
-  });
-  input.focus();
-}
-
-function openForm(medicine) {
-  editing = medicine;
-  fillForm(form, medicine ?? { unit: 'tablet', stock: 0, min_stock: 5 });
-  form.price.value = medicine?.price ? medicine.price.toLocaleString('id-ID') : '';
-  document.getElementById('dialog-title').textContent = medicine ? 'Ubah Obat' : 'Tambah Obat';
-  document.getElementById('delete').hidden = !medicine;
-  errorBox.hidden = true;
-  dialog.showModal();
-  form.elements.name.focus(); // form.name would be the form's own name attribute
-}
-
-form.addEventListener('submit', async (event) => {
-  event.preventDefault();
-  const values = formValues(form);
-  if (!values.name) {
-    errorBox.textContent = 'Nama obat wajib diisi.';
-    errorBox.hidden = false;
     return;
   }
-  const row = {
-    ...values,
-    stock: Math.max(0, Number(values.stock) || 0),
-    min_stock: Math.max(0, Number(values.min_stock) || 0),
-    price: values.price ? parseRupiah(values.price) : null,
-  };
-  try {
-    await whileSaving(document.getElementById('save'), async () => {
-      if (editing) {
-        const saved = await updateRow('medicines', editing.id, row);
-        medicines = medicines.map((m) => (m.id === saved.id ? saved : m));
-      } else {
-        medicines.push(await insertRow('medicines', row));
+
+  const edit = event.target.closest('[data-edit]');
+  if (edit) {
+    try {
+      const [medicine, suppliers] = await Promise.all([
+        run(supabase.from('medicines').select('*').eq('id', edit.dataset.edit).single()),
+        loadSuppliers().catch(() => []),
+      ]);
+      const saved = await openMedicineForm({ medicine, categories, suppliers, role });
+      if (saved) {
+        toast('Perubahan disimpan');
+        await load();
       }
-    });
-    medicines.sort((a, b) => a.name.localeCompare(b.name, 'id'));
-    closeDialog(dialog);
-    render();
-    toast('Obat disimpan');
-  } catch (error) {
-    errorBox.textContent = appError(error);
-    errorBox.hidden = false;
+    } catch (error) {
+      toast(appError(error), 'error');
+    }
+    return;
+  }
+
+  const toggle = event.target.closest('[data-toggle]');
+  if (toggle) {
+    const m = medicines.find((x) => x.id === toggle.dataset.toggle);
+    if (m.is_active) {
+      const ok = await confirmDialog({
+        icon: '⏸️', title: `Nonaktifkan ${m.generic_name}?`,
+        message: 'Obat tidak bisa dipilih di resep baru. Stok dan riwayatnya tetap tersimpan, dan bisa diaktifkan lagi kapan saja.',
+        confirmLabel: 'Ya, nonaktifkan',
+      });
+      if (!ok) return;
+    }
+    try {
+      await updateRow('medicines', m.id, { is_active: !m.is_active });
+      toast(m.is_active ? `${m.generic_name} dinonaktifkan` : `${m.generic_name} aktif lagi`);
+      refreshNavBadges();
+      await load();
+    } catch (error) {
+      toast(appError(error), 'error');
+    }
   }
 });
 
-document.getElementById('delete').addEventListener('click', async () => {
-  if (!editing) return;
-  const ok = await confirmDialog({
-    icon: '🗑️', title: `Hapus ${editing.name}?`, message: 'Obat ini akan dihapus dari daftar stok.', confirmLabel: 'Ya, hapus',
+// Admin: how many days before expiry a medicine shows as "akan kedaluwarsa".
+$('settings').addEventListener('click', () => {
+  const popup = openPopup({
+    title: 'Peringatan kedaluwarsa',
+    body: `
+      <p class="text-muted">Obat ditandai 🟡 <strong>akan kedaluwarsa</strong> jika tanggal kedaluwarsanya kurang dari:</p>
+      <div class="flex items-center gap-2">
+        <input class="input input-money max-w-[140px]" id="warning-days" type="number" min="1" max="365" step="1"
+          inputmode="numeric" value="${practice.expiry_warning_days}">
+        <span class="font-semibold text-muted">hari lagi</span>
+      </div>
+      <p class="field-hint">Sesuaikan dengan SOP fasilitas Anda. Contoh: 90 hari (3 bulan).</p>`,
+    footer: '<button type="button" class="btn btn-primary" id="save-warning">Simpan</button>',
   });
-  if (!ok) return;
-  try {
-    await deleteRow('medicines', editing.id);
-    medicines = medicines.filter((m) => m.id !== editing.id);
-    closeDialog(dialog);
-    render();
-    toast('Obat dihapus');
-  } catch (error) {
-    toast(appError(error), 'error');
-  }
+  popup.querySelector('#save-warning').addEventListener('click', async () => {
+    const days = Number(popup.querySelector('#warning-days').value);
+    if (!Number.isInteger(days) || days < 1 || days > 365) {
+      toast('Isi angka 1 sampai 365 hari.', 'error');
+      return;
+    }
+    try {
+      await updateRow('practices', practice.id, { expiry_warning_days: days });
+      practice.expiry_warning_days = days;
+      closeDialog(popup);
+      toast('Pengaturan disimpan');
+      await load();
+    } catch (error) {
+      toast(appError(error), 'error');
+    }
+  });
 });
+
+await load();

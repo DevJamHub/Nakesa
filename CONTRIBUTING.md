@@ -7,7 +7,7 @@ flowchart LR
   A[Issue user story] --> B[Branch per issue]
   B --> C[Commit kecil]
   C --> D[Pull request]
-  D --> E{CI 2/2 hijau<br/>+ review teman}
+  D --> E{CI hijau<br/>+ review teman}
   E --> F[Squash merge ke main]
 ```
 
@@ -76,16 +76,18 @@ Sebelum push, jalankan pengecekan yang sama dengan CI:
 ```bash
 find js -name '*.js' -print0 | xargs -0 -n1 node --check   # sintaks JavaScript
 node .github/scripts/check-refs.mjs                         # src/href dan import menunjuk ke file yang ada
+node --test "tests/**/*.test.mjs"                           # unit test (Node 22 atau lebih baru)
 ```
 
 ## 5. CI (GitHub Actions)
 
-Setiap PR ke `main` menjalankan 2 job. Keduanya harus hijau (✓ 2/2) sebelum merge.
+Setiap PR ke `main` menjalankan job berikut. Semuanya harus hijau sebelum merge.
 
 | Job | Yang dicek |
 |---|---|
 | `js-syntax` | `node --check` untuk semua file di `js/` |
 | `check-refs` | Setiap `src`/`href` lokal di HTML dan setiap import relatif di JS menunjuk ke file yang ada |
+| `test` | Unit test di `tests/` dengan test runner bawaan Node (`node --test`), tanpa dependensi tambahan (ditambahkan lewat #23) |
 
 Detailnya ada di `.github/workflows/ci.yml`.
 
@@ -99,9 +101,25 @@ Detailnya ada di `.github/workflows/ci.yml`.
 
 Merge dengan **Squash and merge** supaya satu PR menjadi satu commit rapi di `main`, lalu hapus branch-nya. Issue yang disebut dengan `Closes #` otomatis tertutup.
 
-## 7. Keamanan data pasien
+## 7. Konvensi kode
+
+Aturan singkat supaya kode semua anggota tim terlihat seperti ditulis satu orang.
+
+| Bagian | Aturan |
+|---|---|
+| Bahasa | Teks di layar dan pesan error memakai Bahasa Indonesia sehari-hari yang sopan ("Anda"). Komentar di kode boleh Bahasa Inggris, seperti kode yang sudah ada. |
+| Teknologi | HTML + JavaScript murni (ES modules), **tanpa framework dan tanpa build step**. Jangan menambah library kalau fitur bawaan browser sudah cukup. |
+| Halaman | Satu halaman = `html/<nama>.html` + `js/pages/<nama>.js`. Kerangka halaman (header, menu, toast, dialog) dari `js/shell.js`. |
+| Tampilan | Class Tailwind dan komponen dari `js/tailwind-setup.js` (`btn`, `card`, `item`, `chip`, `stat`, …). Warna selalu lewat token tema (`text-green`, `bg-raised`, …), bukan kode warna langsung, supaya mode gelap ikut benar. Style inline hanya untuk nilai yang dihitung saat berjalan (misalnya tinggi batang grafik). |
+| Mobile-first | Cek di lebar HP (±390 px) dan di mode gelap sebelum membuka PR. Tombol cukup besar untuk jari. |
+| Logika | Aturan dan perhitungan murni (format, validasi, status, slot jam, total) ditaruh di modul `js/*.js` tanpa DOM, lalu diberi unit test di `tests/<nama>.test.mjs`. |
+| Data | Akses Supabase lewat helper di `js/db.js`; error ditampilkan dengan `appError()` / `toast()` dari `js/shell.js`, bukan pesan teknis. |
+| Database | Perubahan tabel atau fungsi selalu berupa **file migrasi baru** di `supabase/migrations/` (migrasi lama tidak diubah), lalu dijalankan di Supabase oleh pemilik project. |
+
+## 8. Keamanan data pasien
 
 - Hanya *publishable key* Supabase yang boleh ada di `js/config.js`, jangan pernah *service-role/secret key*.
 - `.env` dan file rahasia lain tidak boleh di-commit (sudah ada di `.gitignore`).
 - Setiap tabel baru wajib memakai Row Level Security berbasis `owner_id = auth.uid()`, dan perubahan skema ditulis sebagai migrasi baru di `supabase/migrations/`.
+- Fungsi yang bisa dipanggil tanpa login (seperti `get_public_practice` dan `create_booking`) memakai `security definer` dengan `set search_path = ''`, hanya mengembalikan data yang memang boleh dilihat pasien, dan memvalidasi ulang semua input di database.
 - Data dari pengguna yang dimasukkan ke `innerHTML` wajib lewat `escapeHtml()` (`js/format.js`).

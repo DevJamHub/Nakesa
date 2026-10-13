@@ -104,6 +104,19 @@
 @keyframes wave { 15%, 45% { transform: rotate(16deg); } 30%, 60% { transform: rotate(-8deg); } 75% { transform: rotate(0); } }
 @keyframes nudge { 0% { box-shadow: 0 0 0 0 rgb(255 255 255 / 0.55); } 70%, 100% { box-shadow: 0 0 0 10px rgb(255 255 255 / 0); } }
 @keyframes shimmer { to { background-position: -200% 0; } }
+/* Side menu: the current page's highlight sliding over from the page before (--from-*, set in js/shell.js),
+   items entering one by one, counters pinging, and each menu icon's own move (NAV anim in js/shell.js). */
+@keyframes nav-arrive { from { transform: translateY(var(--from-y, 0px)); background-color: rgb(var(--from-tone, var(--tone)) / var(--alpha)); } }
+@keyframes nav-item-in { from { opacity: 0; transform: translateX(-18px); } }
+@keyframes badge-ping { to { transform: scale(1.9); opacity: 0; } }
+@keyframes nav-hop { 30% { transform: translateY(-6px) scale(1, 1); } 55% { transform: translateY(0) scale(1.18, 0.82); } 75% { transform: translateY(-2px) scale(1, 1); } }
+@keyframes nav-flip { from { transform: perspective(60px) rotateX(0); } to { transform: perspective(60px) rotateX(360deg); } }
+@keyframes nav-wiggle { 20% { transform: rotate(-12deg) scale(1.12); } 40% { transform: rotate(10deg) scale(1.12); } 60% { transform: rotate(-6deg) scale(1); } 80% { transform: rotate(3deg) scale(1); } }
+@keyframes nav-scribble { 15% { transform: translate(-2px, 1px) rotate(-10deg); } 35% { transform: translate(2px, -1px) rotate(8deg); } 55% { transform: translate(-2px, 1px) rotate(-8deg); } 75% { transform: translate(1px, 0) rotate(4deg); } }
+@keyframes nav-spin { 70% { transform: rotate(380deg) scale(1.12); } to { transform: rotate(360deg) scale(1); } }
+@keyframes nav-jingle { 20% { transform: translateY(-4px) rotate(-14deg); } 40% { transform: translateY(0) rotate(12deg); } 60% { transform: translateY(-2px) rotate(-8deg); } 80% { transform: translateY(0) rotate(4deg); } }
+@keyframes nav-beat { 15% { transform: scale(1.25); } 30% { transform: scale(1); } 45% { transform: scale(1.18); } 60% { transform: scale(1); } }
+@keyframes nav-swing { 0%, 100% { transform-origin: 50% 0; } 20% { transform: rotate(18deg); } 40% { transform: rotate(-12deg); } 60% { transform: rotate(6deg); } 80% { transform: rotate(-3deg); } }
 
 @layer base {
   html { -webkit-text-size-adjust: 100%; }
@@ -158,34 +171,82 @@
   .side-head { @apply mb-2 flex items-center justify-between gap-2 px-1 pb-2 pt-1; }
   .side-logo { @apply flex min-w-0 items-center gap-3 text-inherit no-underline; }
   .side-logo-mark {
-    @apply grid h-10 w-10 shrink-0 place-items-center rounded-xl text-lg font-bold text-white transition-transform duration-300;
+    @apply grid h-10 w-10 shrink-0 place-items-center rounded-xl text-lg font-bold text-white;
     background: linear-gradient(140deg, #e48a5f, rgb(var(--accent)) 55%, #a3442a);
     box-shadow: 0 8px 18px -8px rgb(var(--accent) / 0.9);
+    transition: transform 0.5s cubic-bezier(0.3, 1.6, 0.5, 1);
   }
-  .side-logo:hover .side-logo-mark { transform: rotate(-8deg) scale(1.06); }
+  .side-logo:hover .side-logo-mark { transform: rotate(90deg) scale(1.08); }
   .side-logo-text { @apply grid leading-tight; }
   .side-logo-text strong { @apply font-serif text-lg font-semibold tracking-wide text-ink; }
   .side-logo-text small { @apply text-xs text-muted; }
   .side-close { @apply grid h-9 w-9 cursor-pointer place-items-center rounded-lg border-0 bg-transparent text-lg text-muted hover:bg-ink/5; }
+  .side-menu { @apply relative; }
   .side-label { @apply px-3 pb-1.5 pt-4 text-[11px] font-bold uppercase tracking-[0.08em] text-muted; }
   .side-links { @apply grid gap-1; }
+  /* Hover highlight that glides from item to item (js/shell.js moves it; --tone is the hovered item's). */
+  .nav-glider {
+    @apply pointer-events-none absolute inset-x-0 top-0 rounded-xl opacity-0;
+    background-color: rgb(var(--tone) / 0.1);
+    transition: transform 0.38s cubic-bezier(0.3, 1.3, 0.5, 1), height 0.2s ease, opacity 0.2s ease, background-color 0.3s ease;
+  }
+  .nav-glider.is-on { @apply opacity-100; }
+  .nav-glider.no-slide { transition: opacity 0.2s ease; }
   .nav-link {
-    @apply relative flex min-h-[46px] items-center gap-3 rounded-xl px-2 text-[15px] font-medium text-body no-underline transition-colors duration-200 hover:bg-ink/5 hover:text-ink;
+    @apply relative flex min-h-[46px] items-center gap-3 rounded-xl px-2 text-[15px] font-medium text-body no-underline transition duration-200 hover:text-ink active:scale-[0.97];
   }
   .nav-icon { @apply grid h-8 w-8 shrink-0 place-items-center rounded-lg text-[1.05rem] leading-none transition duration-300; background: rgb(var(--tone) / 0.14); }
-  .nav-link:hover .nav-icon { transform: scale(1.08) rotate(-6deg); }
-  .nav-link.is-active { @apply font-semibold text-ink; background: rgb(var(--tone) / 0.13); }
-  .nav-link.is-active::before { content: ''; @apply absolute -left-3 top-1/2 h-6 w-1 -translate-y-1/2 rounded-r-full; background: rgb(var(--tone)); }
+  .nav-emoji { @apply inline-block; }
+  .nav-label { @apply truncate transition-transform duration-300; }
+  .nav-link.is-active { @apply font-semibold text-ink; }
+  /* The current page's tint (::after) and side bar (::before) are their own layers so they can slide over. */
+  .nav-link.is-active::after { content: ''; --alpha: 0.13; @apply absolute inset-0 -z-10 rounded-xl; background-color: rgb(var(--tone) / 0.13); }
+  .nav-link.is-active::before { content: ''; --alpha: 1; @apply absolute -left-3 inset-y-[11px] w-1 rounded-r-full; background-color: rgb(var(--tone)); }
+  .nav-link.is-arriving::after, .nav-link.is-arriving::before { animation: nav-arrive 0.6s cubic-bezier(0.3, 1.25, 0.5, 1) backwards; }
+  .nav-link.is-arriving .nav-emoji { animation: var(--icon-anim) 0.8s 0.45s ease-in-out backwards; }
   .nav-link.is-active .nav-icon { background: linear-gradient(140deg, rgb(var(--tone)), rgb(var(--tone) / 0.7)); box-shadow: 0 6px 14px -6px rgb(var(--tone) / 0.9); }
-  .nav-label { @apply truncate; }
-  .nav-badge { @apply ml-auto grid h-[22px] min-w-[22px] place-items-center rounded-full bg-accent px-1.5 text-xs font-semibold text-white shadow-sm; animation: pop 0.35s ease; }
+  @media (hover: hover) {
+    .nav-link:hover .nav-icon { transform: scale(1.1); box-shadow: 0 6px 14px -6px rgb(var(--tone) / 0.8); }
+    .nav-link:hover .nav-emoji { animation: var(--icon-anim) 0.8s ease-in-out; }
+    .nav-link:hover .nav-label { transform: translateX(3px); }
+  }
+  @media (hover: none) { .nav-link:active { background-color: rgb(var(--tone) / 0.1); } }
+  .nav-badge {
+    @apply relative isolate ml-auto grid h-[22px] min-w-[22px] place-items-center rounded-full bg-accent px-1.5 text-xs font-semibold text-white shadow-sm;
+    font-variant-numeric: tabular-nums;
+    animation: pop 0.35s ease;
+  }
+  .nav-badge::after { content: ''; @apply absolute inset-0 -z-10 rounded-full bg-accent; animation: badge-ping 1.6s ease-out 0.6s 3; }
+  /* Name tooltip beside the icons-only sidebar; glides between items like the hover highlight. */
+  .nav-tip {
+    @apply pointer-events-none fixed left-0 top-0 z-50 flex items-center gap-2 whitespace-nowrap rounded-lg bg-ink px-3 py-1.5 text-[13.5px] font-semibold text-canvas opacity-0 shadow-pop;
+    transform: translate(-6px, -50%);
+    transition: opacity 0.15s ease, transform 0.2s ease, top 0.3s cubic-bezier(0.3, 1.3, 0.5, 1);
+  }
+  .nav-tip::before { content: ''; @apply absolute -left-1 top-1/2 h-2.5 w-2.5 -translate-y-1/2 rotate-45 rounded-sm bg-ink; }
+  .nav-tip.is-on { @apply opacity-100; transform: translate(0, -50%); }
+  .nav-tip.no-slide { transition: opacity 0.15s ease, transform 0.2s ease; }
+  .nav-tip-badge { @apply grid h-5 min-w-[20px] place-items-center rounded-full bg-accent px-1.5 text-xs text-white; }
   .side-foot { @apply mt-auto grid gap-3 pt-5; }
   .side-share {
     @apply relative isolate overflow-hidden rounded-2xl p-4 text-white;
     background: radial-gradient(circle at 100% 0%, rgb(255 255 255 / 0.2), transparent 45%), linear-gradient(140deg, #b8552f, #8a361d);
     box-shadow: 0 14px 26px -16px rgb(138 54 29 / 0.9);
   }
-  .side-share::after { content: '🔗'; @apply pointer-events-none absolute -right-1 -top-1 -z-10 rotate-12 text-5xl opacity-25; }
+  /* A streak of light sweeps across on hover (one way: it jumps back unseen). */
+  .side-share::before {
+    content: ''; @apply pointer-events-none absolute inset-0;
+    z-index: -5;
+    background: linear-gradient(105deg, transparent 30%, rgb(255 255 255 / 0.25) 50%, transparent 70%);
+    transform: translateX(-110%);
+  }
+  .side-share:hover::before { transform: translateX(110%); transition: transform 0.9s ease; }
+  .side-share::after {
+    content: '🔗'; @apply pointer-events-none absolute -right-1 -top-1 -z-10 text-5xl opacity-25;
+    transform: rotate(12deg);
+    transition: transform 0.5s cubic-bezier(0.3, 1.6, 0.5, 1);
+  }
+  .side-share:hover::after { transform: rotate(-12deg) scale(1.15); }
   .side-share-title { @apply font-semibold; }
   .side-share-text { @apply mt-0.5 text-[13px] leading-snug text-white/80; }
   .side-share-actions { @apply mt-3 flex gap-2; }
@@ -193,12 +254,16 @@
     @apply inline-flex min-h-[36px] cursor-pointer items-center justify-center gap-1.5 rounded-lg border-0 bg-white/20 px-3 font-sans text-[13.5px] font-semibold text-white no-underline transition hover:bg-white/30 active:scale-95;
   }
   .side-share-btn.is-main { @apply flex-1 bg-white text-[#8a361d] hover:bg-white/90; }
+  .side-share-btn.is-main.is-done { @apply bg-green-solid text-white; animation: bump 0.35s ease; }
   .side-profile { @apply flex items-center gap-2.5 rounded-xl border border-line bg-surface p-2 shadow-soft; }
   .side-avatar { @apply grid h-10 w-10 shrink-0 place-items-center rounded-xl text-xl; background: var(--profession-color); }
+  .side-avatar:hover { animation: nav-wiggle 0.7s ease-in-out; }
   .side-profile-text { @apply grid min-w-0 flex-1 leading-tight; }
   .side-profile-text strong { @apply truncate text-sm font-semibold text-ink; }
   .side-profile-text small { @apply truncate text-xs text-muted; }
   .side-signout { @apply grid h-10 w-10 shrink-0 cursor-pointer place-items-center rounded-lg border-0 bg-transparent text-lg transition hover:bg-red-soft active:scale-90; }
+  .side-signout span { @apply inline-block transition-transform duration-300; transform-origin: 15% 50%; }
+  .side-signout:hover span { transform: perspective(80px) rotateY(-45deg); } /* the door swings open */
 
   .app-main { @apply mx-auto max-w-[1120px] px-4 pb-16 pt-6 nav:px-10 nav:pt-10; }
   .app-main:not([hidden]) > *, .public:not([hidden]) > *, .onboard:not([hidden]) > * { animation: rise-in 0.45s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
@@ -778,7 +843,9 @@
   .nav-backdrop, .side-close { display: none; }
   body.nav-open { overflow: auto; }
   body.nav-collapsed { --side-width: 72px; }
-  body.nav-collapsed .app-nav .nav-label, body.nav-collapsed .side-share { display: none; }
+  body.nav-collapsed .side-logo-text, body.nav-collapsed .side-profile-text, body.nav-collapsed .side-share { display: none; }
+  /* Icons only: item names stay readable for screen readers; a tooltip (.nav-tip) shows them on hover. */
+  body.nav-collapsed .nav-link .nav-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
   body.nav-collapsed .side-label { height: 1px; margin: 10px 8px; padding: 0; font-size: 0; background: rgb(var(--line)); }
   body.nav-collapsed .nav-link { justify-content: center; padding: 0; }
   body.nav-collapsed .side-head { justify-content: center; }
@@ -786,6 +853,14 @@
   body.nav-collapsed .nav-badge { position: absolute; top: 2px; right: 4px; height: 18px; min-width: 18px; font-size: 0.68rem; }
   .toast { bottom: 24px; }
   body.has-nav .toast { left: calc(50% + var(--side-width) / 2); }
+}
+
+/* Phones: when the drawer opens, its items slide in one after another (--i set in js/shell.js). */
+@media (max-width: 899px) {
+  body.nav-open .side-label, body.nav-open .nav-link, body.nav-open .side-foot > * {
+    animation: nav-item-in 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
+    animation-delay: calc(var(--i, 0) * 30ms + 90ms);
+  }
 }
 
 /* Computers / laptops: denser sizes like Notion (phones keep the big, easy-to-tap sizes).

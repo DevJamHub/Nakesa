@@ -11,15 +11,16 @@ import { fetchProfile } from './profile.js';
 import { requireSession } from './ui.js';
 
 // tone: the item's colour (tone-* classes in js/tailwind-setup.js).
+// anim: how its icon moves on hover and when its page opens (nav-* keyframes there).
 const NAV = [
-  { key: 'dashboard', label: 'Beranda', icon: '🏠', tone: 'accent' },
-  { key: 'bookings', label: 'Booking', icon: '📅', tone: 'blue' },
-  { key: 'patients', label: 'Pasien', icon: '👥', tone: 'purple' },
-  { key: 'prescriptions', label: 'Resep', icon: '📝', tone: 'teal' },
-  { key: 'medicines', label: 'Obat', icon: '💊', tone: 'yellow' },
-  { key: 'finance', label: 'Keuangan', icon: '💰', tone: 'green' },
-  { key: 'practice', label: 'Praktik', icon: '🏥', tone: 'red', settings: true },
-  { key: 'services', label: 'Layanan & Harga', icon: '🩺', tone: 'teal', settings: true },
+  { key: 'dashboard', label: 'Beranda', icon: '🏠', tone: 'accent', anim: 'hop' },
+  { key: 'bookings', label: 'Booking', icon: '📅', tone: 'blue', anim: 'flip' },
+  { key: 'patients', label: 'Pasien', icon: '👥', tone: 'purple', anim: 'wiggle' },
+  { key: 'prescriptions', label: 'Resep', icon: '📝', tone: 'teal', anim: 'scribble' },
+  { key: 'medicines', label: 'Obat', icon: '💊', tone: 'yellow', anim: 'spin' },
+  { key: 'finance', label: 'Keuangan', icon: '💰', tone: 'green', anim: 'jingle' },
+  { key: 'practice', label: 'Praktik', icon: '🏥', tone: 'red', anim: 'beat', settings: true },
+  { key: 'services', label: 'Layanan & Harga', icon: '🩺', tone: 'teal', anim: 'swing', settings: true },
 ];
 
 const never = () => new Promise(() => {}); // used while the browser navigates away
@@ -96,13 +97,14 @@ function renderHeader(profile, practice, profession) {
 // that can be collapsed to icons only (remembered on this device).
 const wideScreen = window.matchMedia('(min-width: 900px)');
 const COLLAPSED_KEY = 'nakesa-nav-collapsed';
+const FROM_KEY = 'nakesa-nav-from'; // menu item of the page before, for the sliding highlight
 
 function renderNav(activeKey, profile, practice, profession) {
   const nav = document.getElementById('app-nav');
   const link = (item) => `
-    <a href="${PAGES[item.key]}" class="nav-link tone-${item.tone}${item.key === activeKey ? ' is-active' : ''}" title="${item.label}"
-       data-nav="${item.key}" ${item.key === activeKey ? 'aria-current="page"' : ''}>
-      <span class="nav-icon" aria-hidden="true">${item.icon}</span><span class="nav-label">${item.label}</span>
+    <a href="${PAGES[item.key]}" class="nav-link tone-${item.tone}${item.key === activeKey ? ' is-active' : ''}"
+       data-nav="${item.key}" style="--icon-anim: nav-${item.anim}" ${item.key === activeKey ? 'aria-current="page"' : ''}>
+      <span class="nav-icon" aria-hidden="true"><span class="nav-emoji">${item.icon}</span></span><span class="nav-label">${item.label}</span>
     </a>`;
   const booking = bookingLink(practice);
   nav.innerHTML = `
@@ -113,10 +115,12 @@ function renderNav(activeKey, profile, practice, profession) {
       </a>
       <button type="button" class="side-close" data-nav-close aria-label="Tutup menu">✕</button>
     </div>
-    <p class="side-label">Menu</p>
-    <div class="side-links">${NAV.filter((item) => !item.settings).map(link).join('')}</div>
-    <p class="side-label">Pengaturan</p>
-    <div class="side-links">${NAV.filter((item) => item.settings).map(link).join('')}</div>
+    <div class="side-menu">
+      <p class="side-label">Menu</p>
+      <div class="side-links">${NAV.filter((item) => !item.settings).map(link).join('')}</div>
+      <p class="side-label">Pengaturan</p>
+      <div class="side-links">${NAV.filter((item) => item.settings).map(link).join('')}</div>
+    </div>
     <div class="side-foot">
       ${practice.booking_enabled ? `
         <div class="side-share">
@@ -133,10 +137,15 @@ function renderNav(activeKey, profile, practice, profession) {
           <strong>${escapeHtml(titledName(profile.full_name, profile.profession))}</strong>
           <small>${escapeHtml(practice.specialty ? `${profession.label} · ${practice.specialty}` : profession.label)}</small>
         </span>
-        <button type="button" class="side-signout" id="sign-out" title="Keluar" aria-label="Keluar">🚪</button>
+        <button type="button" class="side-signout" id="sign-out" title="Keluar" aria-label="Keluar"><span>🚪</span></button>
       </div>
     </div>`;
   nav.hidden = false;
+  // Order for the one-by-one entrance when the phone drawer opens.
+  nav.querySelectorAll('.side-label, .nav-link, .side-foot > *').forEach((element, i) => element.style.setProperty('--i', i));
+  setupGlider(nav);
+  setupTips(nav);
+  arrive(activeKey);
 
   const backdrop = document.createElement('div');
   backdrop.className = 'nav-backdrop';
@@ -165,10 +174,19 @@ function renderNav(activeKey, profile, practice, profession) {
   setDrawer(false);
   requestAnimationFrame(() => requestAnimationFrame(() => document.body.classList.add('nav-ready')));
 
-  document.getElementById('side-copy')?.addEventListener('click', async () => {
+  const copyButton = document.getElementById('side-copy');
+  let copyTimer;
+  copyButton?.addEventListener('click', async () => {
     try {
       await navigator.clipboard.writeText(booking);
       toast('Link booking disalin');
+      copyButton.textContent = '✓ Tersalin';
+      copyButton.classList.add('is-done');
+      clearTimeout(copyTimer);
+      copyTimer = setTimeout(() => {
+        copyButton.textContent = '📋 Salin link';
+        copyButton.classList.remove('is-done');
+      }, 2000);
     } catch {
       toast('Tidak bisa menyalin otomatis. Buka menu Praktik untuk melihat link.', 'error');
     }
@@ -210,6 +228,86 @@ function renderNav(activeKey, profile, practice, profession) {
 
 function readCollapsed() {
   try { return localStorage.getItem(COLLAPSED_KEY) === '1'; } catch { return false; }
+}
+
+/** Computers: a soft highlight in the item's colour glides after the mouse from item to item. */
+function setupGlider(nav) {
+  const menu = nav.querySelector('.side-menu');
+  const glider = document.createElement('span');
+  glider.className = 'nav-glider';
+  glider.setAttribute('aria-hidden', 'true');
+  menu.prepend(glider);
+  let current = null;
+  menu.addEventListener('pointerover', (event) => {
+    const link = event.target.closest('.nav-link');
+    if (event.pointerType !== 'mouse' || !link || link === current) return;
+    glider.classList.toggle('no-slide', !current); // first item: appear in place, not slide in from the last spot
+    glider.style.setProperty('--tone', getComputedStyle(link).getPropertyValue('--tone'));
+    glider.style.height = `${link.offsetHeight}px`;
+    glider.style.transform = `translateY(${link.offsetTop}px)`;
+    glider.classList.add('is-on');
+    current = link;
+  });
+  menu.addEventListener('pointerleave', () => {
+    current = null;
+    glider.classList.remove('is-on');
+  });
+}
+
+/** Icons-only sidebar: the item's name (and its counter) pops out beside it on hover or keyboard focus. */
+function setupTips(nav) {
+  const tip = document.createElement('div');
+  tip.className = 'nav-tip';
+  tip.setAttribute('aria-hidden', 'true'); // screen readers already get the name from the link
+  document.body.append(tip);
+  const show = (link) => {
+    if (!wideScreen.matches || !document.body.classList.contains('nav-collapsed')) return;
+    const box = link.getBoundingClientRect();
+    const badge = link.querySelector('.nav-badge');
+    tip.innerHTML = escapeHtml(link.querySelector('.nav-label').textContent)
+      + (badge ? `<span class="nav-tip-badge">${escapeHtml(badge.dataset.count > 99 ? '99+' : badge.dataset.count)}</span>` : '');
+    tip.classList.toggle('no-slide', !tip.classList.contains('is-on'));
+    tip.style.left = `${box.right + 14}px`;
+    tip.style.top = `${box.top + box.height / 2}px`;
+    tip.classList.add('is-on');
+  };
+  const hide = () => tip.classList.remove('is-on');
+  nav.addEventListener('pointerover', (event) => {
+    const link = event.target.closest('.nav-link');
+    if (link) show(link);
+    else if (!event.target.closest('.side-menu')) hide(); // gaps between items keep it, so it glides
+  });
+  nav.addEventListener('pointerleave', hide);
+  nav.addEventListener('focusin', (event) => {
+    const link = event.target.closest('.nav-link');
+    if (link) show(link); else hide();
+  });
+  nav.addEventListener('focusout', hide);
+  nav.addEventListener('scroll', hide, { passive: true });
+}
+
+/**
+ * The current page's highlight slides over from the menu item of the page before
+ * (remembered for this tab), changing colour on the way; then its icon does its little move.
+ */
+function arrive(activeKey) {
+  let fromKey = null;
+  try { fromKey = sessionStorage.getItem(FROM_KEY); } catch { /* private mode */ }
+  window.addEventListener('pagehide', () => {
+    try { sessionStorage.setItem(FROM_KEY, activeKey); } catch { /* private mode */ }
+  });
+  const link = document.querySelector(`.nav-link[data-nav="${activeKey}"]`);
+  if (!link) return;
+  // Measured in the next frame: the Tailwind CDN styles the freshly added menu just after this runs.
+  requestAnimationFrame(() => {
+    const from = fromKey !== activeKey && document.querySelector(`.nav-link[data-nav="${fromKey}"]`);
+    if (from) {
+      link.style.setProperty('--from-y', `${from.offsetTop - link.offsetTop}px`);
+      link.style.setProperty('--from-tone', getComputedStyle(from).getPropertyValue('--tone'));
+    }
+    link.classList.add('is-arriving');
+    setTimeout(() => link.classList.remove('is-arriving'), 1500);
+  });
 }
 
 function setDrawer(open) {
@@ -254,10 +352,13 @@ async function setNavBadge(key, label, query) {
   try {
     const { count, error } = await query;
     if (error) throw error;
-    link.querySelector('.nav-badge')?.remove();
+    const old = link.querySelector('.nav-badge');
+    if (Number(old?.dataset.count ?? 0) === count) return; // unchanged: don't replay the animation
+    old?.remove();
     if (count) {
       link.insertAdjacentHTML('beforeend',
-        `<span class="nav-badge" aria-label="${count} ${label}">${count > 99 ? '99+' : count}</span>`);
+        `<span class="nav-badge" data-count="${count}" aria-label="${count} ${label}"></span>`);
+      countUp(link.querySelector('.nav-badge'), count, (n) => (n > 99 ? '99+' : String(n)));
     }
   } catch { /* the badge is only a hint */ }
 }

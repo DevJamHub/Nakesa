@@ -18,6 +18,15 @@ jobs:
         run: |
           find js -name '*.js' -print0 | xargs -0 -n1 node --check
 
+  php-syntax:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Cek sintaks semua file PHP
+        run: |
+          php --version
+          find php -name '*.php' -print0 | xargs -0 -n1 php -l
+
   check-refs:
     runs-on: ubuntu-latest
     steps:

@@ -719,8 +719,8 @@ Sebaliknya, **dashboard nakes** (Beranda, Pasien, Keuangan, Obat) tetap lebih co
 - [x] Server-side processing
 - [x] Dynamic HTML
 - [x] Test
-- [ ] Commit
-- [ ] Push
+- [x] Commit (`ceb4855` — "PHP")
+- [x] Push (ke `origin/main`, CI hijau termasuk job baru `php-syntax`)
 - [x] Ready for demo
 
 **Output:** halaman Profil Praktik NAKESA yang dibuat di server dengan PHP.

@@ -6,6 +6,7 @@ import { financeCategories } from '../professions.js';
 import {
   appError, closeDialog, confirmDialog, fillForm, formValues, startPage, toast, whileSaving,
 } from '../shell.js';
+import { csvDelimiter, monthlyReportCsv, reportFileName } from '../finance-report.js';
 
 const { profile, practice } = await startPage('finance');
 
@@ -31,6 +32,7 @@ const month = new Date();
 month.setDate(1);
 let transactions = []; // this month, oldest first (the order of the book)
 let openingBalance = 0; // saldo awal: what was left from all earlier months
+let loadedMonth = null; // the month `transactions` belongs to (first day, set by load())
 let editing = null;
 let kindFilter = 'all';
 
@@ -53,6 +55,7 @@ async function load() {
         .order('occurred_on').order('created_at')),
       balanceBefore(first),
     ]);
+    loadedMonth = first;
   } catch (error) {
     transactions = [];
     openingBalance = 0;
@@ -365,6 +368,29 @@ document.getElementById('delete').addEventListener('click', async () => {
   } catch (error) {
     toast(appError(error), 'error');
   }
+});
+
+/* ---------- US 6.5: Download the month as a spreadsheet (CSV) ---------- */
+// Built in the browser from the month that is already loaded, so it always matches the cash book
+// on screen: same columns, same saldo awal, running saldo and saldo akhir.
+document.getElementById('download-report').addEventListener('click', () => {
+  const label = month.toLocaleDateString('id-ID', { month: 'long', year: 'numeric' });
+  if (loadedMonth !== toISODate(month)) {
+    toast(`Data ${label} masih dimuat. Coba lagi sebentar.`, 'error');
+    return;
+  }
+  if (!transactions.length && !openingBalance) {
+    toast(`Belum ada catatan di ${label}.`, 'error');
+    return;
+  }
+  const csv = monthlyReportCsv(transactions, { delimiter: csvDelimiter(), openingBalance, monthStart: toISODate(month) });
+  const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
+  const link = Object.assign(document.createElement('a'), { href: url, download: reportFileName(practice.name, month) });
+  document.body.append(link);
+  link.click();
+  link.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  toast(`Laporan ${label} diunduh`);
 });
 
 await load();

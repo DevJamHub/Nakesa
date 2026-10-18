@@ -25,7 +25,7 @@ Pekerjaan dibagi dua halaman PHP yang berbeda, dengan Task 01–03 lengkap di ma
 | Anggota | Pekerjaan | Bukti |
 |---|---|---|
 | Sigit Novriyanto (@DevJamHub) | Halaman Profil Praktik (`php/data.php`, `php/functions.php`, `php/praktik.php`), job CI `php-syntax`, `Week5.md`, PDF presentasi | ceb4855, 356a3a1 |
-| Aditiya Al Bayhaqy (@baybayyy26) | Halaman Fitur & Profesi (`php/data-fitur.php`, `php/functions-fitur.php`, `php/fitur.php`), `Week5-Bayhaqy.md`; menggabungkan PR #21–#40 yang sudah disetujui ke satu branch; peta Week 5 ini | PR #43, PR gabungan (menunggu review) |
+| Aditiya Al Bayhaqy (@baybayyy26) | Halaman Fitur & Profesi (`php/data-fitur.php`, `php/functions-fitur.php`, `php/fitur.php`), `Week5-Bayhaqy.md`; menggabungkan PR #21–#40 yang sudah disetujui ke satu branch (PR #44); peta Week 5 ini | PR #43, PR #44 (menunggu review) |
 
 ## File yang dikerjakan
 

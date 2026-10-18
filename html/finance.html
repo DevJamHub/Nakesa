@@ -83,7 +83,11 @@
             <p class="text-sm text-muted" id="ledger-sub"></p>
           </div>
         </div>
-        <button type="button" class="btn btn-ghost btn-small print:hidden" id="print">🖨️ Cetak / PDF</button>
+        <div class="flex flex-wrap gap-2 print:hidden">
+          <button type="button" class="btn btn-ghost btn-small" id="print">🖨️ Cetak / PDF</button>
+          <!-- US 6.5: the same cash book as a spreadsheet file (js/pages/finance.js) -->
+          <button type="button" class="btn btn-ghost btn-small" id="download-report">⬇️ Unduh Excel (CSV)</button>
+        </div>
       </div>
       <p class="border-b border-line bg-blue-soft px-4 py-2 text-[13px] font-medium text-blue sm:px-5 print:hidden" id="ledger-note" hidden></p>
       <div class="ledger-scroll" id="list"></div>

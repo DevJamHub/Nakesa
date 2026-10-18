@@ -33,6 +33,33 @@ function openLabel(bool $isOpen): string
     return 'Sedang tutup';
 }
 
+/** 150000 → "Rp 150.000", seperti rupiah() di js/format.js. */
+function rupiah(int $amount): string
+{
+    return 'Rp ' . number_format($amount, 0, ',', '.');
+}
+
+/**
+ * Layanan yang ditampilkan ke pasien: daftar dari get_public_practice (menu Layanan & Harga, sama
+ * dengan Nakesa Patient), atau layanan standar profesi kalau datanya belum ada (migrasi belum
+ * dijalankan, atau contoh praktik). Setiap layanan: ['name' => …, 'detail' => "Rp 150.000 · 30 menit"].
+ */
+function practiceServices(array $practice, array $profession): array
+{
+    $services = [];
+    foreach ($practice['services'] ?? [] as $service) {
+        $price = $service['price'] === null ? 'Tanya harga ke praktik' : rupiah((int) $service['price']);
+        $services[] = ['name' => $service['name'], 'detail' => "$price · {$service['duration_minutes']} menit"];
+    }
+    if (count($services) > 0) {
+        return $services;
+    }
+    foreach ($profession['services'] as $name) {
+        $services[] = ['name' => $name, 'detail' => ''];
+    }
+    return $services;
+}
+
 /** "08:00" → "08.00" (penulisan jam di Indonesia). */
 function shortTime(string $time): string
 {

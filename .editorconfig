@@ -1,0 +1,15 @@
+# Format dasar yang dibaca otomatis oleh hampir semua editor (VS Code, WebStorm, dll.),
+# supaya file dari semua anggota tim konsisten: UTF-8, akhir baris LF, indentasi 2 spasi.
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+indent_style = space
+indent_size = 2
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+# Di Markdown, dua spasi di akhir baris berarti ganti baris
+[*.md]
+trim_trailing_whitespace = false

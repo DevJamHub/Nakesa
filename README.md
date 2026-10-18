@@ -31,7 +31,8 @@ Prinsip desainnya:
 ## Teknologi
 
 - **Frontend:** HTML + CSS + JavaScript murni (ES modules), **tanpa framework dan tanpa build step**. Tampilan memakai Tailwind CSS (Play CDN) dengan konfigurasi dan komponen bersama di `js/tailwind-setup.js`; halaman Beranda publik memakai `css/index.css`.
-- **Backend:** [Supabase](https://supabase.com) (Auth + Postgres + Storage). Tidak ada server sendiri; semua akses data dilindungi Row Level Security, dan aturan penting (stok, resep, booking) dijalankan oleh fungsi database.
+- **Backend:** [Supabase](https://supabase.com) (Auth + Postgres + Storage). Aplikasi utama tidak memakai server sendiri; semua akses data dilindungi Row Level Security, dan aturan penting (stok, resep, booking) dijalankan oleh fungsi database.
+- **Server-side (Week 5):** PHP 8 prosedural di folder `php/` untuk halaman publik yang HTML-nya dibuat di server (Profil Praktik). PHP hanya membaca data publik lewat fungsi database yang sama dengan halaman booking.
 - **API eksternal:** [API Hari Libur](https://github.com/guangrei/APIHariLibur_V2) untuk hari libur nasional di Beranda (tanpa login dan tanpa API key).
 - **Zona waktu:** Asia/Jakarta (WIB).
 
@@ -45,6 +46,7 @@ Halaman memakai ES modules, jadi harus dibuka lewat server lokal (bukan `file://
    - `python3 -m http.server 5501`
 3. Buka `http://localhost:5501/`. Halaman akan diarahkan ke `html/index.html`.
 4. (Opsional) Jalankan unit test dengan Node.js 22 atau lebih baru: `node --test "tests/**/*.test.mjs"`.
+5. Halaman PHP (Week 5) di folder `php/` butuh server yang menjalankan PHP 8: dari folder repo jalankan `php -S localhost:8000`, lalu buka `http://localhost:8000/php/praktik.php` (Profil Praktik). Live Server tidak menjalankan PHP.
 
 Koneksi ke Supabase diatur di `js/config.js` (URL project dan *publishable key*, yang memang aman dipakai di frontend). Metode login bisa dinyalakan/dimatikan lewat `AUTH_PROVIDERS` di file yang sama. Kalau login Google atau tautan dari email tidak kembali ke alamat lokal, tambahkan alamat tersebut ke **Redirect URLs** di Supabase (Authentication → URL Configuration).
 
@@ -56,6 +58,7 @@ js/                   Modul bersama: auth, db, shell (kerangka halaman), profess
                       practice-utils (status booking & obat), roles, medicine-forms, holidays, qr, patient-preview
 js/pages/             Logika per halaman, nama file sama dengan halamannya
 css/index.css         Gaya halaman Beranda publik
+php/                  Halaman PHP server-side (Week 5): data.php, functions.php, praktik.php (Profil Praktik)
 supabase/migrations/  Skema database, Row Level Security, dan fungsi publik
 docs/                 Rancangan sistem obat & resep (docs/sistem-obat.md)
 tests/                Unit test (node --test) untuk modul di js/

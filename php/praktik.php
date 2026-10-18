@@ -54,7 +54,7 @@ if ($practice) {
     $todayText = todaySummary($hoursByDay, $today);
 
     /* ---------- Week 5 · Task 03: Dynamic Server-Side Content ---------- */
-    $services = $profession['services'];
+    $services = practiceServices($practice, $profession); // milik praktik (Layanan & Harga), atau standar profesi
     $serviceTones = ['bg-blue-soft text-blue', 'bg-green-soft text-green', 'bg-yellow-soft text-yellow', 'bg-purple-soft text-purple'];
     $bookingUrl = $isSample ? null : '../html/book.html?p=' . rawurlencode($slug);
     $chatUrl = $phone ? waLink($phone, "Halo $practiceName, saya ingin bertanya.") : null;
@@ -153,12 +153,17 @@ if ($practice) {
     <!-- Task 03: daftar layanan, setiap baris dibuat PHP dari array (bukan ditulis manual) -->
     <section class="card" aria-labelledby="services-title">
       <h2 id="services-title">🩺 Layanan</h2>
-      <p class="mb-3 mt-1 text-sm text-muted"><?= count($services) ?> layanan <?= e($profession['label']) ?>. Pilih salah satu saat membuat janji.</p>
+      <p class="mb-3 mt-1 text-sm text-muted"><?= count($services) ?> layanan. Pilih salah satu saat membuat janji.</p>
       <ol class="m-0 grid list-none gap-2 p-0">
 <?php foreach ($services as $index => $service): ?>
         <li class="flex items-center gap-3 rounded-xl border border-line px-3.5 py-3">
           <span class="grid h-8 w-8 shrink-0 place-items-center rounded-full text-sm font-bold <?= $serviceTones[$index % count($serviceTones)] ?>"><?= $index + 1 ?></span>
-          <span class="font-medium text-ink"><?= e($service) ?></span>
+          <span class="min-w-0">
+            <span class="block font-medium text-ink"><?= e($service['name']) ?></span>
+<?php if ($service['detail'] !== ''): ?>
+            <span class="block text-sm text-muted"><?= e($service['detail']) ?></span>
+<?php endif; ?>
+          </span>
         </li>
 <?php endforeach; ?>
       </ol>

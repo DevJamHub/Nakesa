@@ -71,7 +71,7 @@ Tabel di skema `public` (semua dengan **Row Level Security**). Data praktik dasa
 - `audit_log` — catatan perubahan data penting
 
 Fungsi publik (bisa dipanggil tanpa login, `security definer`):
-- `get_public_practice(slug)` — info praktik untuk halaman booking (tanpa data pasien/keuangan)
+- `get_public_practice(slug)` — info praktik untuk halaman booking dan Profil Praktik PHP: jam praktik dan layanan aktif dari menu Layanan & Harga (tanpa data pasien/keuangan)
 - `get_public_slots(slug, tanggal)` — slot jam pada tanggal itu dan mana yang masih kosong (hanya jam, tanpa data pasien)
 - `create_booking(...)` — membuat booking online dengan validasi (praktik ada, booking aktif, tanggal valid, praktik buka di hari itu, jam berupa slot 30 menit di dalam sesi praktik yang belum lewat dan belum dipesan orang lain — aturan slot yang sama dengan aplikasi Nakesa Patient). Pesan error dalam Bahasa Indonesia dan langsung ditampilkan ke pasien.
 

@@ -2,7 +2,7 @@
 // Uses two database functions that expose only what patients need.
 import { supabase } from '../supabase.js';
 import { IS_DEV } from '../errors.js';
-import { DAYS, escapeHtml, formatDate, shortTime, waLink } from '../format.js';
+import { DAYS, escapeHtml, formatDate, rupiah, shortTime, waLink } from '../format.js';
 import { professionOf, titledName } from '../professions.js';
 import {
   addDaysISO, isDayOver, isWithinHours, markTaken, slotsOn, toMinutes, wibClock,
@@ -129,9 +129,14 @@ function setUpForm(p, profession, openDays) {
   const timeHint = document.getElementById('time-hint');
   const hasSchedule = p.hours.length > 0;
 
-  document.getElementById('services').innerHTML = profession.services.map((s, i) => `
-    <label class="choice"><input type="radio" name="p_service" value="${escapeHtml(s)}" ${i === 0 ? 'checked' : ''}>
-    <span>${escapeHtml(s)}</span></label>`).join('');
+  // The practice's own services from "Layanan & Harga" (same list as Nakesa Patient); before that
+  // migration has run, or without services, the profession's standard ones.
+  const services = p.services?.length
+    ? p.services
+    : profession.services.map((name) => ({ name, price: null }));
+  document.getElementById('services').innerHTML = services.map((s, i) => `
+    <label class="choice"><input type="radio" name="p_service" value="${escapeHtml(s.name)}" ${i === 0 ? 'checked' : ''}>
+    <span>${escapeHtml(s.name)}${s.price === null || s.price === undefined ? '' : ` · <small class="text-xs font-normal text-muted">${rupiah(s.price)}</small>`}</span></label>`).join('');
 
   form.p_date.min = todayISO();
   form.p_date.max = todayISO(60);

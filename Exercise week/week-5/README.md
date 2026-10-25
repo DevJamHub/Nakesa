@@ -1,6 +1,6 @@
 # Week 5 — Sprint 04 — PHP Prosedural (Server-Side)
 
-**Periode:** 13–19 Okt 2026 · **Milestone:** [Week 5](https://github.com/DevJamHub/Nakesa/milestone/7) · **Issue tugas:** [#41](https://github.com/DevJamHub/Nakesa/issues/41) (Sigit), [#42](https://github.com/DevJamHub/Nakesa/issues/42) (Bayhaqy) · **Kode:** tag `week-5` dibuat setelah PR #43 masuk `main`
+**Periode:** 13–19 Okt 2026 · **Milestone:** [Week 5](https://github.com/DevJamHub/Nakesa/milestone/7) · **Issue tugas:** [#41](https://github.com/DevJamHub/Nakesa/issues/41) (Sigit), [#42](https://github.com/DevJamHub/Nakesa/issues/42) (Bayhaqy) · **Kode:** tag `week-5` dibuat setelah PR #74 masuk `main`
 
 ## Materi
 
@@ -11,7 +11,7 @@
 - [x] Task 01 — Create PHP Page (variabel → HTML)
 - [x] Task 02 — Process Data with PHP (array, conditional, loop)
 - [x] Task 03 — Build Dynamic Server-Side Content (bagian halaman yang dibuat PHP)
-- [x] Penjelasan: [`Week5.md`](../Week5.md) (Sigit) dan [`Week5-Bayhaqy.md`](../Week5-Bayhaqy.md) (Bayhaqy, di PR #43)
+- [x] Penjelasan: [`Week5.md`](../Week5.md) (Sigit) dan [`Week5-Bayhaqy.md`](../Week5-Bayhaqy.md) (Bayhaqy, di PR #74)
 
 **Issue per task (sub-issue):** [#62](https://github.com/DevJamHub/Nakesa/issues/62) · [#63](https://github.com/DevJamHub/Nakesa/issues/63) · [#64](https://github.com/DevJamHub/Nakesa/issues/64)
 
@@ -27,7 +27,7 @@ Pekerjaan dibagi dua halaman PHP yang berbeda, dengan Task 01–03 lengkap di ma
 | Anggota | Pekerjaan | Bukti |
 |---|---|---|
 | Sigit Novriyanto (@DevJamHub) | Halaman Profil Praktik (`php/data.php`, `php/functions.php`, `php/praktik.php`), job CI `php-syntax`, `Week5.md`, PDF presentasi | ceb4855, 356a3a1 |
-| Aditiya Al Bayhaqy (@baybayyy26) | Halaman Fitur & Profesi (`php/data-fitur.php`, `php/functions-fitur.php`, `php/fitur.php`), `Week5-Bayhaqy.md`; menggabungkan PR #21–#40 yang sudah disetujui ke satu branch (PR #44); peta Week 5 ini | PR #43, PR #44 (menunggu review) |
+| Aditiya Al Bayhaqy (@baybayyy26) | Halaman Fitur & Profesi (`php/data-fitur.php`, `php/functions-fitur.php`, `php/fitur.php`), `Week5-Bayhaqy.md`; menggabungkan PR #21–#40 yang sudah disetujui ke satu branch (PR #75); peta Week 5 ini | PR #74, PR #75 (menunggu review) |
 
 ## File yang dikerjakan
 
@@ -39,8 +39,8 @@ Pekerjaan dibagi dua halaman PHP yang berbeda, dengan Task 01–03 lengkap di ma
 | [`.github/workflows/ci.yml`](../../.github/workflows/ci.yml) | Diubah | Job `php-syntax` |
 | [`.github/scripts/check-refs.mjs`](../../.github/scripts/check-refs.mjs) | Diubah | Ikut memeriksa file PHP |
 | [`Exercise week/Week5.md`](../Week5.md) | Baru | Dokumentasi tugas Week 5 (Sigit) |
-| `php/data-fitur.php`, `php/functions-fitur.php`, `php/fitur.php` | Baru (PR #43) | Halaman Fitur & Profesi |
-| `Exercise week/Week5-Bayhaqy.md` | Baru (PR #43) | Dokumentasi tugas Week 5 (Bayhaqy) |
+| `php/data-fitur.php`, `php/functions-fitur.php`, `php/fitur.php` | Baru (PR #74) | Halaman Fitur & Profesi |
+| `Exercise week/Week5-Bayhaqy.md` | Baru (PR #74) | Dokumentasi tugas Week 5 (Bayhaqy) |
 
 ## Menjalankan halaman PHP
 

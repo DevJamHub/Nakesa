@@ -1,5 +1,5 @@
-// Opened from the password-reset email. supabase-js exchanges the link's code
-// for a temporary recovery session, then the user chooses a new password.
+// Opened from the password-reset email, then the user chooses a new password.
+// Not reachable for now: sending that email needs an outside email service (PASSWORD_RESET in config.js).
 import { PAGES } from '../config.js';
 import { getSession, updatePassword } from '../auth.js';
 import { friendlyError } from '../errors.js';

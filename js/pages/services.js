@@ -1,6 +1,6 @@
 // Layanan & Harga: the services patients choose from in Nakesa Patient, with price and
 // duration. A practice without services of its own offers its profession's standard ones.
-import { run, supabase, updateRow } from '../db.js';
+import { deleteRow, insertRow, updateRow } from '../db.js';
 import { bindRupiahInput, escapeHtml, parseRupiah } from '../format.js';
 import { DURATIONS, durationLabel, loadServices, priceLabel, serviceCardHtml } from '../patient-preview.js';
 import { professionOf } from '../professions.js';
@@ -141,9 +141,8 @@ $('content').addEventListener('change', async (event) => {
 
 async function useDefaults(button) {
   try {
-    await whileSaving(button, () => run(supabase.from('practice_services').insert(
-      profession.services.map((name, i) => ({ practice_id: practice.id, name, duration_minutes: 30, sort_order: (i + 1) * 10 })),
-    )));
+    await whileSaving(button, () => insertRow('practice_services',
+      profession.services.map((name, i) => ({ name, duration_minutes: 30, sort_order: (i + 1) * 10 }))));
     toast('Layanan standar ditambahkan. Sekarang lengkapi harganya.');
     await load();
   } catch (error) {
@@ -179,7 +178,7 @@ async function remove(s) {
   });
   if (!ok) return;
   try {
-    await run(supabase.from('practice_services').delete().eq('id', s.id));
+    await deleteRow('practice_services', s.id);
     toast('Layanan dihapus');
     await load();
   } catch (error) {
@@ -268,11 +267,10 @@ function buildDialog() {
     try {
       await whileSaving(dialog.querySelector('#svc-save'), () => (editing
         ? updateRow('practice_services', editing.id, row)
-        : run(supabase.from('practice_services').insert({
+        : insertRow('practice_services', {
           ...row,
-          practice_id: practice.id,
           sort_order: (Math.max(0, ...services.map((s) => s.sort_order)) || 0) + 10,
-        }))));
+        })));
       closeDialog(dialog);
       toast(editing ? 'Layanan disimpan' : 'Layanan ditambahkan');
       await load();

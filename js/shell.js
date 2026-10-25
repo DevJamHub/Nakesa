@@ -2,7 +2,7 @@
 // messages (toast), pop-ups and form/dialog helpers.
 import { PAGES } from './config.js';
 import { onAuthChange, signOut } from './auth.js';
-import { run, supabase } from './db.js';
+import { api } from './db.js';
 import { IS_DEV } from './errors.js';
 import { escapeHtml, todayISO } from './format.js';
 import { bookingLink } from './practice-utils.js';
@@ -29,7 +29,7 @@ const never = () => new Promise(() => {}); // used while the browser navigates a
 export async function loadAccount(userId) {
   const [profile, practice] = await Promise.all([
     fetchProfile(userId),
-    run(supabase.from('practices').select('*').eq('owner_id', userId).maybeSingle()),
+    api('practices.php'),
   ]);
   return { profile, practice };
 }
@@ -339,10 +339,8 @@ function syncMenuButton() {
  */
 export async function refreshNavBadges() {
   await Promise.all([
-    setNavBadge('bookings', 'perlu konfirmasi', supabase.from('bookings').select('id', { count: 'exact', head: true })
-      .eq('status', 'baru').gte('booking_date', todayISO())),
-    setNavBadge('medicines', 'obat perlu dicek', supabase.from('medicine_inventory').select('id', { count: 'exact', head: true })
-      .eq('is_active', true).or('stock_status.neq.aman,expiry_status.neq.aman')),
+    setNavBadge('bookings', 'perlu konfirmasi', api('bookings.php', { params: { view: 'pending_count', date: todayISO() } })),
+    setNavBadge('medicines', 'obat perlu dicek', api('medicine_inventory.php', { params: { view: 'attention_count' } })),
   ]);
 }
 
@@ -350,8 +348,7 @@ async function setNavBadge(key, label, query) {
   const link = document.querySelector(`[data-nav="${key}"]`);
   if (!link) return;
   try {
-    const { count, error } = await query;
-    if (error) throw error;
+    const { count } = await query;
     const old = link.querySelector('.nav-badge');
     if (Number(old?.dataset.count ?? 0) === count) return; // unchanged: don't replay the animation
     old?.remove();
@@ -397,17 +394,13 @@ document.addEventListener('pointerdown', (event) => {
 
 /* ---------- Messages ---------- */
 
-/** Friendly Indonesian text for any Supabase / network error. */
+/** Friendly Indonesian text for any server / network error. */
 export function appError(error) {
   if (IS_DEV) console.error('[app]', error);
-  if (error?.name === 'AuthRetryableFetchError' || error instanceof TypeError || !navigator.onLine) {
+  if (error instanceof TypeError || !navigator.onLine) {
     return 'Koneksi internet bermasalah. Periksa jaringan lalu coba lagi.';
   }
-  if (error?.code === 'P0001') return error.message; // our own messages from the database
-  if (error?.code === '23514') return 'Ada isian yang tidak sesuai. Periksa kembali.';
-  if (error?.code === '23505') return 'Data yang sama sudah ada.';
-  if (error?.code === '23503') return 'Data ini masih dipakai di catatan lain, jadi tidak bisa dihapus.';
-  if (error?.code === '42501') return 'Anda tidak punya izin untuk melakukan ini.';
+  if (error?.userMessage) return error.userMessage; // our own messages from the PHP server
   return 'Terjadi kesalahan. Silakan coba lagi.';
 }
 

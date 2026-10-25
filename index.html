@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>NAKESA</title>
   <script>
-    // All pages live in /html. If Supabase sends a sign-in result here
+    // All pages live in /html. If a sign-in provider sends a result here
     // (?code= or #error=), pass it on to the callback page.
     var hasAuthResult = /[?&#](code|error)=/.test(location.search + location.hash);
     location.replace((hasAuthResult ? 'html/callback.html' : 'html/index.html') + location.search + location.hash);

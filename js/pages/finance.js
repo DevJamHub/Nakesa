@@ -1,6 +1,6 @@
 // Keuangan: money in / out per month, with a monthly summary, a 6-month trend and the cash
 // book (buku kas): every record as a row with a running balance, like the paper book.
-import { deleteRow, fetchAll, insertRow, run, supabase, updateRow } from '../db.js';
+import { api, deleteRow, insertRow, updateRow } from '../db.js';
 import { bindRupiahInput, escapeHtml, formatDate, parseRupiah, rupiah, toISODate, todayISO } from '../format.js';
 import { compactAmount, monthKey, monthlyTotals, niceMax, trendWindow } from '../finance-trend.js';
 import { financeCategories } from '../professions.js';
@@ -52,9 +52,7 @@ async function load() {
   const trendLoaded = loadTrend(); // the chart loads alongside this month's list
   try {
     [transactions, openingBalance] = await Promise.all([
-      run(supabase.from('transactions').select('*')
-        .gte('occurred_on', first).lte('occurred_on', last)
-        .order('occurred_on').order('created_at')),
+      api('transactions.php', { params: { from: first, to: last } }),
       balanceBefore(first),
     ]);
     loadedMonth = first;
@@ -67,20 +65,14 @@ async function load() {
   await trendLoaded;
 }
 
-/** Money in minus money out before `date`. Read in pages: the API returns at most 1000 rows at once. */
+/** Money in minus money out before `date` (counted by the server). */
 async function balanceBefore(date) {
-  const PAGE = 1000;
-  let balance = 0;
-  for (let from = 0; ; from += PAGE) {
-    const rows = await run(supabase.from('transactions').select('kind, amount')
-      .lt('occurred_on', date).order('id').range(from, from + PAGE - 1));
-    for (const t of rows) balance += t.kind === 'masuk' ? t.amount : -t.amount;
-    if (rows.length < PAGE) return balance;
-  }
+  const { balance } = await api('transactions.php', { params: { view: 'balance', before: date } });
+  return balance;
 }
 
 /* ---------- US 6.4: Trend of the last 6 months ---------- */
-// One query for the whole window (only kind, amount, date), summed per month in the browser.
+// One request for the whole window (api/transactions.php?from=…&to=…), summed per month in the browser.
 // Each month is a button: hover/focus shows its numbers below the chart, a tap opens that month.
 const trendChart = document.getElementById('trend-chart');
 const trendReadout = document.getElementById('trend-readout');
@@ -95,10 +87,10 @@ async function loadTrend() {
   const end = months.at(-1);
   trendChart.classList.add('opacity-60'); // keep the old chart visible while loading
   try {
-    const rows = await fetchAll(() => supabase.from('transactions').select('kind, amount, occurred_on')
-      .gte('occurred_on', toISODate(months[0]))
-      .lte('occurred_on', toISODate(new Date(end.getFullYear(), end.getMonth() + 1, 0)))
-      .order('id'));
+    const rows = await api('transactions.php', { params: {
+      from: toISODate(months[0]),
+      to: toISODate(new Date(end.getFullYear(), end.getMonth() + 1, 0)),
+    } });
     if (request !== trendRequest) return; // a newer month was opened meanwhile
     trend = monthlyTotals(rows, months);
     renderTrend();

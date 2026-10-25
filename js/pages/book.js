@@ -1,6 +1,6 @@
 // Public booking page (no login). The link looks like book.html?p=<booking_slug>.
-// Uses two database functions that expose only what patients need.
-import { supabase } from '../supabase.js';
+// Uses api/public.php, which exposes only what patients need.
+import { api } from '../api.js';
 import { IS_DEV } from '../errors.js';
 import { DAYS, escapeHtml, formatDate, rupiah, shortTime, waLink } from '../format.js';
 import { professionOf, titledName } from '../professions.js';
@@ -10,10 +10,9 @@ import {
 
 const slug = new URLSearchParams(location.search).get('p');
 const main = document.getElementById('app-main');
-// Free slots per date from get_public_slots(): date → [{ start, end, available }].
+// Free slots per date from api/public.php?view=slots: date → [{ start, end, available }].
 // Declared up here because render() runs (below) before the rest of the module.
 const freeSlotsCache = new Map();
-let slotsSupported = true; // false once get_public_slots turns out not to exist in the database
 
 function showPage() {
   document.getElementById('loader').hidden = true;
@@ -25,9 +24,15 @@ function notFound(message) {
     `<div class="card empty-state"><p class="empty-icon" aria-hidden="true">🔍</p><p>${escapeHtml(message)}</p></div>`;
 }
 
-const { data: practice, error } = slug
-  ? await supabase.rpc('get_public_practice', { p_slug: slug })
-  : { data: null, error: null };
+let practice = null;
+let error = null;
+if (slug) {
+  try {
+    practice = await api('public.php', { params: { slug } });
+  } catch (loadError) {
+    error = loadError;
+  }
+}
 
 if (error) {
   if (IS_DEV) console.error('[book]', error);
@@ -83,7 +88,7 @@ function dayOf(iso) {
   return new Date(`${iso}T00:00:00`).getDay();
 }
 
-// Times follow WIB, like the database, whatever time zone the patient's phone uses.
+// Times follow WIB, like the server, whatever time zone the patient's phone uses.
 function nowMinutes() {
   return wibClock().minutes;
 }
@@ -106,17 +111,16 @@ function timeChoice(value, label, { past = false, taken = false, wide = false } 
     <span class="${look}"${off ? ` title="${why}"` : ''}>${label}</span></label>`;
 }
 
-/** Which slots of a date are still free, from the database (see freeSlotsCache at the top). */
+/** Which slots of a date are still free, from the server (see freeSlotsCache at the top). */
 async function loadFreeSlots(iso) {
-  if (!slotsSupported) return null;
-  const { data, error } = await supabase.rpc('get_public_slots', { p_slug: slug, p_date: iso });
-  if (error) {
-    if (IS_DEV) console.error('[book] get_public_slots', error);
-    if (error.code === 'PGRST202') slotsSupported = false; // migration not applied yet: times only
-    return null;
+  try {
+    const data = await api('public.php', { params: { slug, view: 'slots', date: iso } });
+    freeSlotsCache.set(iso, data);
+    return data;
+  } catch (slotsError) {
+    if (IS_DEV) console.error('[book] slots', slotsError);
+    return null; // times are still shown, just without "sudah dipesan"
   }
-  freeSlotsCache.set(iso, data);
-  return data;
 }
 
 function setUpForm(p, profession, openDays) {
@@ -129,8 +133,8 @@ function setUpForm(p, profession, openDays) {
   const timeHint = document.getElementById('time-hint');
   const hasSchedule = p.hours.length > 0;
 
-  // The practice's own services from "Layanan & Harga" (same list as Nakesa Patient); before that
-  // migration has run, or without services, the profession's standard ones.
+  // The practice's own services from "Layanan & Harga" (same list as Nakesa Patient); without
+  // services of its own, the profession's standard ones.
   const services = p.services?.length
     ? p.services
     : profession.services.map((name) => ({ name, price: null }));
@@ -190,7 +194,7 @@ function setUpForm(p, profession, openDays) {
     else timeHint.textContent = '';
   };
 
-  // Ask the database which times are already booked, then draw the times again.
+  // Ask the server which times are already booked, then draw the times again.
   // Answers for a date the patient has already left are ignored.
   const refreshFreeSlots = async (iso) => {
     if (!hasSchedule || !iso) return;
@@ -239,26 +243,25 @@ function setUpForm(p, profession, openDays) {
 
     submit.disabled = true;
     submit.textContent = 'Mengirim…';
-    const { error } = await supabase.rpc('create_booking', {
-      p_slug: slug,
+    let error = null;
+    await api('public.php', { method: 'POST', params: { slug }, body: {
       p_name: name,
       p_phone: phone,
       p_date: values.p_date,
       p_time: time,
       p_service: values.p_service || null,
       p_complaint: values.p_complaint.trim() || null,
-    });
+    } }).catch((sendError) => { error = sendError; });
 
     if (error) {
       if (IS_DEV) console.error('[book]', error);
-      errorBox.textContent = error.code === 'P0001'
-        ? error.message
-        : 'Booking gagal dikirim. Periksa koneksi internet lalu coba lagi.';
+      errorBox.textContent = error.userMessage
+        ?? 'Booking gagal dikirim. Periksa koneksi internet lalu coba lagi.';
       errorBox.hidden = false;
       submit.disabled = false;
       submit.textContent = 'Kirim Booking';
       // Someone else was quicker: show which times are still free.
-      if (error.code === 'P0001' && /sudah dipesan/.test(error.message)) refreshFreeSlots(values.p_date);
+      if (error.code === 'slot_taken') refreshFreeSlots(values.p_date);
       return;
     }
 

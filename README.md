@@ -1,6 +1,6 @@
 # NAKESA — Digital Practice Management
 
-Aplikasi web untuk mengelola **praktik mandiri tenaga kesehatan** di Indonesia: bidan, dokter umum, dokter gigi, dokter spesialis, perawat, fisioterapis, psikolog, ahli gizi, dan profesi kesehatan lain. Pemilik praktik bisa mencatat pasien, menerima booking online, menulis resep, memantau stok obat, dan mencatat keuangan langsung dari HP. Pasien membuat janji lewat link booking (tanpa login) atau lewat aplikasi pendamping **Nakesa Patient**.
+Aplikasi web untuk mengelola **praktik mandiri tenaga kesehatan** di Indonesia: bidan, dokter umum, dokter gigi, dokter spesialis, perawat, fisioterapis, psikolog, ahli gizi, dan profesi kesehatan lain. Pemilik praktik bisa mencatat pasien, menerima booking online, menulis resep, memantau stok obat, dan mencatat keuangan langsung dari HP. Pasien membuat janji lewat link booking (tanpa login).
 
 Prinsip desainnya:
 
@@ -14,78 +14,115 @@ Prinsip desainnya:
 | Menu | Fungsi |
 |---|---|
 | **Beranda** (dashboard) | Sapaan sesuai waktu, sakelar buka/tutup praktik, ringkasan dan pasien hari ini, grafik pemasukan 7 hari, hari libur nasional terdekat (API Hari Libur), dan link booking |
-| **Booking** | Janji temu dari link booking, Nakesa Patient, atau dicatat manual. Status: baru → dikonfirmasi → selesai / batal. Jam booking mengikuti slot 30 menit di dalam jam praktik |
+| **Booking** | Janji temu dari link booking atau dicatat manual. Status: baru → dikonfirmasi → selesai / batal. Jam booking mengikuti slot 30 menit di dalam jam praktik |
 | **Pasien** | Data pasien, pencarian, riwayat kunjungan, dan tombol hubungi lewat WhatsApp |
 | **Resep** | Resep per pasien; saat diselesaikan, stok obat berkurang otomatis (kedaluwarsa paling awal dulu) |
 | **Obat** | Database obat dengan stok per batch, golongan obat, riwayat stok, peringatan menipis/habis dan akan kedaluwarsa |
 | **Keuangan** | Uang masuk & keluar per bulan, pencarian, rincian per kategori, grafik tren 6 bulan, dan Buku Kas (saldo berjalan) yang bisa dicetak / disimpan sebagai PDF atau diunduh sebagai CSV |
-| **Praktik** | Data praktik, jam praktik per hari, booking online, QR code link booking, dan profil praktik di Nakesa Patient |
-| **Layanan & Harga** | Layanan, harga, dan durasi yang dipilih pasien di Nakesa Patient |
+| **Praktik** | Data praktik, jam praktik per hari, booking online, dan QR code link booking |
+| **Layanan & Harga** | Layanan, harga, dan durasi yang tampil di link booking dan Profil Praktik |
 
-**Peran:** setiap anggota praktik punya peran **admin** (pemilik), **nakes** (tenaga kesehatan: obat, stok, resep), atau **staf** (hanya melihat obat dan stok). Database menegakkan aturan yang sama lewat Row Level Security.
+**Halaman booking publik** (`html/book.html?p=<slug>`): pasien bisa membuat janji **tanpa login**. Mereka melihat nama praktik, profesi, alamat, jam praktik, dan layanan + harga, lalu mengisi nama, nomor WhatsApp, tanggal, jam (jam yang sudah lewat atau sudah dipesan dicoret), layanan, dan keluhan.
 
-**Halaman booking publik** (`html/book.html?p=<slug>`): pasien bisa membuat janji **tanpa login**. Mereka melihat nama praktik, profesi, alamat, dan jam praktik, lalu mengisi nama, nomor WhatsApp, tanggal, jam, layanan, dan keluhan.
+**Profil Praktik** (`php/praktik.php?p=<slug>`): halaman yang HTML-nya dibuat PHP di server (tugas Week 5–7).
 
-**Alur akun:** Sambutan → Daftar / Masuk (email + kata sandi, atau Google) → Onboarding (nama → profesi → data praktik) → Dashboard. Tersedia juga lupa dan atur ulang kata sandi, serta mode terang/gelap.
+**Alur akun:** Sambutan → Daftar / Masuk (email + kata sandi) → Onboarding (nama → profesi → data praktik) → Dashboard. Tersedia mode terang/gelap. Satu akun = satu praktik.
+
+## Arsitektur (MVC, Week 7)
+
+```
+VIEW        html/*.html        tampilan (HTML + Tailwind)
+            js/pages/*.js      interaksi DOM, fetch ke API lewat js/api.js, lalu menggambar data
+CONTROLLER  api/*.php          pintu masuk request: membaca method HTTP, ?view= / ?action=, dan body
+            app/Controller/    alur & proses tiap fitur: AuthController, BookingController, PatientController, …
+MODEL       app/Model/         data dan aturannya (OOP): Auth, Account, Table, Inventory, PrescriptionBook, …
+            data/              data yang tersimpan (file JSON per akun, tidak di-commit)
+```
+
+Alurnya: `REQUEST → api/bookings.php → BookingController::today() → Model Table (bookings) → data
+→ JSON → js/pages/bookings.js menggambar html/bookings.html`.
+
+Halaman profil praktik publik (`php/praktik.php`) dibuat PHP di server dengan MVC sendiri:
+
+```
+php/praktik.php     front controller
+php/Controller/     PracticeController: index(), show(), process()
+php/Model/          PracticeModel (mengambil data) + Practice, Profession, Schedule (object praktik)
+php/View/           practice-page.php (template HTML)
+```
 
 ## Teknologi
 
 - **Frontend:** HTML + CSS + JavaScript murni (ES modules), **tanpa framework dan tanpa build step**. Tampilan memakai Tailwind CSS (Play CDN) dengan konfigurasi dan komponen bersama di `js/tailwind-setup.js`; halaman Beranda publik memakai `css/index.css`.
-- **Backend:** [Supabase](https://supabase.com) (Auth + Postgres + Storage). Aplikasi utama tidak memakai server sendiri; semua akses data dilindungi Row Level Security, dan aturan penting (stok, resep, booking) dijalankan oleh fungsi database.
-- **Server-side (Week 5):** PHP 8 prosedural di folder `php/` untuk halaman publik yang HTML-nya dibuat di server (Profil Praktik). PHP hanya membaca data publik lewat fungsi database yang sama dengan halaman booking.
+- **Backend:** PHP 8 tanpa library: API JSON di `api/*.php`, class Controller dan Model di `app/`, data disimpan sebagai file JSON per akun. Login memakai session PHP dan kata sandi di-hash (`password_hash`).
 - **API eksternal:** [API Hari Libur](https://github.com/guangrei/APIHariLibur_V2) untuk hari libur nasional di Beranda (tanpa login dan tanpa API key).
 - **Zona waktu:** Asia/Jakarta (WIB).
 
 ## Menjalankan di lokal
 
-Halaman memakai ES modules, jadi harus dibuka lewat server lokal (bukan `file://`).
+```
+php -S localhost:8000 router.php
+```
 
-1. Clone repo ini.
-2. Jalankan server statis di folder repo, misalnya:
-   - VS Code **Live Server** (port 5501 sudah diatur di `.vscode/settings.json`), atau
-   - `python3 -m http.server 5501`
-3. Buka `http://localhost:5501/`. Halaman akan diarahkan ke `html/index.html`.
-4. (Opsional) Jalankan unit test dengan Node.js 22 atau lebih baru: `node --test "tests/**/*.test.mjs"`.
-5. Halaman PHP (Week 5) di folder `php/` butuh server yang menjalankan PHP 8: dari folder repo jalankan `php -S localhost:8000`, lalu buka `http://localhost:8000/php/praktik.php` (Profil Praktik). Live Server tidak menjalankan PHP.
+Buka http://localhost:8000/. Live Server atau `python3 -m http.server` tidak bisa dipakai, karena tidak menjalankan PHP.
+`router.php` menjaga folder `app/` dan `data/` supaya tidak bisa dibuka dari browser (di XAMPP tugas ini dikerjakan `.htaccess`).
 
-Koneksi ke Supabase diatur di `js/config.js` (URL project dan *publishable key*, yang memang aman dipakai di frontend). Metode login bisa dinyalakan/dimatikan lewat `AUTH_PROVIDERS` di file yang sama. Kalau login Google atau tautan dari email tidak kembali ke alamat lokal, tambahkan alamat tersebut ke **Redirect URLs** di Supabase (Authentication → URL Configuration).
+Saat pertama kali dibuka, data contoh di `app/data/contoh/` disalin ke `data/`. Untuk kembali ke data awal, hapus folder `data/`.
+
+Unit test (Node.js 22 atau lebih baru): `node --test "tests/**/*.test.mjs"`.
+
+### Akun demo
+
+Kata sandi semua akun: `nakesa123`
+
+| Email | Profesi | Praktik |
+|---|---|---|
+| siti@nakesa.test | Bidan | Praktik Bidan Sehati |
+| andi@nakesa.test | Dokter Umum | Klinik Sehat Pratama |
+| rina@nakesa.test | Dokter Gigi | Klinik Gigi Senyum Rina |
+| budi@nakesa.test | Perawat | Rawat Luka & Home Care Budi |
+| dewi@nakesa.test | Fisioterapis | Fisioterapi Dewi |
+| maya@nakesa.test | Psikolog | Ruang Cerita Maya |
 
 ## Struktur folder
 
 ```
 html/                 Satu file per halaman (index, welcome, login, signup, onboarding, dashboard, …, book)
-js/                   Modul bersama: auth, db, shell (kerangka halaman), professions, format, validation, errors, ui, theme,
-                      practice-utils (status booking & obat), roles, medicine-forms, holidays, qr, patient-preview
+js/                   Modul bersama: api, auth, db, shell (kerangka halaman), professions, format, validation, errors, ui,
+                      theme, practice-utils, booking-slots, finance-trend, finance-report, roles, holidays, qr, …
 js/pages/             Logika per halaman, nama file sama dengan halamannya
 css/index.css         Gaya halaman Beranda publik
-php/                  Halaman PHP server-side (Week 5): data.php, functions.php, praktik.php (Profil Praktik)
-supabase/migrations/  Skema database, Row Level Security, dan fungsi publik
+api/                  API JSON, satu file per jenis data (meneruskan request ke Controller)
+app/Controller/       Controller API
+app/Model/            Model: class data dan aturannya
+app/schema.php        Aturan kolom setiap tabel (pengganti CHECK di database)
+app/data/contoh/      Data awal 6 akun demo
+php/                  Halaman PHP server-side: praktik.php (Profil Praktik, MVC) dan fitur.php (Fitur & Profesi)
 docs/                 Rancangan sistem obat & resep (docs/sistem-obat.md)
 tests/                Unit test (node --test) untuk modul di js/
-Exercise week/        Dokumentasi tugas mingguan dan konteks aplikasi
+Exercise week/        Dokumentasi tugas mingguan, peta per week, dan PDF demo
 .github/              Template issue/PR, workflow CI, dan skrip pengecekan
 ```
 
-## Database
+## Data
 
-Semua tabel di skema `public` memakai **Row Level Security**. Data praktik dasar hanya bisa dibaca dan diubah pemiliknya (`owner_id = auth.uid()`); data obat dan resep mengikuti peran di `practice_members`; akun Nakesa Patient hanya melihat data miliknya sendiri.
+Setiap akun punya folder sendiri `data/akun-<id>/`, satu file JSON per tabel. Class `Account` hanya membuka folder akun yang sedang login, jadi data antar-praktik tidak tercampur.
 
 | Tabel | Isi |
 |---|---|
-| `profiles` | Profil pengguna (nama, email, profesi, peran), dibuat otomatis oleh trigger saat mendaftar |
-| `practices` | Satu praktik per pengguna, dengan `booking_slug` untuk link booking publik dan profil untuk Nakesa Patient |
-| `practice_members` | Anggota praktik dan perannya (admin / nakes / staf) |
-| `patients` | Data pasien milik praktik (akun pasien Nakesa Patient ada di `patient_profiles`) |
+| `users` | Akun (nama, email, profesi, hash kata sandi), di `data/users.json` |
+| `practices` | Satu praktik per akun, dengan `booking_slug` untuk link booking publik |
+| `patients` | Data pasien |
 | `bookings` | Janji temu (`status`: baru/dikonfirmasi/selesai/batal, `source`: online/manual) |
 | `practice_hours` | Jam praktik (hari 0 = Minggu … 6 = Sabtu, bisa beberapa sesi per hari) |
 | `practice_services` | Layanan, harga, dan durasi |
-| `medicines`, `medicine_batches`, `medicine_stock` | Obat dan stok per batch (view `medicine_inventory` menghitung status stok & kedaluwarsa) |
-| `stock_movements` | Semua perubahan stok, tidak pernah diketik langsung |
+| `medicines`, `medicine_batches` | Obat dan stok per batch (`Inventory::list()` menghitung status stok & kedaluwarsa) |
+| `stock_movements` | Semua perubahan stok, tidak pernah dihapus |
 | `prescriptions`, `prescription_items` | Resep dan obatnya |
 | `transactions` | Keuangan (`kind`: masuk/keluar, `amount` dalam rupiah bulat) |
-| `audit_log` | Catatan perubahan data penting |
+| `suppliers` | Supplier obat |
 
-Fungsi publik untuk halaman booking (bisa dipanggil tanpa login): `get_public_practice(slug)`, `get_public_slots(slug, tanggal)`, dan `create_booking(...)`. Nakesa Patient memakai fungsi `patient_*` yang hanya bisa dipanggil akun pasien.
+API untuk halaman booking (tanpa login): `api/public.php?slug=…` (profil praktik), `?view=slots&date=…` (jam yang masih bisa dipesan), dan `POST` untuk membuat booking.
 
 ## Alur kerja tim
 
@@ -103,6 +140,6 @@ Pekerjaan dicatat sebagai issue user story, dikerjakan di branch terpisah, lalu 
 
 ## Dokumentasi tugas
 
-- [`Exercise week/Week3.md`](Exercise%20week/Week3.md): Week 3, JavaScript & DOM serta Tailwind CSS.
-- [`Exercise week/Week4.md`](Exercise%20week/Week4.md): Week 4, REST API & Fetch API (hari libur nasional di Beranda).
+- [`Exercise week/README.md`](Exercise%20week/README.md): peta pekerjaan per week (Week 1–5).
+- [`Exercise week/Demo/Demo-NAKESA-tanpa-Supabase.pdf`](Exercise%20week/Demo/Demo-NAKESA-tanpa-Supabase.pdf): penjelasan & tutorial demo Week 1–7 (tanpa Supabase, MVC).
 - [`Exercise week/NAKESA-CONTEXT.md`](Exercise%20week/NAKESA-CONTEXT.md): ringkasan konteks aplikasi.

@@ -1,7 +1,7 @@
 // Pieces of the Nakesa Patient app drawn inside Nakesa Pro, so a practice sees exactly
 // what patients will see (styles: .pp-* in js/tailwind-setup.js). Also the service helpers
 // shared by the Layanan page and the Praktik page.
-import { run, supabase } from './db.js';
+import { api } from './db.js';
 import { escapeHtml, rupiah } from './format.js';
 import { professionOf, titledName } from './professions.js';
 
@@ -18,8 +18,7 @@ export const durationLabel = (minutes) => {
 export const priceLabel = (price) => (price === null || price === undefined ? 'Tanya harga ke praktik' : rupiah(price));
 
 /** The practice's own services (also hidden ones), in the order patients see them. */
-export const loadServices = (practiceId) =>
-  run(supabase.from('practice_services').select('*').eq('practice_id', practiceId).order('sort_order').order('name'));
+export const loadServices = () => api('practice_services.php');
 
 /** What patients are offered: the active own services, or the profession's standard ones. */
 export function offeredServices(own, professionKey) {

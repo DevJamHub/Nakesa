@@ -1,7 +1,7 @@
 // Database Obat: every medicine with its stock, batches and nearest expiry, warning tiles,
 // search and filters. One medicine in detail (batches, history, use) is medicine.html?id=….
 import { PAGES } from '../config.js';
-import { run, supabase, updateRow } from '../db.js';
+import { api, updateRow } from '../db.js';
 import { escapeHtml, formatDate } from '../format.js';
 import { loadCategories, loadSuppliers, openMedicineForm } from '../medicine-forms.js';
 import { DRUG_CLASS, STOCK_STATUS, medicineDetail, medicineExpiry, needsAttention } from '../practice-utils.js';
@@ -25,7 +25,7 @@ if (!canManage(role)) $('summary').textContent = 'Anda masuk sebagai staf: bisa 
 async function load() {
   try {
     [medicines, categories] = await Promise.all([
-      run(supabase.from('medicine_inventory').select('*').order('generic_name')),
+      api('medicine_inventory.php'),
       categories.length ? categories : loadCategories(),
     ]);
   } catch (error) {
@@ -193,7 +193,7 @@ list.addEventListener('click', async (event) => {
   if (examples) {
     examples.disabled = true;
     try {
-      const added = await run(supabase.rpc('add_example_medicines'));
+      const { added } = await api('medicines.php', { method: 'POST', params: { action: 'examples' } });
       toast(`${added} contoh obat ditambahkan. Lengkapi dan tinjau satu per satu.`);
       await load();
     } catch (error) {
@@ -207,7 +207,7 @@ list.addEventListener('click', async (event) => {
   if (edit) {
     try {
       const [medicine, suppliers] = await Promise.all([
-        run(supabase.from('medicines').select('*').eq('id', edit.dataset.edit).single()),
+        api('medicines.php', { params: { id: edit.dataset.edit } }),
         loadSuppliers().catch(() => []),
       ]);
       const saved = await openMedicineForm({ medicine, categories, suppliers, role });

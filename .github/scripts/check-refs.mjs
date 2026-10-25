@@ -18,7 +18,10 @@ for (const file of walk('.')) {
   for (const ref of refs.filter(isLocal)) {
     const clean = ref.split(/[?#]/)[0];
     if (!clean) continue;
-    const target = clean.startsWith('/') ? resolve('.' + clean) : resolve(dirname(file), clean);
+    // Template di folder View/ di-include oleh front controller satu folder di atasnya (php/View → php/praktik.php),
+    // jadi link relatifnya dibaca browser dari folder itu.
+    const base = /(^|\/)View\//.test(file) ? dirname(dirname(file)) : dirname(file);
+    const target = clean.startsWith('/') ? resolve('.' + clean) : resolve(base, clean);
     if (!existsSync(target)) missing.push(`${file}: ${ref}`);
   }
 }

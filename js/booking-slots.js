@@ -1,10 +1,10 @@
 // Time choices for the public booking page, built from the practice schedule.
 // Pure functions (no DOM, no Supabase), so they can be unit-tested with `node --test`.
 //
-// `hours` is the list from get_public_practice(): [{ day, opens: 'HH:MM', closes: 'HH:MM' }],
+// `hours` is the list from api/public.php: [{ day, opens: 'HH:MM', closes: 'HH:MM' }],
 // day 0 = Minggu … 6 = Sabtu. A session runs from `opens` up to (not including) `closes`.
-// Slots follow the same rule as private.practice_slots() in the database (also used by the
-// Nakesa Patient app): blocks of 30 minutes from the opening time, each ending by closing time.
+// Slots follow the same rule as PublicPractice::slots() on the server (app/Model/PublicPractice.php):
+// blocks of 30 minutes from the opening time, each ending by closing time.
 
 export const SLOT_MINUTES = 30;
 
@@ -50,7 +50,7 @@ export function slotsOn(hours, day, { now = null, step = SLOT_MINUTES } = {}) {
 }
 
 /**
- * Mark the slots another patient already has, using get_public_slots():
+ * Mark the slots another patient already has, using api/public.php?view=slots:
  * [{ start: 'HH:MM', end: 'HH:MM', available }]. Times that have passed stay `past`, not `taken`.
  * Without that list (null: the function is not available) the slots are returned unchanged.
  */
@@ -76,7 +76,7 @@ export function isDayOver(hours, day, now) {
 }
 
 /**
- * Today's date and the minutes since midnight in WIB (Asia/Jakarta), the clock the database uses.
+ * Today's date and the minutes since midnight in WIB (Asia/Jakarta), the clock the server uses.
  * A patient whose phone is set to another time zone still sees the same free times as the server.
  * → { iso: 'YYYY-MM-DD', minutes }
  */

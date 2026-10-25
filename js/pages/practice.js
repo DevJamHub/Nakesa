@@ -1,7 +1,7 @@
 // Praktik: open/closed, weekly hours, online booking, practice details and the
 // practice's page in the Nakesa Patient app.
 import { PAGES } from '../config.js';
-import { run, supabase, updateRow } from '../db.js';
+import { api, updateRow } from '../db.js';
 import { DAYS, escapeHtml } from '../format.js';
 import { loadServices, offeredServices, phonePreviewHtml } from '../patient-preview.js';
 import { bookingLink } from '../practice-utils.js';
@@ -80,7 +80,7 @@ const hoursError = document.getElementById('hours-error');
 
 let hours = [];
 try {
-  hours = await run(supabase.from('practice_hours').select('*').order('opens_at'));
+  hours = await api('practice_hours.php');
 } catch (error) {
   toast(appError(error), 'error');
 }
@@ -208,8 +208,7 @@ document.getElementById('save-hours').addEventListener('click', async (event) =>
   try {
     // Replace the whole weekly schedule with what is on screen.
     await whileSaving(event.currentTarget, async () => {
-      await run(supabase.from('practice_hours').delete().eq('owner_id', user.id));
-      if (rows.length) await run(supabase.from('practice_hours').insert(rows));
+      await api('practice_hours.php', { method: 'PUT', body: rows });
     });
     setDirty(false);
     toast('Jadwal disimpan');

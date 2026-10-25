@@ -1,11 +1,5 @@
 <?php
-// DATA untuk halaman PHP NAKESA (Week 5). Isinya sama dengan js/config.js, js/format.js dan js/professions.js.
-
-// Supabase: project dan publishable key yang sama dengan js/config.js. Aman ditaruh di sini karena data
-// dilindungi Row Level Security, dan get_public_practice hanya mengembalikan data yang boleh dilihat pasien.
-// JANGAN PERNAH menaruh secret / service_role key di file ini.
-const SUPABASE_URL = 'https://fmmudgdkyihbyxntutit.supabase.co';
-const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_pla1TfqgD36QZRrXfnVjrQ_g7eIwAwU';
+// DATA untuk halaman PHP NAKESA (Week 5). Isinya sama dengan js/format.js dan js/professions.js.
 
 // Indeks hari sama dengan day_of_week di database: 0 = Minggu … 6 = Sabtu.
 const DAYS = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
@@ -53,8 +47,8 @@ const PROFESSIONS = [
     ],
 ];
 
-// Contoh praktik, bentuknya sama persis dengan jawaban get_public_practice dari Supabase.
-// Dipakai saat halaman dibuka tanpa ?p=, jadi demo tetap jalan walaupun tanpa internet.
+// Contoh praktik, bentuknya sama persis dengan jawaban PublicPractice::find() (api/public.php).
+// Dipakai saat halaman dibuka tanpa ?p=.
 $samplePractice = [
     'name' => 'Praktik Bidan Sehati',
     'practitioner' => 'Siti Aminah',

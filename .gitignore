@@ -4,4 +4,6 @@
 
 # OS / tooling
 .DS_Store
-supabase/.temp/
+
+# Data yang tersimpan saat aplikasi dipakai (akun, pasien, …). Data awal ada di app/data/contoh/.
+data/

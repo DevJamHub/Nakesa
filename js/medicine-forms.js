@@ -1,6 +1,6 @@
 // Pop-up forms shared by the medicine list (medicines.html) and one medicine (medicine.html):
 // add / edit a medicine, and record stock coming in. The dialogs are built on first use.
-import { insertRow, run, supabase, updateRow } from './db.js';
+import { api, insertRow, updateRow } from './db.js';
 import { bindRupiahInput, escapeHtml, parseRupiah, todayISO } from './format.js';
 import { DRUG_CLASS } from './practice-utils.js';
 import { isAdmin } from './roles.js';
@@ -15,10 +15,10 @@ const options = (list) => list.map((v) => `<option value="${escapeHtml(v)}"></op
 
 /** Categories (shared defaults + the practice's own), in display order. */
 export const loadCategories = () =>
-  run(supabase.from('medicine_categories').select('id, name, practice_id').order('sort_order').order('name'));
+  api('medicine_categories.php');
 
 export const loadSuppliers = () =>
-  run(supabase.from('suppliers').select('id, name').eq('is_active', true).order('name'));
+  api('suppliers.php');
 
 /** Supplier id for a typed name: an existing supplier, or a new one. */
 async function supplierId(name, suppliers) {
@@ -210,7 +210,7 @@ export function openMedicineForm({ medicine = null, categories, suppliers = [], 
         await whileSaving(medicineDialog.querySelector('#med-save'), async () => {
           saved = medicine ? await updateRow('medicines', medicine.id, row) : await insertRow('medicines', row);
           if (!medicine && initQty > 0) {
-            await run(supabase.rpc('receive_stock', {
+            await api('stock.php', { method: 'POST', params: { action: 'receive' }, body: {
               p_medicine_id: saved.id,
               p_quantity: initQty,
               p_expires_on: v.init_expires,
@@ -218,7 +218,7 @@ export function openMedicineForm({ medicine = null, categories, suppliers = [], 
               p_supplier_id: await supplierId(v.init_supplier, suppliers),
               p_buy_price: row.buy_price,
               p_note: 'Stok awal',
-            }));
+            } });
           }
         });
         closeDialog(medicineDialog);
@@ -309,7 +309,7 @@ export function openStockIn({ medicine, suppliers = [] }) {
       }
       try {
         await whileSaving(stockDialog.querySelector('#stock-save'), async () => {
-          await run(supabase.rpc('receive_stock', {
+          await api('stock.php', { method: 'POST', params: { action: 'receive' }, body: {
             p_medicine_id: medicine.id,
             p_quantity: quantity,
             p_expires_on: v.expires_on,
@@ -317,7 +317,7 @@ export function openStockIn({ medicine, suppliers = [] }) {
             p_supplier_id: await supplierId(v.supplier, suppliers),
             p_buy_price: v.buy_price ? parseRupiah(v.buy_price) : null,
             p_note: v.note,
-          }));
+          } });
         });
         saved = true;
         closeDialog(stockDialog);

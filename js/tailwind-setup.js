@@ -34,6 +34,9 @@
           blue: pair('blue'),
           purple: pair('purple'),
           teal: pair('teal'),
+          // Chart marks only (money in / out). Text keeps using green / red.
+          'chart-in': color('chart-in'),
+          'chart-out': color('chart-out'),
         },
         fontFamily: {
           sans: ['Inter', 'ui-sans-serif', 'system-ui', '-apple-system', 'Segoe UI', 'sans-serif'],
@@ -67,6 +70,9 @@
   --blue: 51 126 169;     --blue-soft: 231 243 248;  --blue-solid: 51 126 169;
   --purple: 144 101 176;  --purple-soft: 246 243 249; --purple-solid: 144 101 176;
   --teal: 30 128 136;     --teal-soft: 228 244 244;  --teal-solid: 30 128 136;
+  /* Chart bars: a step of our green/red with enough chroma and lightness difference
+     to stay distinguishable for colour-blind readers (checked for light and dark). */
+  --chart-in: 52 131 91;  --chart-out: 211 59 57;
   --side-width: 260px;
   color-scheme: light;
 }
@@ -82,6 +88,7 @@
   --blue: 110 174 220;    --blue-soft: 30 52 68;
   --purple: 180 145 220;  --purple-soft: 54 42 66;
   --teal: 96 196 196;     --teal-soft: 28 58 60;
+  --chart-in: 71 154 105; --chart-out: 240 87 79;
   color-scheme: dark;
 } }
 

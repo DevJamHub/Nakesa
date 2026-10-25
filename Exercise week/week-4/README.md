@@ -13,6 +13,8 @@
 - [x] Task 03 — Handle API state (loading, berhasil, error + Coba Lagi)
 - [x] Penjelasan lengkap: [`Week4.md`](../Week4.md)
 
+**Issue per task (sub-issue):** [#59](https://github.com/DevJamHub/Nakesa/issues/59) · [#60](https://github.com/DevJamHub/Nakesa/issues/60) · [#61](https://github.com/DevJamHub/Nakesa/issues/61)
+
 ## Siapa mengerjakan apa
 
 | Anggota | Pekerjaan | Bukti |
@@ -20,7 +22,9 @@
 | Sigit Novriyanto (@DevJamHub) | Tugas Task 01–03 (API Hari Libur) dan dokumentasi `Week4.md` | 2394365, 678e46c |
 | Aditiya Al Bayhaqy (@baybayyy26) | Menyesuaikan dan menguji ulang PR #21–#28 dengan kode terbaru (booking per slot, grafik tren, unduh CSV buku kas, unit test termasuk test API hari libur, dokumentasi); peta per week ini (#39) | PR #21–#28, #39 (menunggu review) |
 
-## User story yang selesai / dikerjakan
+## Fitur tambahan yang dibuat minggu ini (Bagian B)
+
+Bukan bagian dari tugas week ini. Dicatat terpisah per kelompok fitur di [📌 Peta Issues #73](https://github.com/DevJamHub/Nakesa/issues/73).
 
 [#17](https://github.com/DevJamHub/Nakesa/issues/17) · [#18](https://github.com/DevJamHub/Nakesa/issues/18) · [#19](https://github.com/DevJamHub/Nakesa/issues/19) · [#20](https://github.com/DevJamHub/Nakesa/issues/20) · [#24](https://github.com/DevJamHub/Nakesa/issues/24) · [#26](https://github.com/DevJamHub/Nakesa/issues/26)
 

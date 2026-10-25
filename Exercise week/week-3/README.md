@@ -13,6 +13,8 @@
 - [x] Task 06 — JavaScript di Beranda
 - [x] Penjelasan lengkap: [`Week3.md`](../Week3.md)
 
+**Issue per task (sub-issue):** [#53](https://github.com/DevJamHub/Nakesa/issues/53) · [#54](https://github.com/DevJamHub/Nakesa/issues/54) · [#55](https://github.com/DevJamHub/Nakesa/issues/55) · [#56](https://github.com/DevJamHub/Nakesa/issues/56) · [#57](https://github.com/DevJamHub/Nakesa/issues/57) · [#58](https://github.com/DevJamHub/Nakesa/issues/58)
+
 ## Siapa mengerjakan apa
 
 | Anggota | Pekerjaan | Bukti |
@@ -20,7 +22,9 @@
 | Sigit Novriyanto (@DevJamHub) | Tugas Task 01–06 dan dokumentasi `Week3.md`; fitur tambahan 5 Okt (sistem obat, resep, layanan, buku kas, QR) | ec7e9c7 … 48149ce, d06b5bd |
 | Aditiya Al Bayhaqy (@baybayyy26) | Menyiapkan alur kerja tim di GitHub (3 Okt): template issue/PR dan CI (PR #1, di-push dan di-merge Sigit), backlog user story #2–#20, dan papan kerja; membuka PR #21–#28 | issue #2–#20, PR #21–#28 |
 
-## User story yang selesai / dikerjakan
+## Fitur tambahan yang dibuat minggu ini (Bagian B)
+
+Bukan bagian dari tugas week ini. Dicatat terpisah per kelompok fitur di [📌 Peta Issues #73](https://github.com/DevJamHub/Nakesa/issues/73).
 
 [#8](https://github.com/DevJamHub/Nakesa/issues/8) · [#14](https://github.com/DevJamHub/Nakesa/issues/14) · [#15](https://github.com/DevJamHub/Nakesa/issues/15) · [#33](https://github.com/DevJamHub/Nakesa/issues/33) · [#34](https://github.com/DevJamHub/Nakesa/issues/34) · [#35](https://github.com/DevJamHub/Nakesa/issues/35) · [#36](https://github.com/DevJamHub/Nakesa/issues/36) · [#37](https://github.com/DevJamHub/Nakesa/issues/37) · [#38](https://github.com/DevJamHub/Nakesa/issues/38)
 

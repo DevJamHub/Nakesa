@@ -13,13 +13,17 @@
 - [x] Task 03 — Merapikan tampilan
 - [x] Demo dan review, commit & push
 
+**Issue per task (sub-issue):** [#50](https://github.com/DevJamHub/Nakesa/issues/50) · [#51](https://github.com/DevJamHub/Nakesa/issues/51) · [#52](https://github.com/DevJamHub/Nakesa/issues/52)
+
 ## Siapa mengerjakan apa
 
 | Anggota | Pekerjaan | Bukti |
 |---|---|---|
 | Sigit Novriyanto (@DevJamHub) | Semua halaman HTML + CSS, database Supabase, login, logika halaman | 77bc3f2, eab146a, e509028, 0263ac5 |
 
-## User story yang selesai / dikerjakan
+## Fitur tambahan yang dibuat minggu ini (Bagian B)
+
+Bukan bagian dari tugas week ini. Dicatat terpisah per kelompok fitur di [📌 Peta Issues #73](https://github.com/DevJamHub/Nakesa/issues/73).
 
 [#2](https://github.com/DevJamHub/Nakesa/issues/2) · [#3](https://github.com/DevJamHub/Nakesa/issues/3) · [#4](https://github.com/DevJamHub/Nakesa/issues/4) · [#5](https://github.com/DevJamHub/Nakesa/issues/5) · [#7](https://github.com/DevJamHub/Nakesa/issues/7) · [#9](https://github.com/DevJamHub/Nakesa/issues/9) · [#10](https://github.com/DevJamHub/Nakesa/issues/10) · [#11](https://github.com/DevJamHub/Nakesa/issues/11) · [#12](https://github.com/DevJamHub/Nakesa/issues/12) · [#13](https://github.com/DevJamHub/Nakesa/issues/13) · [#16](https://github.com/DevJamHub/Nakesa/issues/16)
 

@@ -13,6 +13,8 @@
 - [x] Task 03 — Build Dynamic Server-Side Content (bagian halaman yang dibuat PHP)
 - [x] Penjelasan: [`Week5.md`](../Week5.md) (Sigit) dan [`Week5-Bayhaqy.md`](../Week5-Bayhaqy.md) (Bayhaqy, di PR #43)
 
+**Issue per task (sub-issue):** [#62](https://github.com/DevJamHub/Nakesa/issues/62) · [#63](https://github.com/DevJamHub/Nakesa/issues/63) · [#64](https://github.com/DevJamHub/Nakesa/issues/64)
+
 Pekerjaan dibagi dua halaman PHP yang berbeda, dengan Task 01–03 lengkap di masing-masing halaman:
 
 | Halaman | Untuk | Isi yang dibuat PHP |

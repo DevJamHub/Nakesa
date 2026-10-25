@@ -12,13 +12,17 @@ Course orientation & project kickoff. *Mission: Define Your Product* — siapa p
 - [x] Membuat repository GitHub
 - [x] Halaman pembuka pertama
 
+**Issue per task (sub-issue):** [#47](https://github.com/DevJamHub/Nakesa/issues/47) · [#48](https://github.com/DevJamHub/Nakesa/issues/48) · [#49](https://github.com/DevJamHub/Nakesa/issues/49)
+
 ## Siapa mengerjakan apa
 
 | Anggota | Pekerjaan | Bukti |
 |---|---|---|
 | Sigit Novriyanto (@DevJamHub) | Membuat repository dan halaman pembuka pertama | a9b61c3, c5f30b2 |
 
-## User story yang selesai / dikerjakan
+## Fitur tambahan yang dibuat minggu ini (Bagian B)
+
+Bukan bagian dari tugas week ini. Dicatat terpisah per kelompok fitur di [📌 Peta Issues #73](https://github.com/DevJamHub/Nakesa/issues/73).
 
 [#6](https://github.com/DevJamHub/Nakesa/issues/6)
 

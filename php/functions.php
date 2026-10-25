@@ -21,6 +21,12 @@ function waLink(string $phone, string $message = ''): string
     return "https://wa.me/$digits" . ($message !== '' ? '?text=' . rawurlencode($message) : '');
 }
 
+/** 150000 → "Rp 150.000", seperti rupiah() di js/format.js. */
+function rupiah(int $amount): string
+{
+    return 'Rp ' . number_format($amount, 0, ',', '.');
+}
+
 /** Selasa, 13 Oktober 2026, 10.15 WIB */
 function indonesianDateTime(int $timestamp): string
 {

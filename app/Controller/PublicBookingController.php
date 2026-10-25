@@ -16,6 +16,12 @@ class PublicBookingController
         return $this->practices->find($slug);
     }
 
+    /** Jam booking satu tanggal: [{start, end, available}, …] (jam yang sudah dipesan/lewat: available false). */
+    public function slots(string $slug, string $date): array
+    {
+        return $this->practices->slots($slug, $date);
+    }
+
     /** Booking baru dari pasien: {p_name, p_phone, p_date, p_time, p_service, p_complaint} → {"id": …} */
     public function book(string $slug, array $input): array
     {

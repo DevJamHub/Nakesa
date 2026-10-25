@@ -16,6 +16,7 @@ class Practice
     private bool $bookingEnabled;
     private Profession $profession; // object di dalam object
     private Schedule $schedule;
+    private array $services;        // layanan milik praktik dari menu "Layanan & Harga" (boleh kosong)
 
     /**
      * $data: bentuknya sama dengan jawaban PublicPractice::find() (dan $samplePractice di data.php).
@@ -33,6 +34,7 @@ class Practice
         $this->bookingEnabled = $data['booking_enabled'];
         $this->profession = Profession::find($data['profession']);
         $this->schedule = new Schedule($data['hours']);
+        $this->services = $data['services'] ?? [];
     }
 
     public function getName(): string
@@ -73,10 +75,20 @@ class Practice
         return $this->schedule;
     }
 
-    /** Layanan yang bisa dipilih pasien (seperti getPrograms() di slide). */
+    /**
+     * Layanan yang bisa dipilih pasien (seperti getPrograms() di slide): milik praktik dari menu
+     * "Layanan & Harga" (sama dengan halaman booking), atau layanan standar profesi kalau belum ada.
+     * Setiap layanan: ['name' => …, 'detail' => "Rp 150.000 · 30 menit"] (detail kosong untuk layanan standar).
+     */
     public function getServices(): array
     {
-        return $this->profession->getServices();
+        if (count($this->services) > 0) {
+            return array_map(fn ($s) => [
+                'name' => $s['name'],
+                'detail' => ($s['price'] === null ? 'Tanya harga ke praktik' : rupiah((int) $s['price'])) . " · {$s['duration_minutes']} menit",
+            ], $this->services);
+        }
+        return array_map(fn ($name) => ['name' => $name, 'detail' => ''], $this->profession->getServices());
     }
 
     public function isOpen(): bool

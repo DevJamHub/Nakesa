@@ -1,6 +1,6 @@
 // Keuangan: money in / out per month, with a monthly summary and the cash book
 // (buku kas): every record as a row with a running balance, like the paper book.
-import { deleteRow, insertRow, run, supabase, updateRow } from '../db.js';
+import { api, deleteRow, insertRow, updateRow } from '../db.js';
 import { bindRupiahInput, escapeHtml, formatDate, parseRupiah, rupiah, toISODate, todayISO } from '../format.js';
 import { financeCategories } from '../professions.js';
 import {
@@ -48,9 +48,7 @@ async function load() {
   const last = toISODate(new Date(month.getFullYear(), month.getMonth() + 1, 0));
   try {
     [transactions, openingBalance] = await Promise.all([
-      run(supabase.from('transactions').select('*')
-        .gte('occurred_on', first).lte('occurred_on', last)
-        .order('occurred_on').order('created_at')),
+      api('transactions.php', { params: { from: first, to: last } }),
       balanceBefore(first),
     ]);
   } catch (error) {
@@ -61,16 +59,10 @@ async function load() {
   render();
 }
 
-/** Money in minus money out before `date`. Read in pages: the API returns at most 1000 rows at once. */
+/** Money in minus money out before `date` (counted by the server). */
 async function balanceBefore(date) {
-  const PAGE = 1000;
-  let balance = 0;
-  for (let from = 0; ; from += PAGE) {
-    const rows = await run(supabase.from('transactions').select('kind, amount')
-      .lt('occurred_on', date).order('id').range(from, from + PAGE - 1));
-    for (const t of rows) balance += t.kind === 'masuk' ? t.amount : -t.amount;
-    if (rows.length < PAGE) return balance;
-  }
+  const { balance } = await api('transactions.php', { params: { view: 'balance', before: date } });
+  return balance;
 }
 
 document.getElementById('prev-month').addEventListener('click', () => { month.setMonth(month.getMonth() - 1); load(); });

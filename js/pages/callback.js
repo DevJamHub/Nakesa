@@ -1,5 +1,5 @@
 // Return page for Google / Apple sign-in and email-confirmation links.
-// supabase-js exchanges the ?code= in the URL for a session automatically.
+// Not reachable for now: Google / Apple sign-in is switched off (AUTH_PROVIDERS in config.js).
 import { PAGES } from '../config.js';
 import { getSession } from '../auth.js';
 import { IS_DEV, messageForCode } from '../errors.js';

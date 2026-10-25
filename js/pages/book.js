@@ -1,6 +1,6 @@
 // Public booking page (no login). The link looks like book.html?p=<booking_slug>.
-// Uses two database functions that expose only what patients need.
-import { supabase } from '../supabase.js';
+// Uses api/public.php, which exposes only what patients need.
+import { api } from '../api.js';
 import { IS_DEV } from '../errors.js';
 import { DAYS, escapeHtml, formatDate, todayISO, waLink } from '../format.js';
 import { professionOf, titledName } from '../professions.js';
@@ -18,9 +18,15 @@ function notFound(message) {
     `<div class="card empty-state"><p class="empty-icon" aria-hidden="true">🔍</p><p>${escapeHtml(message)}</p></div>`;
 }
 
-const { data: practice, error } = slug
-  ? await supabase.rpc('get_public_practice', { p_slug: slug })
-  : { data: null, error: null };
+let practice = null;
+let error = null;
+if (slug) {
+  try {
+    practice = await api('public.php', { params: { slug } });
+  } catch (loadError) {
+    error = loadError;
+  }
+}
 
 if (error) {
   if (IS_DEV) console.error('[book]', error);
@@ -115,21 +121,20 @@ function setUpForm(p, profession, openDays) {
 
     submit.disabled = true;
     submit.textContent = 'Mengirim…';
-    const { error } = await supabase.rpc('create_booking', {
-      p_slug: slug,
+    let error = null;
+    await api('public.php', { method: 'POST', params: { slug }, body: {
       p_name: name,
       p_phone: phone,
       p_date: values.p_date,
       p_time: values.p_time || null,
       p_service: values.p_service || null,
       p_complaint: values.p_complaint.trim() || null,
-    });
+    } }).catch((sendError) => { error = sendError; });
 
     if (error) {
       if (IS_DEV) console.error('[book]', error);
-      errorBox.textContent = error.code === 'P0001'
-        ? error.message
-        : 'Booking gagal dikirim. Periksa koneksi internet lalu coba lagi.';
+      errorBox.textContent = error.userMessage
+        ?? 'Booking gagal dikirim. Periksa koneksi internet lalu coba lagi.';
       errorBox.hidden = false;
       submit.disabled = false;
       submit.textContent = 'Kirim Booking';

@@ -1,6 +1,6 @@
 // Booking: confirm / cancel / finish online bookings, add manual bookings.
 // Finishing a booking can record the payment and save the patient in one step.
-import { insertRow, run, supabase, updateRow } from '../db.js';
+import { api, insertRow, updateRow } from '../db.js';
 import {
   bindRupiahInput, escapeHtml, formatDate, friendlyDate, parseRupiah, shortTime, todayISO, waLink, waNumber,
 } from '../format.js';
@@ -20,16 +20,9 @@ let patients = [];
 
 /* ---------- Load ---------- */
 async function load() {
-  let query = supabase.from('bookings').select('*');
-  if (tab === 'upcoming') {
-    query = query.gte('booking_date', today).in('status', ['baru', 'dikonfirmasi'])
-      .order('booking_date').order('booking_time', { nullsFirst: false });
-  } else {
-    query = query.or(`booking_date.lt.${today},status.in.(selesai,batal)`)
-      .order('booking_date', { ascending: false }).limit(100);
-  }
+  // upcoming: today onwards and still open (baru / dikonfirmasi); history: past, finished or cancelled.
   try {
-    bookings = await run(query);
+    bookings = await api('bookings.php', { params: { view: tab === 'upcoming' ? 'upcoming' : 'history', date: today } });
   } catch (error) {
     bookings = [];
     toast(appError(error), 'error');
@@ -38,7 +31,7 @@ async function load() {
 }
 
 try {
-  patients = await run(supabase.from('patients').select('id, full_name, phone').order('full_name'));
+  patients = await api('patients.php');
   document.getElementById('patient-names').innerHTML =
     patients.map((p) => `<option value="${escapeHtml(p.full_name)}">`).join('');
 } catch { /* the list still works without suggestions */ }

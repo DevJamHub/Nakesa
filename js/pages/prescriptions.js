@@ -2,7 +2,7 @@
 // calls complete_prescription(), which checks every medicine and takes the stock
 // (earliest expiry first) in one go — or nothing at all when something is missing.
 import { PAGES } from '../config.js';
-import { deleteRow, insertRow, run, supabase, updateRow } from '../db.js';
+import { api, deleteRow, insertRow, updateRow } from '../db.js';
 import { escapeHtml, formatDate, waLink } from '../format.js';
 import { DRUG_CLASS, STOCK_STATUS, medicineDetail } from '../practice-utils.js';
 import { canManage, practiceRole } from '../roles.js';
@@ -35,15 +35,9 @@ if (!canManage(role)) {
 async function load() {
   try {
     [prescriptions, inventory, patients] = await Promise.all([
-      run(supabase.from('prescriptions')
-        .select(`id, patient_id, patient_name, booking_id, status, notes, created_at, completed_at,
-          prescription_items(id, medicine_id, dose, frequency, duration, quantity, route, instructions, created_at,
-            medicines(generic_name, unit))`)
-        .order('created_at', { ascending: false }).limit(200)),
-      run(supabase.from('medicine_inventory')
-        .select('id, generic_name, brand_name, dosage_form, strength, unit, route, stock, stock_status, drug_class, use_in_service')
-        .eq('is_active', true).order('generic_name')),
-      run(supabase.from('patients').select('id, full_name, phone').order('full_name')),
+      api('prescriptions.php'),
+      api('medicine_inventory.php').then((rows) => rows.filter((m) => m.is_active)),
+      api('patients.php'),
     ]);
   } catch (error) {
     toast(appError(error), 'error');
@@ -184,7 +178,7 @@ async function complete(prescriptionId) {
   });
   if (!ok) return false;
   try {
-    await run(supabase.rpc('complete_prescription', { p_prescription_id: prescriptionId }));
+    await api('prescriptions.php', { method: 'POST', params: { action: 'complete', id: prescriptionId } });
     toast('Resep selesai. Stok obat sudah berkurang.');
     refreshNavBadges();
     await load();
@@ -369,12 +363,12 @@ async function saveDraft() {
   let id = editing?.id;
   if (id) {
     await updateRow('prescriptions', id, row);
-    await run(supabase.from('prescription_items').delete().eq('prescription_id', id));
   } else {
     id = (await insertRow('prescriptions', row)).id;
     editing = { id, booking_id: bookingId }; // a second save updates this draft instead of making another
   }
-  await run(supabase.from('prescription_items').insert(items.map((i) => ({ ...i, prescription_id: id }))));
+  // Replace the draft's medicines with what is on screen.
+  await api('prescription_items.php', { method: 'PUT', params: { prescription_id: id }, body: items });
   return id;
 }
 

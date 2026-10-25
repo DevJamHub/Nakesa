@@ -1,4 +1,4 @@
-// Turns technical Supabase / network errors into safe, friendly messages.
+// Turns technical server / network errors into safe, friendly messages.
 // Technical details are only logged to the console when running locally.
 
 export const IS_DEV = ['localhost', '127.0.0.1'].includes(window.location.hostname);
@@ -21,21 +21,23 @@ const BY_CODE = {
   user_banned: 'Akun ini dinonaktifkan. Silakan hubungi admin.',
   flow_state_expired: 'Link sudah kedaluwarsa. Silakan coba lagi.',
   otp_expired: 'Link sudah kedaluwarsa. Silakan minta link baru.',
+  feature_unavailable: 'Fitur ini belum tersedia.',
 };
 
-/** Friendly text for a Supabase error code (e.g. from a callback URL), or null. */
+/** Friendly text for an error code (e.g. from a callback URL), or null. */
 export const messageForCode = (code) => BY_CODE[code] ?? null;
 
 export function friendlyError(error, context = 'general') {
   if (IS_DEV) console.error(`[auth:${context}]`, error);
 
-  if (error?.name === 'AuthRetryableFetchError' || error instanceof TypeError || !navigator.onLine) {
+  if (error instanceof TypeError || !navigator.onLine) {
     return 'Koneksi internet bermasalah. Periksa jaringan lalu coba lagi.';
   }
   if (error?.code === 'provider_disabled' && PROVIDER_NAMES[error.provider]) {
     return `Masuk dengan ${PROVIDER_NAMES[error.provider]} belum diaktifkan. Silakan gunakan cara masuk lain.`;
   }
   if (error?.code && BY_CODE[error.code]) return BY_CODE[error.code];
+  if (error?.userMessage) return error.userMessage;
   if (context === 'signIn' && error?.status === 400) {
     return 'Gagal masuk. Periksa email dan kata sandi Anda.';
   }

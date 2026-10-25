@@ -1,6 +1,6 @@
 // Daftar pasien: search, detail pop-up with visit history, add, edit, delete, WhatsApp.
 import { PAGES } from '../config.js';
-import { deleteRow, insertRow, run, supabase, updateRow } from '../db.js';
+import { api, deleteRow, insertRow, updateRow } from '../db.js';
 import { age, escapeHtml, formatDate, friendlyDate, todayISO, waLink } from '../format.js';
 import { BOOKING_STATUS } from '../practice-utils.js';
 import {
@@ -20,7 +20,7 @@ let editing = null; // patient being edited, or null when adding
 form.birth_date.max = todayISO();
 
 try {
-  patients = await run(supabase.from('patients').select('*').order('full_name'));
+  patients = await api('patients.php');
 } catch (error) {
   toast(appError(error), 'error');
 }
@@ -114,16 +114,8 @@ function openDetail(p) {
 
 // Bookings with the same phone number or name, newest first.
 async function loadHistory(p, box) {
-  const escapeLike = (text) => text.replace(/[\\%_]/g, (c) => `\\${c}`);
-  const byName = supabase.from('bookings').select('*').ilike('patient_name', escapeLike(p.full_name))
-    .order('booking_date', { ascending: false }).limit(10);
-  const byPhone = p.phone
-    ? supabase.from('bookings').select('*').eq('patient_phone', p.phone).order('booking_date', { ascending: false }).limit(10)
-    : null;
   try {
-    const results = await Promise.all([run(byName), byPhone ? run(byPhone) : []]);
-    const visits = [...new Map(results.flat().map((b) => [b.id, b])).values()]
-      .sort((a, b) => b.booking_date.localeCompare(a.booking_date)).slice(0, 10);
+    const visits = await api('bookings.php', { params: { view: 'patient', name: p.full_name, phone: p.phone } });
     box.innerHTML = visits.length
       ? visits.map((b) => {
         const status = BOOKING_STATUS[b.status];

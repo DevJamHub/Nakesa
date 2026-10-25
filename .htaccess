@@ -1,0 +1,2 @@
+# Untuk Apache (XAMPP): sama seperti router.php, folder app/ dan data/ tidak boleh dibuka dari browser.
+RedirectMatch 404 /(app|data)(/|$)

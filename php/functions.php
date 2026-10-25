@@ -1,7 +1,7 @@
 <?php
 // Helper umum untuk halaman PHP NAKESA, sama dengan helper JavaScript di js/format.js.
-// Week 6: fungsi yang mengolah data praktik sudah pindah menjadi method di folder classes/
-// (Practice, Profession, Schedule, PracticeRepository). Yang tersisa di sini tidak milik satu object tertentu.
+// Week 6: fungsi yang mengolah data praktik sudah pindah menjadi method class (sejak Week 7 di folder Model/:
+// Practice, Profession, Schedule, PracticeModel). Yang tersisa di sini tidak milik satu object tertentu.
 
 /** Amankan teks sebelum dimasukkan ke HTML (mencegah XSS), seperti escapeHtml() di js/format.js. */
 function e(?string $text): string

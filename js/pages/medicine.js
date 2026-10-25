@@ -1,7 +1,7 @@
 // One medicine (medicine.html?id=…): its data, batches with stock, the full stock history
 // and where it was used in prescriptions. Stock changes go through database functions.
 import { PAGES } from '../config.js';
-import { deleteRow, run, supabase, updateRow } from '../db.js';
+import { api, deleteRow, updateRow } from '../db.js';
 import { escapeHtml, formatDate, rupiah, todayISO } from '../format.js';
 import { loadCategories, loadSuppliers, openMedicineForm, openStockIn } from '../medicine-forms.js';
 import {
@@ -28,13 +28,10 @@ async function load() {
     const since = new Date(Date.now() - 30 * 86_400_000).toISOString();
     let used;
     [medicine, inventory, batches, used] = await Promise.all([
-      run(supabase.from('medicines').select('*, medicine_categories(name)').eq('id', id).maybeSingle()),
-      run(supabase.from('medicine_inventory').select('*').eq('id', id).maybeSingle()),
-      run(supabase.from('medicine_batches')
-        .select('id, batch_number, expires_on, received_on, buy_price, suppliers(name), medicine_stock(quantity)')
-        .eq('medicine_id', id).order('expires_on', { nullsFirst: false }).order('received_on')),
-      run(supabase.from('stock_movements').select('quantity')
-        .eq('medicine_id', id).in('movement_type', ['resep', 'keluar']).gte('created_at', since)),
+      api('medicines.php', { params: { id } }),
+      api('medicine_inventory.php', { params: { id } }),
+      api('medicine_batches.php', { params: { medicine_id: id } }),
+      api('stock_movements.php', { params: { medicine_id: id, view: 'usage', since } }),
     ]);
     if (!medicine) {
       document.querySelector('main').innerHTML = `<div class="card empty-state"><p class="empty-icon" aria-hidden="true">🔍</p>
@@ -195,12 +192,12 @@ function openStockOut(batch) {
     if (quantity > available) return toast(`Stok batch ini hanya ${available} ${medicine.unit}.`, 'error');
     event.target.disabled = true;
     try {
-      await run(supabase.rpc('record_stock_out', {
+      await api('stock.php', { method: 'POST', params: { action: 'out' }, body: {
         p_batch_id: batch.id,
         p_type: popup.querySelector('input[name="out-type"]:checked').value,
         p_quantity: quantity,
         p_note: popup.querySelector('#out-note').value,
-      }));
+      } });
       closeDialog(popup);
       toast('Stok keluar dicatat');
       refreshNavBadges();
@@ -236,11 +233,11 @@ function openCorrection(batch) {
   popup.querySelector('#count-save').addEventListener('click', async (event) => {
     event.target.disabled = true;
     try {
-      await run(supabase.rpc('correct_stock', {
+      await api('stock.php', { method: 'POST', params: { action: 'correct' }, body: {
         p_batch_id: batch.id,
         p_counted: Number(qty.value),
         p_note: popup.querySelector('#count-note').value,
-      }));
+      } });
       closeDialog(popup);
       toast('Koreksi stok dicatat');
       refreshNavBadges();
@@ -261,9 +258,7 @@ $('batches').addEventListener('click', (event) => {
 
 /* ---------- Stock history ---------- */
 async function loadHistory() {
-  const moves = await run(supabase.from('stock_movements')
-    .select('id, movement_type, quantity, stock_after, note, created_at, created_by, medicine_batches(batch_number)')
-    .eq('medicine_id', id).order('created_at', { ascending: false }).limit(100));
+  const moves = await api('stock_movements.php', { params: { medicine_id: id } });
   if (!moves.length) {
     $('history').innerHTML = '<div class="empty-state"><p class="empty-icon" aria-hidden="true">🧾</p><p class="muted">Belum ada transaksi stok.</p></div>';
     return;
@@ -292,9 +287,7 @@ async function loadHistory() {
 
 /* ---------- Use in prescriptions ---------- */
 async function loadUsage() {
-  usage = await run(supabase.from('prescription_items')
-    .select('id, dose, frequency, duration, quantity, route, created_at, prescriptions(patient_name, status, completed_at)')
-    .eq('medicine_id', id).order('created_at', { ascending: false }).limit(50));
+  usage = await api('prescription_items.php', { params: { medicine_id: id } });
   if (!canManage(role)) {
     $('usage').innerHTML = '<div class="empty-state"><p class="muted">Resep hanya bisa dilihat oleh admin dan tenaga kesehatan.</p></div>';
     return;

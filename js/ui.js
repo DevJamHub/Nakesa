@@ -1,5 +1,5 @@
 // Small DOM helpers shared by all auth pages.
-import { AUTH_PROVIDERS, PAGES } from './config.js';
+import { AUTH_PROVIDERS, PAGES, PASSWORD_RESET } from './config.js';
 import { getSession, signInWithOAuth } from './auth.js';
 import { friendlyError } from './errors.js';
 
@@ -85,7 +85,7 @@ export function initPasswordToggles() {
 
 /* ---------- Provider visibility ---------- */
 
-/** Hide Google / Apple / Email sections that are switched off in config.js. */
+/** Hide Google / Apple / Email sections and the password-reset link that are switched off in config.js. */
 export function applyProviderConfig() {
   const oauthOn = AUTH_PROVIDERS.google || AUTH_PROVIDERS.apple;
   document.querySelectorAll('[data-provider]').forEach((el) => {
@@ -93,6 +93,7 @@ export function applyProviderConfig() {
   });
   document.querySelectorAll('[data-requires="oauth"]').forEach((el) => (el.hidden = !oauthOn));
   document.querySelectorAll('[data-requires="both"]').forEach((el) => (el.hidden = !(oauthOn && AUTH_PROVIDERS.email)));
+  document.querySelectorAll('[data-requires="reset"]').forEach((el) => (el.hidden = !PASSWORD_RESET));
 }
 
 /**

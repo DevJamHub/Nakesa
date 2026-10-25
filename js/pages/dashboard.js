@@ -2,7 +2,7 @@
 // today's patients (confirm right here), income of the last 7 days, upcoming national
 // holidays (from a public API) and the booking link.
 import { PAGES } from '../config.js';
-import { countRows, run, supabase, updateRow } from '../db.js';
+import { api, updateRow } from '../db.js';
 import { IS_DEV } from '../errors.js';
 import { DAYS, escapeHtml, formatDate, rupiah, shortTime, todayISO, waLink } from '../format.js';
 import { fetchHolidays } from '../holidays.js';
@@ -127,21 +127,19 @@ async function load() {
   today = todayISO();
   const weekAgo = new Date(Date.now() - 7 * 86_400_000).toISOString();
   try {
-    const [bookings, pending, money, patientCount, newPatients, medicines, practiceHours] = await Promise.all([
-      run(supabase.from('bookings').select('*').eq('booking_date', today).neq('status', 'batal')
-        .order('booking_time', { ascending: true, nullsFirst: false })),
-      countRows('bookings', (q) => q.eq('status', 'baru').gte('booking_date', today)),
-      run(supabase.from('transactions').select('kind, amount, occurred_on').gte('occurred_on', todayISO(-6))),
-      countRows('patients'),
-      countRows('patients', (q) => q.gte('created_at', weekAgo)),
+    const [bookings, pending, money, patients, medicines, practiceHours] = await Promise.all([
+      api('bookings.php', { params: { view: 'today', date: today } }),
+      api('bookings.php', { params: { view: 'pending_count', date: today } }),
+      api('transactions.php', { params: { from: todayISO(-6) } }),
+      api('patients.php', { params: { view: 'counts', since: weekAgo } }),
       // The medicine card is a hint: if it can't load, the rest of Beranda still shows.
-      run(supabase.from('medicine_inventory')
-        .select('id, generic_name, unit, stock, expired_stock, nearest_expiry, stock_status, expiry_status, is_active')
-        .eq('is_active', true).order('generic_name')).catch(() => []),
-      run(supabase.from('practice_hours').select('day_of_week, opens_at, closes_at').order('opens_at')),
+      api('medicine_inventory.php').then((rows) => rows.filter((m) => m.is_active)).catch(() => []),
+      api('practice_hours.php'),
     ]);
+    const patientCount = patients.total;
+    const newPatients = patients.since;
     todayBookings = bookings;
-    pendingCount = pending;
+    pendingCount = pending.count;
     medicinesToCheck = medicines.filter(needsAttention);
     hours = practiceHours;
     loadedAt = Date.now();
@@ -565,7 +563,7 @@ function renderHolidays() {
   let html = '';
   upcoming.forEach((holiday) => {
     const date = new Date(`${holiday.date}T00:00:00`);
-    // Gabungkan dengan data praktik dari Supabase: apakah hari itu ada jadwal praktik?
+    // Gabungkan dengan data praktik dari server NAKESA: apakah hari itu ada jadwal praktik?
     const sessions = hours.filter((h) => h.day_of_week === date.getDay());
     const badges = [
       holiday.jointLeave ? '<span class="badge badge-blue">Cuti bersama</span>' : '',
@@ -666,7 +664,7 @@ tick();
 (function everyMinute() {
   setTimeout(() => { tick(); everyMinute(); }, 60_000 - (Date.now() % 60_000) + 50);
 })();
-loadHolidays(); // runs alongside load(): the holiday API and Supabase are fetched at the same time
+loadHolidays(); // runs alongside load(): the holiday API and the NAKESA API are fetched at the same time
 await load();
 
 // Coming back to the app later (e.g. after replying on WhatsApp) shows fresh numbers.

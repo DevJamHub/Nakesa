@@ -1,18 +1,16 @@
-// NAKESA — Supabase configuration.
-//
-// The publishable key is SAFE to ship in frontend code: all data access is
-// protected by Row Level Security in the database.
-// NEVER put the service_role / secret key in any file in this folder.
-export const SUPABASE_URL = 'https://fmmudgdkyihbyxntutit.supabase.co';
-export const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_pla1TfqgD36QZRrXfnVjrQ_g7eIwAwU';
+// NAKESA — frontend configuration.
+// Data and sign-in are handled by the PHP server in the api/ folder (see js/api.js).
 
 // Turn each sign-in method on/off independently.
-// Set to false until the provider is enabled in Supabase → Authentication → Providers.
+// Google / Apple need an outside sign-in service, which is not part of the course yet.
 export const AUTH_PROVIDERS = {
-  google: true,
-  apple: false, // Apple is not configured in Supabase yet — flip to true once it is.
+  google: false,
+  apple: false,
   email: true,
 };
+
+// "Lupa kata sandi" sends an email, which needs an outside email service: hidden for now.
+export const PASSWORD_RESET = false;
 
 export const MIN_PASSWORD_LENGTH = 8;
 

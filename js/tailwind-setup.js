@@ -280,7 +280,7 @@
   .row-between { @apply flex items-center justify-between gap-2.5; }
   .section { @apply mt-10; }
   .section > h2 { @apply mb-3; }
-  .list { @apply grid gap-2; }
+  .list { @apply grid grid-cols-[minmax(0,1fr)] gap-2; } /* one column that never grows wider than the page */
   .item { @apply relative grid gap-2 rounded-xl border border-line bg-surface px-4 py-3.5 transition; }
   .item:hover { @apply border-line-strong shadow-soft; }
   .item-main { @apply flex items-start justify-between gap-2.5; }

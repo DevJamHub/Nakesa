@@ -24,6 +24,15 @@ $appStatus = $isActive ? 'Aktif dikembangkan' : 'Selesai';
 /* ---------- Week 5 · Task 02: Process Data (array multidimensi, conditional, loop) ---------- */
 $statusCounts = countByStatus($features);
 $featureTotal = count($features);
+// Kalimat ringkasan hanya menyebut status yang jumlahnya lebih dari 0, misalnya "13 tersedia".
+$statusLabels = [STATUS_TERSEDIA => 'tersedia', STATUS_BARU => 'baru minggu ini', STATUS_REVIEW => 'sedang direview'];
+$summaryParts = [];
+foreach ($statusLabels as $status => $label) {
+    if ($statusCounts[$status] > 0) {
+        $summaryParts[] = "{$statusCounts[$status]} $label";
+    }
+}
+$statusSummary = implode(', ', $summaryParts);
 $professions = PROFESSIONS;
 unset($professions['lainnya']); // "Lainnya" bukan profesi, hanya pilihan cadangan saat mendaftar
 $professionCount = count($professions);
@@ -115,8 +124,7 @@ $pageDescription = "$description Mendukung $professionCount profesi kesehatan.";
     <section class="card" aria-labelledby="features-title">
       <h2 id="features-title">📋 Semua fitur</h2>
       <p class="mb-3 mt-1 text-sm text-muted">
-        <?= $statusCounts[STATUS_TERSEDIA] ?> tersedia, <?= $statusCounts[STATUS_BARU] ?> baru minggu ini,
-        <?= $statusCounts[STATUS_REVIEW] ?> sedang direview sebelum masuk aplikasi.
+        <?= e($statusSummary) ?>.
       </p>
       <div class="overflow-x-auto">
         <table class="w-full border-collapse text-left text-[15px]">

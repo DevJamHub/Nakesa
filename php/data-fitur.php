@@ -59,21 +59,21 @@ $features = [
     [
         'name' => 'Profil praktik untuk pasien', 'icon' => '🔗', 'menu' => 'Link publik',
         'description' => 'Jadwal dan layanan praktik yang dibuat oleh PHP, jadi pratinjau link di WhatsApp ikut menampilkan nama praktik.',
-        'status' => STATUS_BARU, 'week' => 5, 'unggulan' => true,
+        'status' => STATUS_TERSEDIA, 'week' => 5, 'unggulan' => true,
     ],
     [
         'name' => 'Jam booking mengikuti jam praktik', 'icon' => '⏰', 'menu' => 'Booking',
         'description' => 'Pasien memilih jam per 30 menit di dalam jam praktik. Jam yang sudah dipesan tidak bisa dipilih lagi.',
-        'status' => STATUS_REVIEW, 'week' => 4, 'unggulan' => false,
+        'status' => STATUS_TERSEDIA, 'week' => 4, 'unggulan' => false,
     ],
     [
         'name' => 'Grafik tren keuangan 6 bulan', 'icon' => '📈', 'menu' => 'Keuangan',
         'description' => 'Perbandingan uang masuk dan keluar selama enam bulan terakhir.',
-        'status' => STATUS_REVIEW, 'week' => 4, 'unggulan' => false,
+        'status' => STATUS_TERSEDIA, 'week' => 4, 'unggulan' => false,
     ],
     [
         'name' => 'Unduh buku kas (CSV)', 'icon' => '⬇️', 'menu' => 'Keuangan',
         'description' => 'Buku kas bulanan diunduh sebagai file yang bisa dibuka di Excel atau Google Sheets.',
-        'status' => STATUS_REVIEW, 'week' => 4, 'unggulan' => true,
+        'status' => STATUS_TERSEDIA, 'week' => 4, 'unggulan' => true,
     ],
 ];
